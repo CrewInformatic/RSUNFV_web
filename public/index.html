@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>RSU FIEI - Responsabilidad Social Universitaria</title>
+
+    <!-- Iconos de la pestaña (Favicons) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicons/favicon-16x16.png">
+    <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicons/favicon.ico">
+    <link rel="manifest" href="assets/img/favicons/manifest.json">
+    <meta name="msapplication-TileImage" content="assets/img/favicons/mstile-150x150.png">
+    <meta name="theme-color" content="#ff6b35">
+
+    <!-- Hojas de estilo (CSS) -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/8.4.7/swiper-bundle.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/Page_Home.css">
+  </head>
+
+  <body>
+    <main class="main" id="top">
+      <!-- Barra de navegación (Navbar) -->
+      <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="index.html">
+            <div style="display: flex; align-items: center;">
+              <div style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--orange-primary), var(--orange-secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                <i class="fas fa-graduation-cap" style="color: white; font-size: 1.5rem;"></i>
+              </div>
+              <span style="font-weight: 700; font-size: 1.5rem; color: var(--orange-primary);">RSU FIEI</span>
+            </div>
+          </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+            <i class="fa-solid fa-bars" style="color: var(--orange-primary);"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
+              <li class="nav-item"><a class="nav-link active" href="#inicio">Inicio</a></li>
+              <li class="nav-item"><a class="nav-link" href="#nosotros">Nosotros</a></li>
+              <li class="nav-item"><a class="nav-link" href="#proyectos">Proyectos</a></li>
+              <li class="nav-item"><a class="nav-link" href="#blog">Blog</a></li>
+              <li class="nav-item mt-2 mt-lg-0">
+                <a class="nav-link btn btn-orange text-white" href="login.html" style="padding: 8px 20px; border-radius: 25px;">Únete</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+     <!-- Sección principal o portada (Hero Section) -->
+    <section class="hero-section" id="inicio">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8 mx-auto">
+                    <div class="hero-content text-center text-lg-start">
+                        <h1 class="hero-title">Responsabilidad Social</h1>
+                        <p class="hero-subtitle">En RSU FIEI creamos impacto positivo en nuestra comunidad universitaria y sociedad</p>
+                        <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start">
+                            <button class="btn btn-orange">Conoce nuestros proyectos</button>
+                            <button class="btn btn-orange-outline">¿Cómo participar?</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Partners Slider -->
+            <div class="partners-slider">
+                <div class="swiper" id="partnersSwiper">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide">
+                            <div class="partner-card">
+                                <i class="fas fa-university partner-icon"></i>
+                                <p class="partner-text">Universidad</p>
+                            </div>
+                        </div>
+                        <div class="swiper-slide">
+                            <div class="partner-card">
+                                <i class="fas fa-heart partner-icon"></i>
+                                <p class="partner-text">ONG's</p>
+                            </div>
+                        </div>
+                        <div class="swiper-slide">
+                            <div class="partner-card">
+                                <i class="fas fa-building partner-icon"></i>
+                                <p class="partner-text">Empresas</p>
+                            </div>
+                        </div>
+                        <div class="swiper-slide">
+                            <div class="partner-card">
+                                <i class="fas fa-users partner-icon"></i>
+                                <p class="partner-text">Comunidad</p>
+                            </div>
+                        </div>
+                        <div class="swiper-slide">
+                            <div class="partner-card">
+                                <i class="fas fa-leaf partner-icon"></i>
+                                <p class="partner-text">Medio Ambiente</p>
+                            </div>
+                        </div>
+                        <div class="swiper-slide">
+                            <div class="partner-card">
+                                <i class="fas fa-graduation-cap partner-icon"></i>
+                                <p class="partner-text">Educación</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swiper-pagination"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+      <!-- Sección de servicios -->
+      <section style="padding: 100px 0;" id="nosotros">
+        <div class="container">
+          <h2 class="section-title">Nuestras Áreas de Impacto</h2>
+          <p class="section-subtitle">Trabajamos en diferentes frentes para generar un cambio positivo y sostenible en nuestra comunidad.</p>
+          <div class="row g-4">
+            <div class="col-md-4">
+              <div class="blog-card">
+                <div style="height: 220px; background: linear-gradient(135deg, var(--orange-primary), var(--orange-secondary)); display: flex; align-items: center; justify-content: center;">
+                  <i class="fas fa-seedling" style="font-size: 4rem; color: white;"></i>
+                </div>
+                <div class="p-4">
+                  <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge" style="background: var(--orange-primary); color: white;">Sostenibilidad</span>
+                    <small style="color: var(--gray-medium);">15 Mayo, 2024</small>
+                  </div>
+                  <h5>Proyecto de Reciclaje en el Campus: Resultados del primer semestre</h5>
+                  <p style="color: var(--gray-medium); margin-bottom: 20px;">Conoce cómo hemos logrado reducir un 40% los desechos no reciclables en nuestra facultad.</p>
+                  <div class="d-flex align-items-center gap-3">
+                    <div style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                      <i class="fas fa-user" style="color: white; font-size: 0.8rem;"></i>
+                    </div>
+                    <div>
+                      <small style="font-weight: 600; color: var(--gray-dark);">Equipo RSU</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="blog-card">
+                <div style="height: 220px; background: linear-gradient(135deg, var(--orange-secondary), var(--orange-primary)); display: flex; align-items: center; justify-content: center;">
+                  <i class="fas fa-book-open" style="font-size: 4rem; color: white;"></i>
+                </div>
+                <div class="p-4">
+                  <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge" style="background: var(--orange-primary); color: white;">Educación</span>
+                    <small style="color: var(--gray-medium);">10 Mayo, 2024</small>
+                  </div>
+                  <h5>Tutorías gratuitas: Cerrando brechas educativas en comunidades rurales</h5>
+                  <p style="color: var(--gray-medium); margin-bottom: 20px;">Nuestro programa de tutorías ha beneficiado a más de 200 estudiantes de secundaria.</p>
+                  <div class="d-flex align-items-center gap-3">
+                    <div style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                      <i class="fas fa-user" style="color: white; font-size: 0.8rem;"></i>
+                    </div>
+                    <div>
+                      <small style="font-weight: 600; color: var(--gray-dark);">María González</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="blog-card">
+                <div style="height: 220px; background: linear-gradient(135deg, var(--orange-primary), var(--orange-dark)); display: flex; align-items: center; justify-content: center;">
+                  <i class="fas fa-heart" style="font-size: 4rem; color: white;"></i>
+                </div>
+                <div class="p-4">
+                  <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge" style="background: var(--orange-primary); color: white;">Bienestar</span>
+                    <small style="color: var(--gray-medium);">5 Mayo, 2024</small>
+                  </div>
+                  <h5>Jornada de Salud Mental: Rompiendo estigmas en la universidad</h5>
+                  <p style="color: var(--gray-medium); margin-bottom: 20px;">Reflexiones sobre la importancia del bienestar psicológico en estudiantes universitarios.</p>
+                  <div class="d-flex align-items-center gap-3">
+                    <div style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                      <i class="fas fa-user" style="color: white; font-size: 0.8rem;"></i>
+                    </div>
+                    <div>
+                      <small style="font-weight: 600; color: var(--gray-dark);">Dr. Carlos Ruiz</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="text-center mt-5">
+            <button class="btn btn-orange-outline">Ver más artículos</button>
+          </div>
+        </div>
+      </section>
+    <!-- JavaScript -->
+    <script>
+      // Navbar scroll effect
+      window.addEventListener('scroll', function() {
+        const navbar = document.querySelector('.navbar');
+        if (window.scrollY > 50) {
+          navbar.style.background = 'rgba(255, 255, 255, 0.98)';
+          navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.15)';
+        } else {
+          navbar.style.background = 'rgba(255, 255, 255, 0.95)';
+          navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
+        }
+      });
+
+      // Smooth scrolling for navigation links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute('href'));
+          if (target) {
+            target.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }
+        });
+      });
+
+      // Initialize Swipers when DOM is loaded
+      document.addEventListener('DOMContentLoaded', function() {
+        // Partners Swiper
+        const partnersSwiper = new Swiper('#partnersSwiper', {
+          slidesPerView: 2,
+          spaceBetween: 20,
+          loop: true,
+          autoplay: {
+            delay: 2500,
+            disableOnInteraction: false,
+          },
+          breakpoints: {
+            640: {
+              slidesPerView: 2,
+              spaceBetween: 20,
+            },
+            768: {
+              slidesPerView: 3,
+              spaceBetween: 30,
+            },
+            1024: {
+              slidesPerView: 4,
+              spaceBetween: 40,
+            },
+          },
+        });
+
+        // Testimonials Swiper
+        const testimonialsSwiper = new Swiper('#testimonialsSwiper', {
+          slidesPerView: 1,
+          spaceBetween: 30,
+          loop: true,
+          navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+          },
+          autoplay: {
+            delay: 5000,
+            disableOnInteraction: false,
+          },
+          breakpoints: {
+            768: {
+              slidesPerView: 2,
+              spaceBetween: 30,
+            },
+            1024: {
+              slidesPerView: 3,
+              spaceBetween: 30,
+            },
+          },
+        });
+      });
+
+      // Add animation on scroll
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      };
+
+      const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+          }
+        });
+      }, observerOptions);
+
+      // Observe all service cards and feature items
+      document.addEventListener('DOMContentLoaded', function() {
+        const animatedElements = document.querySelectorAll('.service-card, .feature-item, .blog-card, .testimonial-card');
+        animatedElements.forEach(el => {
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(30px)';
+          el.style.transition = 'all 0.6s ease';
+          observer.observe(el);
+        });
+      });
+    </script>
+    <!-- External Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/8.4.7/swiper-bundle.min.js"></script>
+  </body>
+</html>
+             <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="service-card">
+                        <div class="service-icon">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <h4>Sostenibilidad Ambiental</h4>
+                        <p>Promovemos prácticas ecológicas y conciencia ambiental en el campus y la comunidad.</p>
+                        <a href="#" class="btn btn-orange-outline">Conoce más <i class="fas fa-arrow-right ms-2"></i></a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="service-card">
+                        <div class="service-icon">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <h4>Educación Inclusiva</h4>
+                        <p>Desarrollamos programas educativos que llegan a comunidades vulnerables y promueven la igualdad.</p>
+                        <a href="#" class="btn btn-orange-outline">Conoce más <i class="fas fa-arrow-right ms-2"></i></a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="service-card">
+                        <div class="service-icon">
+                            <i class="fas fa-hands-helping"></i>
+                        </div>
+                        <h4>Bienestar Social</h4>
+                        <p>Implementamos iniciativas que mejoran la calidad de vida de nuestra comunidad universitaria.</p>
+                        <a href="#" class="btn btn-orange-outline">Conoce más <i class="fas fa-arrow-right ms-2"></i></a>
+                    </div>  
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="service-card">
+                        <div class="service-icon">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <h4>Voluntariado</h4>
+                        <p>Desarrollamos programas de voluntariado que promuevan la participación ciudadana.</p>
+                        <a href="#" class="btn btn-orange-outline">Conoce más <i class="fas fa-arrow-right ms-2"></i></a>
+                    </div>  
+                </div>
+
+      <!-- Sección de características (Features) -->
+      <section class="feature-section">
+        <div class="container">
+          <div class="row align-items-center">
+            <div class="col-lg-6">
+              <div style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <i class="fas fa-chart-line" style="font-size: 4rem; color: var(--orange-primary); margin-bottom: 20px;"></i>
+                <h3 style="color: var(--gray-dark);">Impacto Medible</h3>
+                <p style="color: var(--gray-medium);">Nuestros proyectos han beneficiado a más de 5,000 personas en los últimos 3 años.</p>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <h2 style="font-size: 2.5rem; margin-bottom: 30px; color: var(--gray-dark);">Conectamos estudiantes con oportunidades de cambio real</h2>
+              <div class="feature-item">
+                <div class="feature-icon">
+                  <i class="fas fa-check"></i>
+                </div>
+                <div>
+                  <h5>Proyectos con impacto real en la comunidad</h5>
+                  <p style="margin: 0; color: var(--gray-medium);">Desarrollamos iniciativas que generan cambios tangibles.</p>
+                </div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon">
+                  <i class="fas fa-users"></i>
+                </div>
+                <div>
+                  <h5>Red de estudiantes comprometidos</h5>
+                  <p style="margin: 0; color: var(--gray-medium);">Más de 200 estudiantes activos en nuestros programas.</p>
+                </div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon">
+                  <i class="fas fa-award"></i>
+                </div>
+                <div>
+                  <h5>Reconocimientos y certificaciones</h5>
+                  <p style="margin: 0; color: var(--gray-medium);">Tu participación será reconocida oficialmente.</p>
+                </div>
+              </div>
+              <button class="btn btn-orange mt-3">Únete ahora</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección de testimonios o comentarios de usuarios -->
+      <section style="padding: 100px 0; background: var(--gray-dark);">
+        <div class="container">
+          <h2 class="section-title" style="color: white;">Testimonios de nuestra comunidad</h2>
+          <p class="section-subtitle" style="color: rgba(255,255,255,0.8);">Conoce las experiencias de estudiantes que han sido parte del cambio</p>
+          
+          <div class="swiper" id="testimonialsSwiper">
+            <div class="swiper-wrapper">
+              <div class="swiper-slide">
+                <div class="testimonial-card">
+                  <p style="font-style: italic; margin-bottom: 20px;">"Participar en RSU FIEI cambió mi perspectiva sobre el rol de los estudiantes en la sociedad. Ahora sé que puedo hacer la diferencia."</p>
+                  <div class="d-flex align-items-center">
+                    <div style="width: 50px; height: 50px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                      <i class="fas fa-user" style="color: white;"></i>
+                    </div>
+                    <div>
+                      <h6 style="margin: 0; font-weight: 600;">María González</h6>
+                      <small style="color: var(--gray-medium);">Estudiante de Ingeniería</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="swiper-slide">
+                <div class="testimonial-card">
+                  <p style="font-style: italic; margin-bottom: 20px;">"Los proyectos de RSU me han dado habilidades de liderazgo y trabajo en equipo que uso en mi vida profesional."</p>
+                  <div class="d-flex align-items-center">
+                    <div style="width: 50px; height: 50px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                      <i class="fas fa-user" style="color: white;"></i>
+                    </div>
+                    <div>
+                      <h6 style="margin: 0; font-weight: 600;">Carlos Rodríguez</h6>
+                      <small style="color: var(--gray-medium);">Egresado FIEI</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="swiper-slide">
+                <div class="testimonial-card">
+                  <p style="font-style: italic; margin-bottom: 20px;">"Gracias a RSU FIEI encontré mi pasión por el trabajo social y decidí enfocar mi carrera hacia la sostenibilidad."</p>
+                  <div class="d-flex align-items-center">
+                    <div style="width: 50px; height: 50px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                      <i class="fas fa-user" style="color: white;"></i>
+                    </div>
+                    <div>
+                      <h6 style="margin: 0; font-weight: 600;">Ana Martínez</h6>
+                      <small style="color: var(--gray-medium);">Estudiante de 4to año</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección de proyectos -->
+      <section style="padding: 100px 0;" id="proyectos">
+        <div class="container">
+          <div style="background: var(--orange-light); padding: 60px 40px; border-radius: 30px; text-align: center; margin-bottom: 50px;">
+            <h2 style="font-size: 2.5rem; margin-bottom: 20px; color: var(--gray-dark);">¿Tienes preguntas sobre nuestros proyectos?</h2>
+            <div class="row mt-5">
+              <div class="col-md-6">
+                <div class="accordion" id="projectsAccordion">
+                  <div class="accordion-item" style="border: none; margin-bottom: 10px;">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" style="border-radius: 15px;">
+                        ¿Cómo puedo unirme a RSU FIEI?
+                      </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#projectsAccordion">
+                      <div class="accordion-body">
+                        Puedes registrarte en nuestra plataforma online o acercarte a nuestras oficinas en FIEI. Ofrecemos orientación personalizada para encontrar el proyecto que mejor se adapte a tus intereses.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="accordion-item" style="border: none; margin-bottom: 10px;">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" style="border-radius: 15px;">
+                        ¿Qué tiempo debo dedicar?
+                      </button>
+                    </h2>
+                    <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#projectsAccordion">
+                      <div class="accordion-body">
+                        El compromiso es flexible. Tenemos proyectos que requieren desde 2 horas semanales hasta programas intensivos de fin de semana. Tú decides tu nivel de participación.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div style="background: white; padding: 30px; border-radius: 20px; height: 100%;">
+                  <i class="fas fa-question-circle" style="font-size: 3rem; color: var(--orange-primary); margin-bottom: 20px;"></i>
+                  <h4>¿Necesitas más información?</h4>
+                  <p>Contáctanos y resolveremos todas tus dudas</p>
+                  <button class="btn btn-orange">Contactar ahora</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección del blog -->
+      <section style="padding: 100px 0; background: var(--gray-light);" id="blog">
+        <div class="container">
+          <h2 class="section-title">Nuestro Blog</h2>
+          <p class="section-subtitle">Mantente informado sobre nuestras actividades, logros y reflexiones sobre responsabilidad social</p>
+          <div class="row g-4">
+            <div class="col-md-4">
+              <div class="blog-card">
+                <div style="height: 220px; background: linear-gradient(135deg, var(--orange-primary), var(--orange-secondary)); display: flex; align-items: center; justify-content: center;">
+                  <i class="fas fa-seedling" style="font-size: 4rem; color: white;"></i>
+                </div>
+                <div class="p-4">
+                  <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge" style="background: var(--orange-primary); color: white;">Sostenibilidad</span>
+                    <small style="color: var(--gray-medium);">15 Mayo, 2024</small>
+                  </div>
+                  <h5>Proyecto de Reciclaje en el Campus: Resultados del primer semestre</h5>
+                  <p style="color: var(--gray-medium); margin-bottom: 20px;">Conoce cómo hemos logrado reducir un 40% los desechos no reciclables en nuestra facultad.</p>
+                  <div class="d-flex align-items-center gap-3">
+                    <div style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+                      <i class="fas fa-user" style="color: white; font-size: 0.8rem;"></i>
+                    </div>
+                    <div>
+                      <small style="font-weight: 600; color: var(--gray-dark);">Equipo RSU</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+<!-- Sección de llamada a la acción (CTA - Call to Action) -->
+      <section class="cta-section" id="contacto">
+        <div class="container">
+          <div class="row justify-content-center">
+            <div class="col-lg-8 text-center" style="position: relative; z-index: 2;">
+              <h2 style="font-size: 3rem; margin-bottom: 20px; font-weight: 700;">¿Listo para ser parte del cambio?</h2>
+              <p style="font-size: 1.2rem; margin-bottom: 40px; opacity: 0.9;">Únete a nuestra comunidad de estudiantes comprometidos con la responsabilidad social</p>
+              <div class="row justify-content-center">
+                <div class="col-md-8">
+                  <div class="d-flex flex-column flex-md-row gap-3">
+                    <input class="form-control" type="email" placeholder="Tu correo electrónico" style="border-radius: 50px; padding: 15px 25px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 1.1rem;" />
+                    <button class="btn" style="background: white; color: var(--orange-primary); padding: 15px 30px; border-radius: 50px; font-weight: 600; white-space: nowrap;">Únete ahora</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+<!-- Pie de página (Footer) -->
+    <footer class="footer">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-4 col-md-6 mb-4">
+            <div class="d-flex align-items-center mb-4">
+              <div style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--orange-primary), var(--orange-secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                <i class="fas fa-graduation-cap" style="color: white; font-size: 1.5rem;"></i>
+              </div>
+              <span style="font-weight: 700; font-size: 1.5rem; color: white;">RSU FIEI</span>
+            </div>
+            <p style="color: rgba(255,255,255,0.8); line-height: 1.8;">Promovemos la responsabilidad social universitaria a través de proyectos innovadores que generan impacto positivo en nuestra comunidad y sociedad.</p>
+            <div class="d-flex gap-3 mt-3">
+              <a href="#" style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+                <i class="fab fa-facebook-f"></i>
+              </a>
+              <a href="#" style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+                <i class="fab fa-instagram"></i>
+              </a>
+              <a href="#" style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+                <i class="fab fa-linkedin-in"></i>
+              </a>
+            </div>
+          </div>
+          <div class="col-lg-2 col-md-6 mb-4">
+            <h5>Navegación</h5>
+            <ul class="list-unstyled">
+              <li class="mb-2"><a href="#inicio">Inicio</a></li>
+              <li class="mb-2"><a href="#nosotros">Nosotros</a></li>
+              <li class="mb-2"><a href="#proyectos">Proyectos</a></li>
+              <li class="mb-2"><a href="#blog">Blog</a></li>
+            </ul>
+          </div>
+          <div class="col-lg-3 col-md-6 mb-4">
+            <h5>Proyectos</h5>
+            <ul class="list-unstyled">
+              <li class="mb-2"><a href="#">Sostenibilidad Ambiental</a></li>
+              <li class="mb-2"><a href="#">Educación Inclusiva</a></li>
+              <li class="mb-2"><a href="#">Bienestar Social</a></li>
+              <li class="mb-2"><a href="#">Voluntariado <span style="background: var(--orange-primary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; margin-left: 5px;">¡Únete!</span></a></li>
+            </ul>
+          </div>
+          <div class="col-lg-3 col-md-6 mb-4">
+            <h5>Contacto</h5>
+            <ul class="list-unstyled">
+              <li class="mb-2">
+                <i class="fas fa-map-marker-alt" style="color: var(--orange-primary); margin-right: 10px;"></i>
+                <span>FIEI - Universidad Nacional</span>
+              </li>
+              <li class="mb-2">
+                <i class="fas fa-envelope" style="color: var(--orange-primary); margin-right: 10px;"></i>
+                <span>rsu@fiei.edu.pe</span>
+              </li>
+              <li class="mb-2">
+                <i class="fas fa-phone" style="color: var(--orange-primary); margin-right: 10px;"></i>
+                <span>+51 999 888 777</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <hr style="border-color: rgba(255,255,255,0.2); margin: 40px 0 20px;">
+        <div class="row align-items-center">
+          <div class="col-md-6">
+            <p style="color: rgba(255,255,255,0.6); margin: 0;">&copy; 2024 RSU FIEI. Todos los derechos reservados.</p>
+          </div>
+          <div class="col-md-6 text-md-end">
+            <p style="color: rgba(255,255,255,0.6); margin: 0;">Hecho con <i class="fas fa-heart" style="color: var(--orange-primary);"></i> para nuestra comunidad</p>
+          </div>
+        </div>
+      </div>
+    </footer>
+            

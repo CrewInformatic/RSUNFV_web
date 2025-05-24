@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNFV - Sistema de Autenticación</title>
+    <link rel="stylesheet" href="css/Login.css">
+
+</head>
+<body>
+    <!-- Botón para regresar al index -->
+    <a href="index.html" class="back-to-index">
+        <span class="back-arrow">←</span>
+        Volver al Inicio
+    </a>
+
+    <div class="auth-container">
+        <!-- Panel izquierdo - Información -->
+        <div class="info-panel">
+            <div class="logo-container">
+                <div class="logo">UNFV</div>
+            </div>
+            <h2 class="info-title">Universidad Nacional Federico Villarreal</h2>
+            <p class="info-subtitle">
+                Accede a tu portal estudiantil y descubre todas las oportunidades académicas que tenemos para ti.
+            </p>
+            <div class="student-animation">
+                🎓
+            </div>
+        </div>
+
+        <!-- Panel derecho - Formularios -->
+        <div class="form-panel">
+            <!-- Pestañas -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('login')">Iniciar Sesión</button>
+                <button class="tab-btn" onclick="switchTab('register')">Registrarse</button>
+            </div>
+
+            <!-- Formulario de Inicio de Sesión -->
+            <div id="login-form" class="form-container active">
+                <h3 class="form-title">¡Bienvenido de vuelta!</h3>
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <input type="email" class="form-input" placeholder="Correo electrónico" required id="loginEmail">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-input" placeholder="Contraseña" required id="loginPassword">
+                    </div>
+                    <button type="submit" class="btn">Iniciar Sesión</button>
+                </form>
+            </div>
+
+            <!-- Formulario de Registro -->
+            <div id="register-form" class="form-container">
+                <h3 class="form-title">Únete a la comunidad UNFV</h3>
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <input type="text" class="form-input" placeholder="Nombre completo" required id="registerName">
+                    </div>
+                    <div class="form-group">
+                        <input type="email" class="form-input" placeholder="Correo electrónico" required id="registerEmail">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-input" placeholder="Contraseña" required id="registerPassword" minlength="6">
+                    </div>
+                    <button type="submit" class="btn">Crear Cuenta</button>
+                </form>
+            </div>
+
+            <!-- Panel de Bienvenida (después del login) -->
+            <div id="welcome-panel" class="welcome-panel">
+                <h3 class="welcome-title">¡Bienvenido!</h3>
+                <p class="welcome-message" id="welcomeMessage">Has iniciado sesión exitosamente.</p>
+                <button class="btn logout-btn" onclick="logout()">Cerrar Sesión</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales para el sistema de autenticación
+        let currentUser = null;
+
+        // Función para cambiar entre pestañas
+        function switchTab(tabName) {
+            // Remover clase active de todos los botones y formularios
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.form-container').forEach(form => form.classList.remove('active'));
+            
+            // Activar pestaña y formulario correspondiente
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-form').classList.add('active');
+            
+            // Limpiar alerts
+            clearAlerts();
+        }
+
+        // Función para mostrar alertas
+        function showAlert(message, type) {
+            clearAlerts();
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            // Insertar antes del primer formulario visible
+            const activeForm = document.querySelector('.form-container.active form');
+            if (activeForm) {
+                activeForm.parentNode.insertBefore(alertDiv, activeForm);
+            }
+            
+            // Auto-remover después de 5 segundos
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.parentNode.removeChild(alertDiv);
+                }
+            }, 5000);
+        }
+
+        // Función para limpiar alertas
+        function clearAlerts() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                if (alert.parentNode) {
+                    alert.parentNode.removeChild(alert);
+                }
+            });
+        }
+
+        // Función para manejar el registro de usuarios
+        function handleRegister(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim().toLowerCase();
+            const password = document.getElementById('registerPassword').value;
+            
+            // Validaciones básicas
+            if (name.length < 2) {
+                showAlert('El nombre debe tener al menos 2 caracteres', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showAlert('La contraseña debe tener al menos 6 caracteres', 'error');
+                return;
+            }
+            
+            // Verificar si el usuario ya existe
+            const existingUsers = JSON.parse(localStorage.getItem('unfv_users') || '[]');
+            const userExists = existingUsers.find(user => user.email === email);
+            
+            if (userExists) {
+                showAlert('Ya existe una cuenta con este correo electrónico', 'error');
+                return;
+            }
+            
+            // Crear nuevo usuario
+            const newUser = {
+                id: Date.now(),
+                name: name,
+                email: email,
+                password: password, // En producción, esto debería estar encriptado
+                registeredAt: new Date().toISOString()
+            };
+            
+            // Guardar usuario
+            existingUsers.push(newUser);
+            localStorage.setItem('unfv_users', JSON.stringify(existingUsers));
+            
+            // Mostrar mensaje de éxito con animación
+            showAlert('¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.', 'success');
+            
+            // Animar el botón
+            event.target.classList.add('bounce');
+            setTimeout(() => event.target.classList.remove('bounce'), 600);
+            
+            // Limpiar formulario
+            document.getElementById('registerName').value = '';
+            document.getElementById('registerEmail').value = '';
+            document.getElementById('registerPassword').value = '';
+            
+            // Cambiar a pestaña de login después de 2 segundos
+            setTimeout(() => {
+                switchTab('login');
+                document.getElementById('loginEmail').value = email;
+            }, 2000);
+        }
+
+        // Función para manejar el inicio de sesión
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+            const password = document.getElementById('loginPassword').value;
+            
+            // Obtener usuarios registrados
+            const existingUsers = JSON.parse(localStorage.getItem('unfv_users') || '[]');
+            const user = existingUsers.find(u => u.email === email && u.password === password);
+            
+            if (!user) {
+                showAlert('Credenciales incorrectas. Verifica tu email y contraseña.', 'error');
+                return;
+            }
+            
+            // Inicio de sesión exitoso
+            currentUser = user;
+            localStorage.setItem('unfv_current_user', JSON.stringify(user));
+            
+            // Mostrar mensaje de éxito
+            showAlert('¡Inicio de sesión exitoso! Redirigiendo...', 'success');
+            
+            // Animar el botón
+            event.target.classList.add('bounce');
+            
+            // Mostrar panel de bienvenida después de 1.5 segundos
+            setTimeout(() => {
+                showWelcomePanel(user);
+            }, 1500);
+        }
+
+        // Función para mostrar el panel de bienvenida
+        function showWelcomePanel(user) {
+            // Ocultar formularios y pestañas
+            document.querySelectorAll('.form-container').forEach(form => form.classList.remove('active'));
+            document.querySelector('.tabs').style.display = 'none';
+            
+            // Mostrar panel de bienvenida
+            const welcomePanel = document.getElementById('welcome-panel');
+            const welcomeMessage = document.getElementById('welcomeMessage');
+            
+            welcomeMessage.textContent = `¡Hola ${user.name}! Has iniciado sesión exitosamente en el portal UNFV.`;
+            welcomePanel.classList.add('active');
+        }
+
+        // Función para cerrar sesión
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('unfv_current_user');
+            
+            // Ocultar panel de bienvenida
+            document.getElementById('welcome-panel').classList.remove('active');
+            
+            // Mostrar pestañas y formulario de login
+            document.querySelector('.tabs').style.display = 'flex';
+            
+            // Limpiar formularios
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            
+            // Activar pestaña de login
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.form-container').forEach(form => form.classList.remove('active'));
+            
+            document.querySelector('.tab-btn').classList.add('active');
+            document.getElementById('login-form').classList.add('active');
+            
+            showAlert('Has cerrado sesión exitosamente', 'success');
+        }
+
+        // Verificar si hay una sesión activa al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedUser = localStorage.getItem('unfv_current_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showWelcomePanel(currentUser);
+            }
+            
+            // Agregar efectos de hover a los inputs
+            document.querySelectorAll('.form-input').forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentNode.style.transform = 'scale(1.02)';
+                    this.parentNode.style.transition = 'transform 0.2s ease';
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.parentNode.style.transform = 'scale(1)';
+                });
+            });
+        });
+
+        // Función para simular carga de datos (útil para futuras integraciones)
+        function simulateLoading(callback, delay = 1000) {
+            // Aquí se podría mostrar un spinner de carga
+            setTimeout(callback, delay);
+        }
+
+        // Función utilitaria para validar formato de email
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Función para mostrar información de usuarios registrados (desarrollo)
+        function showRegisteredUsers() {
+            const users = JSON.parse(localStorage.getItem('unfv_users') || '[]');
+            console.log('Usuarios registrados:', users);
+        }
+    </script>
+</body>
+</html>

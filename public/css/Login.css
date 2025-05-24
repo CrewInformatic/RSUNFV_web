@@ -1,0 +1,443 @@
+
+        /* Importar fuente moderna */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        /* Variables CSS para colores institucionales */
+        :root {
+            --naranja-unfv: #F58220;
+            --naranja-hover: #e6750f;
+            --blanco: #FFFFFF;
+            --gris-claro: #f8f9fa;
+            --gris-medio: #6c757d;
+            --gris-oscuro: #343a40;
+            --sombra: rgba(245, 130, 32, 0.15);
+            --sombra-oscura: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Reset y estilos base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--naranja-unfv) 0%, #ff9a56 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Contenedor principal */
+        .auth-container {
+            background: var(--blanco);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 900px;
+            min-height: 600px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            position: relative;
+        }
+
+        /* Panel izquierdo - Información */
+        .info-panel {
+            background: linear-gradient(135deg, var(--naranja-unfv) 0%, #ff9a56 100%);
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: var(--blanco);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            animation: moveBackground 20s linear infinite;
+            opacity: 0.3;
+        }
+
+        @keyframes moveBackground {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-10px, -10px); }
+        }
+
+        .logo-container {
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: var(--blanco);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--naranja-unfv);
+            animation: pulse 2s ease-in-out infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .info-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .info-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            line-height: 1.6;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Animación de estudiante */
+        .student-animation {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Panel derecho - Formularios */
+        .form-panel {
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Pestañas */
+        .tabs {
+            display: flex;
+            margin-bottom: 40px;
+            background: var(--gris-claro);
+            border-radius: 12px;
+            padding: 6px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--gris-medio);
+        }
+
+        .tab-btn.active {
+            background: var(--blanco);
+            color: var(--naranja-unfv);
+            box-shadow: 0 2px 8px var(--sombra-oscura);
+        }
+
+        /* Formularios */
+        .form-container {
+            display: none;
+        }
+
+        .form-container.active {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .form-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--gris-oscuro);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: var(--blanco);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--naranja-unfv);
+            box-shadow: 0 0 0 3px var(--sombra);
+        }
+
+        .form-input::placeholder {
+            color: var(--gris-medio);
+        }
+
+        /* Botones */
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--naranja-unfv);
+            color: var(--blanco);
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            background: var(--naranja-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--sombra);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Efectos de ondas en botones */
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transition: all 0.6s;
+            transform: translate(-50%, -50%);
+        }
+
+        .btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Alertas */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            text-align: center;
+            animation: slideDown 0.5s ease;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Panel de bienvenida */
+        .welcome-panel {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .welcome-panel.active {
+            display: block;
+            animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .welcome-title {
+            font-size: 28px;
+            color: var(--naranja-unfv);
+            margin-bottom: 20px;
+        }
+
+        .welcome-message {
+            font-size: 16px;
+            color: var(--gris-medio);
+            margin-bottom: 30px;
+        }
+
+        .logout-btn {
+            background: #6c757d;
+            width: auto;
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: #5a6268;
+        }
+
+        /* Botón de regreso al index */
+        .back-to-index {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--naranja-unfv);
+            border: 2px solid rgba(245, 130, 32, 0.3);
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        .back-to-index:hover {
+            background: var(--blanco);
+            border-color: var(--naranja-unfv);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--sombra);
+        }
+
+        .back-to-index:active {
+            transform: translateY(0);
+        }
+
+        /* Icono de flecha para el botón de regreso */
+        .back-arrow {
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+
+        .back-to-index:hover .back-arrow {
+            transform: translateX(-3px);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .auth-container {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
+
+            .info-panel {
+                padding: 40px 30px;
+                min-height: 200px;
+            }
+
+            .form-panel {
+                padding: 40px 30px;
+            }
+
+            .info-title {
+                font-size: 24px;
+            }
+
+            .student-animation {
+                display: none;
+            }
+
+            /* Ajustar botón de regreso en móviles */
+            .back-to-index {
+                top: 15px;
+                left: 15px;
+                padding: 8px 15px;
+                font-size: 12px;
+            }
+        }
+
+        /* Animaciones adicionales */
+        .bounce {
+            animation: bounce 0.6s ease;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% {
+                transform: translate3d(0,0,0);
+            }
+            40%, 43% {
+                transform: translate3d(0, -8px, 0);
+            }
+            70% {
+                transform: translate3d(0, -4px, 0);
+            }
+            90% {
+                transform: translate3d(0, -2px, 0);
+            }
+        }
