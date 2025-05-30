@@ -354,7 +354,30 @@
                                         </div>
                                     </div>
                                 </div>
-
+<div class="mb-4">
+    <label for="eventImages" class="form-label">
+        <i class="fas fa-camera me-1"></i>
+        Fotos del Evento
+    </label>
+    <div class="image-upload-section">
+        <div class="mb-3">
+            <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+            <div>
+                <input type="file" class="form-control" id="eventImages" 
+                       accept="image/*" multiple>
+                <div class="form-text mt-2">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Selecciona hasta 10 imágenes (máximo 10MB cada una)
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contenedor para vista previa de imágenes -->
+        <div id="imagePreviewContainer"></div>
+    </div>
+</div>
                                 <div class="form-actions">
                                     <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
                                         <i class="fas fa-times me-1"></i>
