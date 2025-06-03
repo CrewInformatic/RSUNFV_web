@@ -463,3 +463,25 @@ body {
     transform: translate3d(0, -2px, 0);
   }
 }
+.forgot-password-container {
+  text-align: center;
+  margin-top: 15px;
+  margin-bottom: 25px;
+}
+
+.forgot-password-link {
+  color: var(--naranja-unfv);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: inline-block;
+  padding: 8px 0;
+  border-bottom: 1px solid transparent;
+}
+
+.forgot-password-link:hover {
+  color: var(--naranja-hover);
+  border-bottom: 1px solid var(--naranja-hover);
+  transform: translateY(-1px);
+}

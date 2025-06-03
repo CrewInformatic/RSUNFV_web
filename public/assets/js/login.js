@@ -1,29 +1,16 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+// login.js
 import {
-  getFirestore,
-  collection,
-  query,
-  where,
-  getDocs,
-  addDoc,
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+  auth,
+  db,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  doc,
+  getDoc,
+  updateDoc,
+} from "./firebase_config.js";
 
-// Configuración de Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyAUBAyRnT0XEoKLlv-9GAmxi6F12peZd7c",
-  authDomain: "rsunfv.firebaseapp.com",
-  projectId: "rsunfv",
-  storageBucket: "rsunfv.firebasestorage.app",
-  messagingSenderId: "125433829660",
-  appId: "1:125433829660:web:ef60f4871bf4ad74ae02d9",
-  measurementId: "G-QCWGD7EJ46",
-};
-
-// Inicializar Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// Variables globales para el sistema de autenticación
+// Variables globales
 let currentUser = null;
 
 // Referencias a elementos del DOM
@@ -34,101 +21,248 @@ const modalMessage = document.getElementById("modalMessage");
 const modalBtn = document.getElementById("modalBtn");
 
 // =============================================
-// FUNCIONES DE GESTIÓN DE SESIÓN
+// FUNCIONES DE GESTIÓN DE SESIÓN CORREGIDAS
 // =============================================
 
-// Guardar sesión en localStorage
+// OPCIÓN 1: Usar un sistema global de sesión que funcione en ambas páginas
 function saveSession(userSession) {
   try {
-    localStorage.setItem("userSession", JSON.stringify(userSession));
+    // Guardar tanto en memoria como en sessionStorage (solo para persistencia entre páginas)
     currentUser = userSession;
-    console.log("Sesión guardada:", userSession);
+    sessionStorage.setItem("userSession", JSON.stringify(userSession));
+    console.log("✅ Sesión guardada:", userSession);
   } catch (error) {
-    console.error("Error al guardar sesión:", error);
+    console.error("❌ Error al guardar sesión:", error);
   }
 }
 
-// Obtener sesión de localStorage
 function getStoredSession() {
   try {
-    const storedSession = localStorage.getItem("userSession");
-    if (storedSession) {
-      const session = JSON.parse(storedSession);
-      currentUser = session;
-      return session;
+    // Primero intentar obtener de memoria
+    if (currentUser) {
+      return currentUser;
     }
+
+    // Si no está en memoria, intentar obtener de sessionStorage
+    const storedSession = sessionStorage.getItem("userSession");
+    if (storedSession) {
+      const parsedSession = JSON.parse(storedSession);
+      currentUser = parsedSession; // Actualizar la variable en memoria
+      return parsedSession;
+    }
+
     return null;
   } catch (error) {
-    console.error("Error al obtener sesión:", error);
-    localStorage.removeItem("userSession"); // Limpiar sesión corrupta
+    console.error("❌ Error al obtener sesión:", error);
+    // Limpiar sessionStorage si hay error
+    sessionStorage.removeItem("userSession");
     return null;
   }
 }
 
-// Limpiar sesión
 function clearSession() {
   try {
-    localStorage.removeItem("userSession");
     currentUser = null;
-    console.log("Sesión limpiada");
+    sessionStorage.removeItem("userSession");
+    console.log("🧹 Sesión limpiada");
   } catch (error) {
-    console.error("Error al limpiar sesión:", error);
+    console.error("❌ Error al limpiar sesión:", error);
   }
 }
 
-// Verificar si hay una sesión activa
-function checkActiveSession() {
+// =============================================
+// FUNCIÓN MEJORADA DE VERIFICACIÓN DE AUTENTICACIÓN
+// =============================================
+
+function checkAuthentication() {
+  console.log("🔍 Verificando autenticación...");
+
+  const session = getStoredSession();
+
+  if (!session) {
+    console.log("❌ No hay sesión activa, redirigiendo al login");
+    window.location.href = "index.html";
+    return null;
+  }
+
+  console.log("✅ Sesión encontrada:", {
+    correo: session.correo,
+    nombre: session.nombre,
+    esAdmin: session.esAdmin,
+  });
+
+  return session;
+}
+
+// Función específica para verificar permisos de admin
+function checkAdminAuthentication() {
+  console.log("🔍 Verificando autenticación de administrador...");
+
+  const session = getStoredSession();
+
+  if (!session) {
+    console.log("❌ No hay sesión activa, redirigiendo al login");
+    window.location.href = "index.html";
+    return null;
+  }
+
+  if (!session.esAdmin) {
+    console.log("❌ Usuario sin privilegios de administrador");
+    alert("No tienes permisos para acceder a esta página");
+    window.location.href = "portal_test.html";
+    return null;
+  }
+
+  console.log("✅ Usuario administrador verificado:", {
+    correo: session.correo,
+    nombre: session.nombre,
+  });
+
+  return session;
+}
+
+// =============================================
+// FUNCIONES UTILITARIAS MEJORADAS
+// =============================================
+
+// Para usar en login.js
+window.getCurrentSession = function () {
+  return getStoredSession();
+};
+
+window.getCurrentUser = function () {
+  return auth?.currentUser || null;
+};
+
+window.requireAuth = async function () {
+  const session = getStoredSession();
+  if (!session) {
+    window.location.href = "index.html";
+    return null;
+  }
+  return session;
+};
+
+window.requireAdmin = async function () {
+  const session = getStoredSession();
+  if (!session) {
+    window.location.href = "index.html";
+    return null;
+  }
+
+  if (!session.esAdmin) {
+    alert("No tienes permisos de administrador");
+    window.location.href = "portal_test.html";
+    return null;
+  }
+
+  return session;
+};
+
+// =============================================
+// FUNCIONES DE NAVEGACIÓN CORREGIDAS
+// =============================================
+
+window.navigateToPage = function (pageName) {
+  const session = getStoredSession();
+  if (!session) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  const adminPages = [
+    "eventos.html",
+    "administradores.html",
+    "usuarios.html",
+    "configuracion.html",
+    "reportes.html",
+  ];
+
+  if (adminPages.includes(pageName) && !session.esAdmin) {
+    alert("No tienes permisos para acceder a esta página");
+    return;
+  }
+
+  window.location.href = pageName;
+};
+
+window.showProfile = function () {
   const session = getStoredSession();
   if (session) {
-    console.log("Sesión activa encontrada:", session);
-    return session;
+    alert(
+      `Perfil de Usuario:\n\nNombre: ${session.nombre}\nCorreo: ${
+        session.correo
+      }\nRol: ${
+        session.esAdmin ? "Administrador" : "Usuario"
+      }\nÚltimo acceso: ${new Date(session.loginTime).toLocaleString()}`
+    );
   }
-  return null;
+};
+
+window.showSettings = function () {
+  alert("Página de configuración en desarrollo");
+};
+
+window.handleLogout = function () {
+  const confirmed = confirm("¿Estás seguro de que deseas cerrar sesión?");
+  if (confirmed) {
+    console.log("Cerrando sesión...");
+    clearSession();
+    alert("Sesión cerrada exitosamente");
+    window.location.href = "index.html";
+  }
+};
+
+// =============================================
+// INICIALIZACIÓN MEJORADA PARA PÁGINAS DE ADMIN
+// =============================================
+
+function initializeAdminPage() {
+  console.log("🚀 Inicializando página de administrador...");
+
+  // Verificar autenticación de admin inmediatamente
+  const session = checkAdminAuthentication();
+  if (!session) {
+    return; // Si no pasa la verificación, ya fue redirigido
+  }
+
+  // Actualizar información del usuario en la interfaz
+  updateUserInfo(session);
+
+  console.log("✅ Página de administrador inicializada correctamente");
+  return session;
 }
 
-// Verificar validez de la sesión (opcional: verificar si el usuario aún existe en BD)
-async function validateSession(session) {
-  try {
-    const usuariosRef = collection(db, "usuarios");
-    const q = query(usuariosRef, where("correo", "==", session.correo));
-    const querySnapshot = await getDocs(q);
+function updateUserInfo(session) {
+  const userDisplayName = document.getElementById("userDisplayName");
+  if (userDisplayName) {
+    userDisplayName.textContent = session.nombre || session.correo;
+  }
 
-    if (!querySnapshot.empty) {
-      const userDoc = querySnapshot.docs[0];
-      const userData = userDoc.data();
+  // Actualizar otros elementos de la interfaz si existen
+  const userEmail = document.getElementById("userEmail");
+  if (userEmail) {
+    userEmail.textContent = session.correo;
+  }
 
-      // Actualizar datos de la sesión si es necesario
-      const updatedSession = {
-        id: userDoc.id,
-        correo: userData.correo,
-        nombre: userData.nombre || "",
-        esAdmin: userData.esAdmin || false,
-        loginTime: session.loginTime, // Mantener tiempo original de login
-      };
-
-      saveSession(updatedSession);
-      return updatedSession;
-    } else {
-      // Usuario ya no existe, limpiar sesión
-      clearSession();
-      return null;
-    }
-  } catch (error) {
-    console.error("Error al validar sesión:", error);
-    return session; // Mantener sesión en caso de error de red
+  const userRole = document.getElementById("userRole");
+  if (userRole) {
+    userRole.textContent = session.esAdmin ? "Administrador" : "Usuario";
   }
 }
 
-// Redireccionar según el rol del usuario
-function redirectUserByRole(userData) {
-  if (userData.esAdmin === true) {
-    console.log("Redirigiendo a admin dashboard");
-    window.location.href = "admin-dashboard.html";
-  } else {
-    console.log("Redirigiendo a portal estudiantil");
-    window.location.href = "portal_test.html";
-  }
-}
+// =============================================
+// EXPORTAR FUNCIONES PARA USO GLOBAL
+// =============================================
+
+// Hacer disponibles las funciones globalmente
+window.saveSession = saveSession;
+window.getStoredSession = getStoredSession;
+window.clearSession = clearSession;
+window.checkAuthentication = checkAuthentication;
+window.checkAdminAuthentication = checkAdminAuthentication;
+window.initializeAdminPage = initializeAdminPage;
+window.updateUserInfo = updateUserInfo;
 
 // =============================================
 // FUNCIONES DE INTERFAZ DE USUARIO
@@ -140,9 +274,7 @@ function showModal(title, message, icon, type = "error") {
   modalMessage.textContent = message;
   modalIcon.textContent = icon;
 
-  // Cambiar estilo del botón según el tipo
   modalBtn.className = `modal-btn ${type}`;
-
   modal.classList.add("show");
 }
 
@@ -151,32 +283,22 @@ window.closeModal = function () {
   modal.classList.remove("show");
 };
 
-// Función para mostrar loading en el botón
+// Función de loading para login
 function setLoginLoading(isLoading) {
   const loginBtn = document.getElementById("submit_login");
-  if (isLoading) {
-    loginBtn.innerHTML = '<span class="loading"></span>Verificando...';
-    loginBtn.disabled = true;
-  } else {
-    loginBtn.innerHTML = "Iniciar Sesión";
-    loginBtn.disabled = false;
-  }
-}
-
-function setRegisterLoading(isLoading) {
-  const registerBtn = document.getElementById("submit");
-  if (isLoading) {
-    registerBtn.innerHTML = '<span class="loading"></span>Registrando...';
-    registerBtn.disabled = true;
-  } else {
-    registerBtn.innerHTML = "Crear Cuenta";
-    registerBtn.disabled = false;
+  if (loginBtn) {
+    if (isLoading) {
+      loginBtn.innerHTML = '<span class="loading"></span>Verificando...';
+      loginBtn.disabled = true;
+    } else {
+      loginBtn.innerHTML = "Iniciar Sesión";
+      loginBtn.disabled = false;
+    }
   }
 }
 
 // Función para cambiar entre pestañas
 window.switchTab = function (tabName) {
-  // Remover clase active de todos los botones y formularios
   document
     .querySelectorAll(".tab-btn")
     .forEach((btn) => btn.classList.remove("active"));
@@ -184,131 +306,78 @@ window.switchTab = function (tabName) {
     .querySelectorAll(".form-container")
     .forEach((form) => form.classList.remove("active"));
 
-  // Activar pestaña y formulario correspondiente
   event.target.classList.add("active");
   document.getElementById(tabName + "-form").classList.add("active");
 
-  // Cerrar modal si está abierto
   closeModal();
 };
 
 // =============================================
-// FUNCIONES DE AUTENTICACIÓN
+// FUNCIONES DE FIRESTORE DATABASE
 // =============================================
 
-// Función para manejar el registro de usuarios con Firebase
-window.handleRegister = async function (event) {
-  event.preventDefault();
-
-  const name = document.getElementById("name").value.trim();
-  const email = document.getElementById("email").value.trim().toLowerCase();
-  const password = document.getElementById("password").value;
-
-  // Validaciones básicas
-  if (name.length < 2) {
-    showModal(
-      "Error de validación",
-      "El nombre debe tener al menos 2 caracteres",
-      "📝",
-      "error"
-    );
-    return;
-  }
-
-  if (password.length < 6) {
-    showModal(
-      "Error de validación",
-      "La contraseña debe tener al menos 6 caracteres",
-      "🔒",
-      "error"
-    );
-    return;
-  }
-
-  // Validar formato de email
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    showModal(
-      "Correo inválido",
-      "Por favor, ingresa un correo electrónico válido.",
-      "📧",
-      "error"
-    );
-    return;
-  }
-
-  setRegisterLoading(true);
-
+// Obtener datos completos del usuario desde Firestore
+async function getUserData(uid) {
   try {
-    // Verificar si el usuario ya existe
-    const usuariosRef = collection(db, "usuarios");
-    const q = query(usuariosRef, where("correo", "==", email));
-    const querySnapshot = await getDocs(q);
+    console.log("🔍 Obteniendo datos del usuario con UID:", uid);
+    const userDocRef = doc(db, "usuarios", uid);
+    const userDoc = await getDoc(userDocRef);
 
-    if (!querySnapshot.empty) {
-      setRegisterLoading(false);
-      showModal(
-        "Usuario existente",
-        "Ya existe una cuenta con este correo electrónico",
-        "👤",
-        "error"
-      );
-      return;
+    if (userDoc.exists()) {
+      const userData = { id: uid, ...userDoc.data() };
+      console.log("✅ Datos del usuario obtenidos desde Firestore:", userData);
+      return userData;
+    } else {
+      console.log("⚠️ No se encontraron datos del usuario en Firestore");
+      return null;
     }
-
-    // Crear nuevo usuario en Firebase
-    const newUser = {
-      nombre: name,
-      correo: email,
-      clave: password, // En producción, esto debería estar encriptado
-      esAdmin: false,
-      fechaRegistro: new Date().toISOString(),
-    };
-
-    await addDoc(usuariosRef, newUser);
-
-    setRegisterLoading(false);
-
-    // Mostrar mensaje de éxito
-    showModal(
-      "¡Registro exitoso!",
-      "Cuenta creada exitosamente. Ahora puedes iniciar sesión.",
-      "✅",
-      "success"
-    );
-
-    // Limpiar formulario
-    document.getElementById("name").value = "";
-    document.getElementById("email").value = "";
-    document.getElementById("password").value = "";
-
-    // Cambiar a pestaña de login después de cerrar el modal
-    setTimeout(() => {
-      closeModal();
-      switchTab("login");
-      document.getElementById("email_login").value = email;
-    }, 2000);
   } catch (error) {
-    console.error("Error en registro:", error);
-    setRegisterLoading(false);
-    showModal(
-      "Error de conexión",
-      "Hubo un problema al registrar tu cuenta. Intenta nuevamente.",
-      "⚠️",
-      "error"
-    );
+    console.error("❌ Error al obtener datos del usuario:", error);
+    return null;
   }
-};
+}
 
-// Función para manejar el inicio de sesión con Firebase
+// Actualizar último acceso del usuario
+async function updateLastAccess(uid) {
+  try {
+    const userDocRef = doc(db, "usuarios", uid);
+    await updateDoc(userDocRef, {
+      ultimoAcceso: new Date().toISOString(),
+    });
+    console.log("✅ Último acceso actualizado en Firestore");
+  } catch (error) {
+    console.error("❌ Error al actualizar último acceso:", error);
+  }
+}
+
+// =============================================
+// FUNCIONES DE REDIRECCIÓN
+// =============================================
+
+// Redireccionar según el rol del usuario
+function redirectUserByRole(userData) {
+  if (userData.esAdmin === true) {
+    console.log("🔒 Redirigiendo a admin dashboard");
+    window.location.href = "admin-dashboard.html";
+  } else {
+    console.log("👤 Redirigiendo a portal estudiantil");
+    window.location.href = "portal_test.html";
+  }
+}
+
+// =============================================
+// FUNCIÓN PRINCIPAL DE LOGIN
+// =============================================
+
+// Función para manejar el LOGIN
 window.handleLogin = async function (event) {
   event.preventDefault();
+  console.log("🔑 Iniciando proceso de login...");
 
-  const email = document
-    .getElementById("email_login")
-    .value.trim()
-    .toLowerCase();
-  const password = document.getElementById("password_login").value.trim();
+  const email =
+    document.getElementById("email_login")?.value.trim().toLowerCase() || "";
+  const password =
+    document.getElementById("password_login")?.value.trim() || "";
 
   // Validaciones básicas
   if (!email || !password) {
@@ -336,266 +405,212 @@ window.handleLogin = async function (event) {
   setLoginLoading(true);
 
   try {
-    console.log("Buscando usuario con correo:", email);
+    console.log("🔐 Verificando credenciales en Firebase Authentication...");
 
-    // Crear query para buscar usuario por correo
-    const usuariosRef = collection(db, "usuarios");
-    const q = query(usuariosRef, where("correo", "==", email));
-    const querySnapshot = await getDocs(q);
+    // PASO 1: Iniciar sesión con Firebase Authentication
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const user = userCredential.user;
 
-    if (querySnapshot.empty) {
-      // Usuario no encontrado
-      console.log("Usuario no encontrado");
-      setLoginLoading(false);
-      showModal("Usuario no registrado", "Te falta registrarte", "👤", "error");
-      return;
+    console.log("✅ Login exitoso con Firebase Authentication. UID:", user.uid);
+
+    // PASO 2: Obtener datos completos del usuario desde Firestore
+    const userData = await getUserData(user.uid);
+
+    if (!userData) {
+      throw new Error("No se encontraron datos del usuario en Firestore");
     }
 
-    // Usuario encontrado, verificar clave
-    const userDoc = querySnapshot.docs[0];
-    const userData = userDoc.data();
+    console.log("📋 Datos del usuario obtenidos desde Firestore:", userData);
 
-    console.log("Usuario encontrado:", userData);
+    // PASO 3: Actualizar último acceso en Firestore
+    await updateLastAccess(user.uid);
 
-    if (userData.clave !== password) {
-      // Clave incorrecta
-      console.log("Clave incorrecta");
-      setLoginLoading(false);
-      showModal(
-        "Credenciales incorrectas",
-        "Correo o clave incorrectos",
-        "🔒",
-        "error"
-      );
-      return;
-    }
-
-    // Login exitoso
-    console.log("Login exitoso");
     setLoginLoading(false);
 
-    // Crear sesión del usuario
+    // PASO 4: Crear sesión del usuario combinando datos de Auth y Firestore
     const userSession = {
-      id: userDoc.id,
-      correo: userData.correo,
-      nombre: userData.nombre || "",
-      esAdmin: userData.esAdmin || false,
+      uid: user.uid,
+      correo: user.email, // Email desde Authentication
+      nombre: userData.nombre, // Desde Firestore
+      apellido: userData.apellido || "", // Desde Firestore
+      edad: userData.edad, // Desde Firestore
+      codigoUsuario: userData.codigoUsuario, // Desde Firestore
+      facultad: userData.facultad, // Desde Firestore
+      ciclo: userData.ciclo, // Desde Firestore
+      esAdmin: userData.esAdmin || false, // Desde Firestore
       loginTime: new Date().toISOString(),
     };
 
-    // Guardar sesión persistente
+    // PASO 5: Guardar sesión
     saveSession(userSession);
 
-    // Mostrar mensaje de éxito
+    console.log(
+      "✅ Sesión creada combinando datos de Authentication y Firestore:",
+      userSession
+    );
+
+    // PASO 6: Mostrar mensaje de éxito
     showModal(
       "¡Bienvenido!",
-      `Hola ${userData.nombre || email}. Redirigiendo...`,
+      `Hola ${userData.nombre}. Redirigiendo a tu portal...`,
       "✅",
       "success"
     );
 
-    // Redirigir según el rol después de 2 segundos
+    // PASO 7: Redirigir según el rol después de 2 segundos
     setTimeout(() => {
       closeModal();
       redirectUserByRole(userData);
     }, 2000);
   } catch (error) {
-    console.error("Error en login:", error);
+    console.error("❌ Error en login:", error);
     setLoginLoading(false);
-    showModal(
-      "Error de conexión",
-      "Hubo un problema al conectar con el servidor. Intenta nuevamente.",
-      "⚠️",
-      "error"
-    );
+
+    let errorMessage =
+      "Hubo un problema al iniciar sesión. Intenta nuevamente.";
+
+    // Manejar errores específicos de Firebase
+    switch (error.code) {
+      case "auth/user-not-found":
+        errorMessage = "No existe una cuenta con este correo electrónico.";
+        break;
+      case "auth/wrong-password":
+        errorMessage = "La contraseña es incorrecta.";
+        break;
+      case "auth/invalid-email":
+        errorMessage = "El correo electrónico no es válido.";
+        break;
+      case "auth/user-disabled":
+        errorMessage = "Esta cuenta ha sido deshabilitada.";
+        break;
+      case "auth/network-request-failed":
+        errorMessage = "Error de conexión. Verifica tu conexión a internet.";
+        break;
+      case "auth/too-many-requests":
+        errorMessage = "Demasiados intentos fallidos. Intenta más tarde.";
+        break;
+      case "auth/invalid-credential":
+        errorMessage =
+          "Las credenciales son inválidas. Verifica tu email y contraseña.";
+        break;
+    }
+
+    showModal("Error de acceso", errorMessage, "🔒", "error");
   }
 };
+
+// =============================================
+// FUNCIÓN DE LOGOUT
+// =============================================
 
 // Función para cerrar sesión
-window.logout = function () {
-  // Limpiar sesión persistente
-  clearSession();
+window.logout = async function () {
+  try {
+    console.log("👋 Cerrando sesión...");
 
-  // Ocultar panel de bienvenida
-  const welcomePanel = document.getElementById("welcome-panel");
-  if (welcomePanel) {
-    welcomePanel.classList.remove("active");
-  }
+    // Cerrar sesión en Firebase Auth
+    await signOut(auth);
 
-  // Mostrar pestañas y formulario de login
-  const tabs = document.querySelector(".tabs");
-  if (tabs) {
-    tabs.style.display = "flex";
-  }
-
-  // Limpiar formularios
-  const emailLogin = document.getElementById("email_login");
-  const passwordLogin = document.getElementById("password_login");
-  if (emailLogin) emailLogin.value = "";
-  if (passwordLogin) passwordLogin.value = "";
-
-  // Activar pestaña de login
-  document
-    .querySelectorAll(".tab-btn")
-    .forEach((btn) => btn.classList.remove("active"));
-  document
-    .querySelectorAll(".form-container")
-    .forEach((form) => form.classList.remove("active"));
-
-  const firstTabBtn = document.querySelector(".tab-btn");
-  const loginForm = document.getElementById("login-form");
-  if (firstTabBtn) firstTabBtn.classList.add("active");
-  if (loginForm) loginForm.classList.add("active");
-
-  showModal(
-    "Sesión cerrada",
-    "Has cerrado sesión exitosamente",
-    "👋",
-    "success"
-  );
-
-  // Redirigir a la página de login después de mostrar el mensaje
-  setTimeout(() => {
-    closeModal();
-    // Si estamos en una página protegida, redirigir al login
-    if (
-      window.location.pathname.includes("admin-dashboard.html") ||
-      window.location.pathname.includes("portal_test.html")
-    ) {
-      window.location.href = "index.html";
-    }
-  }, 2000);
-};
-
-// Función específica para el logout desde el dashboard
-window.handleLogout = function () {
-  const confirmed = confirm("¿Estás seguro de que deseas cerrar sesión?");
-  if (confirmed) {
-    // Limpiar sesión persistente
+    // Limpiar sesión local
     clearSession();
 
-    // Redirigir inmediatamente al login
+    showModal(
+      "Sesión cerrada",
+      "Has cerrado sesión exitosamente",
+      "👋",
+      "success"
+    );
+
+    setTimeout(() => {
+      closeModal();
+      window.location.href = "index.html";
+    }, 2000);
+  } catch (error) {
+    console.error("❌ Error al cerrar sesión:", error);
+    // Forzar limpieza local incluso si falla el logout de Firebase
+    clearSession();
     window.location.href = "index.html";
   }
 };
 
 // =============================================
-// FUNCIONES DE VERIFICACIÓN DE ACCESO
+// OBSERVER DE ESTADO DE AUTENTICACIÓN
 // =============================================
 
-// Verificar si el usuario tiene acceso a una página específica
-function checkPageAccess() {
-  const currentPage = window.location.pathname.split("/").pop();
-  const session = checkActiveSession();
+// Escuchar cambios en el estado de autenticación
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    console.log("👤 Usuario autenticado detectado:", user.uid);
 
-  // Páginas que requieren autenticación
-  const protectedPages = [
-    "admin-dashboard.html",
-    "portal_test.html",
-    "eventos.html",
-    "administradores.html",
-    "usuarios.html",
-    "configuracion.html",
-    "reportes.html",
-  ];
+    // Obtener datos completos del usuario desde Firestore
+    const userData = await getUserData(user.uid);
 
-  // Páginas que requieren rol de administrador
-  const adminPages = [
-    "admin-dashboard.html",
-    "eventos.html",
-    "administradores.html",
-    "usuarios.html",
-    "configuracion.html",
-    "reportes.html",
-  ];
+    if (userData) {
+      // Crear sesión con los datos completos
+      const userSession = {
+        uid: user.uid,
+        correo: user.email, // Email desde Authentication
+        nombre: userData.nombre, // Desde Firestore
+        apellido: userData.apellido || "", // Desde Firestore
+        edad: userData.edad, // Desde Firestore
+        codigoUsuario: userData.codigoUsuario, // Desde Firestore
+        facultad: userData.facultad, // Desde Firestore
+        ciclo: userData.ciclo, // Desde Firestore
+        esAdmin: userData.esAdmin || false, // Desde Firestore
+        loginTime: new Date().toISOString(),
+      };
 
-  if (protectedPages.includes(currentPage)) {
-    if (!session) {
-      console.log("No hay sesión activa, redirigiendo al login");
-      window.location.href = "index.html";
-      return false;
+      saveSession(userSession);
     }
-
-    if (adminPages.includes(currentPage) && !session.esAdmin) {
-      console.log("Usuario sin privilegios de administrador");
-      alert("No tienes permisos para acceder a esta página");
-      window.location.href = "portal_test.html";
-      return false;
-    }
-
-    // Validar sesión en segundo plano
-    validateSession(session);
+  } else {
+    console.log("🚫 Usuario no autenticado");
+    clearSession();
   }
-
-  return true;
-}
+});
 
 // =============================================
 // FUNCIONES UTILITARIAS
 // =============================================
 
-// Función para mostrar el panel de bienvenida
-function showWelcomePanel(user) {
-  // Ocultar formularios y pestañas
-  document
-    .querySelectorAll(".form-container")
-    .forEach((form) => form.classList.remove("active"));
-  const tabs = document.querySelector(".tabs");
-  if (tabs) tabs.style.display = "none";
-
-  // Mostrar panel de bienvenida
-  const welcomePanel = document.getElementById("welcome-panel");
-  const welcomeMessage = document.getElementById("welcomeMessage");
-
-  if (welcomePanel && welcomeMessage) {
-    welcomeMessage.textContent = `¡Hola ${
-      user.nombre || user.correo
-    }! Has iniciado sesión exitosamente en el portal UNFV.`;
-    welcomePanel.classList.add("active");
-  }
-}
-
 // Funciones utilitarias para usar en otras páginas
 window.getCurrentSession = function () {
-  return currentUser || checkActiveSession();
+  return currentUser || getStoredSession();
 };
 
-window.requireAuth = function () {
-  const session = checkActiveSession();
-  if (!session) {
+window.getCurrentUser = function () {
+  return auth.currentUser;
+};
+
+window.requireAuth = async function () {
+  const user = auth.currentUser;
+  if (!user) {
     window.location.href = "index.html";
     return null;
   }
-  return session;
+
+  const userData = await getUserData(user.uid);
+  return userData;
 };
 
-window.requireAdmin = function () {
-  const session = checkActiveSession();
-  if (!session) {
+window.requireAdmin = async function () {
+  const user = auth.currentUser;
+  if (!user) {
     window.location.href = "index.html";
     return null;
   }
-  if (!session.esAdmin) {
+
+  const userData = await getUserData(user.uid);
+  if (!userData || !userData.esAdmin) {
     alert("No tienes permisos de administrador");
     window.location.href = "portal_test.html";
     return null;
   }
-  return session;
-};
 
-// Para desarrollo - mostrar usuarios registrados
-window.showRegisteredUsers = async function () {
-  try {
-    const usuariosRef = collection(db, "usuarios");
-    const querySnapshot = await getDocs(usuariosRef);
-    const users = [];
-    querySnapshot.forEach((doc) => {
-      users.push({ id: doc.id, ...doc.data() });
-    });
-    console.log("Usuarios registrados:", users);
-  } catch (error) {
-    console.error("Error al obtener usuarios:", error);
-  }
+  return userData;
 };
 
 // =============================================
@@ -613,35 +628,23 @@ if (modal) {
 
 // Inicialización cuando se carga la página
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("Página cargada, verificando sesión...");
+  console.log("🚀 Sistema de login Firebase inicializado");
 
-  // Verificar acceso a la página actual
-  checkPageAccess();
-
-  // Si estamos en la página de login y hay una sesión activa, redirigir
-  const currentPage = window.location.pathname.split("/").pop();
-  if (currentPage === "index.html" || currentPage === "") {
-    const session = checkActiveSession();
-    if (session) {
-      console.log("Sesión activa encontrada, redirigiendo...");
-      setTimeout(() => {
-        redirectUserByRole(session);
-      }, 1000);
-      return;
-    }
+  // Verificar Firebase Auth
+  if (auth) {
+    console.log("✅ Firebase Authentication: Conectado");
+  } else {
+    console.error("❌ Firebase Authentication: No disponible");
   }
 
-  // Actualizar UI si hay sesión activa
-  const session = getCurrentSession();
-  if (session) {
-    // Actualizar nombre de usuario en el dashboard
-    const userDisplayName = document.getElementById("userDisplayName");
-    if (userDisplayName) {
-      userDisplayName.textContent = session.nombre || session.correo;
-    }
+  // Verificar Firestore
+  if (db) {
+    console.log("✅ Firestore Database: Conectado");
+  } else {
+    console.error("❌ Firestore Database: No disponible");
   }
 
-  // Agregar efectos de hover a los inputs
+  // Agregar efectos a los inputs
   document.querySelectorAll(".form-input").forEach((input) => {
     input.addEventListener("focus", function () {
       this.parentNode.style.transform = "scale(1.02)";
@@ -653,5 +656,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  console.log("Sistema de autenticación inicializado");
+  console.log("🎯 Inicialización de login completada");
 });
+
+console.log("🔑 Sistema de login cargado exitosamente");

@@ -25,53 +25,103 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // =============================================
-// FUNCIONES DE GESTIÓN DE SESIÓN
+// FUNCIONES DE GESTIÓN DE SESIÓN (ACTUALIZADAS)
 // =============================================
+
+let currentUser = null;
 
 function getStoredSession() {
   try {
-    const storedSession = localStorage.getItem("userSession");
-    if (storedSession) {
-      return JSON.parse(storedSession);
+    // Primero intentar obtener de memoria
+    if (currentUser) {
+      return currentUser;
     }
+
+    // Si no está en memoria, intentar obtener de sessionStorage
+    const storedSession = sessionStorage.getItem("userSession");
+    if (storedSession) {
+      const parsedSession = JSON.parse(storedSession);
+      currentUser = parsedSession; // Actualizar la variable en memoria
+      return parsedSession;
+    }
+
     return null;
   } catch (error) {
-    console.error("Error al obtener sesión:", error);
-    localStorage.removeItem("userSession");
+    console.error("❌ Error al obtener sesión:", error);
+    sessionStorage.removeItem("userSession");
     return null;
-  }
-}
-// Limpiar sesión
-function clearSession() {
-  try {
-    localStorage.removeItem("userSession");
-    console.log("Sesión limpiada desde dashboard");
-  } catch (error) {
-    console.error("Error al limpiar sesión:", error);
   }
 }
 
-// Verificar autenticación
+function clearSession() {
+  try {
+    currentUser = null;
+    sessionStorage.removeItem("userSession");
+    console.log("🧹 Sesión limpiada");
+  } catch (error) {
+    console.error("❌ Error al limpiar sesión:", error);
+  }
+}
+
 function checkAuthentication() {
+  console.log("🔍 Verificando autenticación...");
+
   const session = getStoredSession();
+
   if (!session) {
-    console.log("No hay sesión activa, redirigiendo al login");
+    console.log("❌ No hay sesión activa, redirigiendo al login");
     window.location.href = "index.html";
     return null;
   }
 
-  // Verificar si es administrador para páginas de admin
-  const currentPage = window.location.pathname.split("/").pop();
-  if (currentPage === "admin-dashboard.html" && !session.esAdmin) {
-    console.log("Usuario sin privilegios de administrador");
+  if (!session.esAdmin) {
+    console.log("❌ Usuario sin privilegios de administrador");
     alert("No tienes permisos para acceder a esta página");
     window.location.href = "portal_test.html";
     return null;
   }
 
+  console.log("✅ Usuario administrador verificado:", {
+    correo: session.correo,
+    nombre: session.nombre,
+  });
+
   return session;
 }
 
+// =============================================
+// INICIALIZACIÓN MEJORADA
+// =============================================
+
+async function initializeEventsPage() {
+  console.log("🚀 Inicializando página de eventos...");
+
+  // Verificar autenticación PRIMERO
+  const session = checkAuthentication();
+  if (!session) {
+    return; // Si no pasa la verificación, ya fue redirigido
+  }
+
+  // Continuar con la inicialización solo si la autenticación es exitosa
+  updateUserInfo(session);
+  initializeSidebar();
+  initializeEventForm();
+  await loadUpcomingEvents();
+
+  // Configurar event listeners para las pestañas
+  const upcomingTab = document.getElementById("upcoming-tab");
+  const pastTab = document.getElementById("past-tab");
+
+  if (upcomingTab) {
+    upcomingTab.addEventListener("shown.bs.tab", loadUpcomingEvents);
+  }
+
+  if (pastTab) {
+    pastTab.addEventListener("shown.bs.tab", loadPastEvents);
+  }
+
+  console.log("✅ Página de eventos inicializada correctamente");
+}
 // =============================================
 // FUNCIONES DE NAVEGACIÓN Y UI
 // =============================================

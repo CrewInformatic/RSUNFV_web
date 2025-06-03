@@ -193,6 +193,11 @@
             <button type="submit" class="btn" id="submit_login">
               Iniciar Sesión
             </button>
+<div class="forgot-password-container">
+  <a href="recover_password.html" class="forgot-password-link">
+    ¿Olvidaste tu contraseña?
+  </a>
+</div>
           </form>
         </div>
 
@@ -227,6 +232,58 @@
                 minlength="6"
               />
             </div>
+            <div class="form-group">
+  <input
+    type="number"
+    class="form-input"
+    placeholder="Edad"
+    required
+    id="edad"
+    min="16"
+    max="80"
+  />
+</div>
+<div class="form-group">
+  <input
+    type="text"
+    class="form-input"
+    placeholder="Código de estudiante"
+    required
+    id="codigo_estudiante"
+    pattern="[0-9]{8,12}"
+    title="Ingresa un código válido de 8-12 dígitos"
+  />
+</div>
+<div class="form-group">
+  <select class="form-input" required id="facultad">
+    <option value="">Selecciona tu facultad</option>
+    <option value="Ingeniería Industrial y de Sistemas">Ingeniería Industrial y de Sistemas</option>
+    <option value="Ingeniería Civil">Ingeniería Civil</option>
+    <option value="Medicina Humana">Medicina Humana</option>
+    <option value="Derecho y Ciencia Política">Derecho y Ciencia Política</option>
+    <option value="Educación">Educación</option>
+    <option value="Ciencias Económicas">Ciencias Económicas</option>
+    <option value="Administración">Administración</option>
+    <option value="Ciencias Sociales">Ciencias Sociales</option>
+    <option value="Psicología">Psicología</option>
+    <option value="Ingeniería Electrónica e Informática">Ingeniería Electrónica e Informática</option>
+  </select>
+</div>
+<div class="form-group">
+  <select class="form-input" required id="ciclo">
+    <option value="">Selecciona tu ciclo</option>
+    <option value="I">I Ciclo</option>
+    <option value="II">II Ciclo</option>
+    <option value="III">III Ciclo</option>
+    <option value="IV">IV Ciclo</option>
+    <option value="V">V Ciclo</option>
+    <option value="VI">VI Ciclo</option>
+    <option value="VII">VII Ciclo</option>
+    <option value="VIII">VIII Ciclo</option>
+    <option value="IX">IX Ciclo</option>
+    <option value="X">X Ciclo</option>
+  </select>
+</div>
             <button type="submit" class="btn" id="submit">Crear Cuenta</button>
           </form>
         </div>

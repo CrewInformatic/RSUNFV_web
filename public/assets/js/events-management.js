@@ -29,51 +29,72 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// Al inicio del archivo, reemplaza las funciones de sesión existentes:
+
 // =============================================
-// FUNCIONES DE GESTIÓN DE SESIÓN (Reutilizadas)
+// FUNCIONES DE GESTIÓN DE SESIÓN (ACTUALIZADAS)
 // =============================================
+
+let currentUser = null;
 
 function getStoredSession() {
   try {
-    const storedSession = localStorage.getItem("userSession");
-    if (storedSession) {
-      return JSON.parse(storedSession);
+    // Primero intentar obtener de memoria
+    if (currentUser) {
+      return currentUser;
     }
+
+    // Si no está en memoria, intentar obtener de sessionStorage
+    const storedSession = sessionStorage.getItem("userSession");
+    if (storedSession) {
+      const parsedSession = JSON.parse(storedSession);
+      currentUser = parsedSession; // Actualizar la variable en memoria
+      return parsedSession;
+    }
+
     return null;
   } catch (error) {
-    console.error("Error al obtener sesión:", error);
-    localStorage.removeItem("userSession");
+    console.error("❌ Error al obtener sesión:", error);
+    sessionStorage.removeItem("userSession");
     return null;
   }
 }
 
 function clearSession() {
   try {
-    localStorage.removeItem("userSession");
-    console.log("Sesión limpiada");
+    currentUser = null;
+    sessionStorage.removeItem("userSession");
+    console.log("🧹 Sesión limpiada");
   } catch (error) {
-    console.error("Error al limpiar sesión:", error);
+    console.error("❌ Error al limpiar sesión:", error);
   }
 }
 
 function checkAuthentication() {
+  console.log("🔍 Verificando autenticación...");
+
   const session = getStoredSession();
+
   if (!session) {
-    console.log("No hay sesión activa, redirigiendo al login");
+    console.log("❌ No hay sesión activa, redirigiendo al login");
     window.location.href = "index.html";
     return null;
   }
 
   if (!session.esAdmin) {
-    console.log("Usuario sin privilegios de administrador");
+    console.log("❌ Usuario sin privilegios de administrador");
     alert("No tienes permisos para acceder a esta página");
     window.location.href = "portal_test.html";
     return null;
   }
 
+  console.log("✅ Usuario administrador verificado:", {
+    correo: session.correo,
+    nombre: session.nombre,
+  });
+
   return session;
 }
-
 // =============================================
 // FUNCIONES DE NAVEGACIÓN (Reutilizadas)
 // =============================================
@@ -390,7 +411,6 @@ function displayPastEvents(events) {
 
   eventsContainer.innerHTML = eventsHTML;
 }
-
 // =============================================
 // CONFIGURACIÓN DE CLOUDINARY
 // =============================================
@@ -476,58 +496,60 @@ async function uploadImageToCloudinary(file) {
   }
 }
 
-async function uploadMultipleImages(files, progressCallback = null) {
+// MODIFICADO: Función para subir solo la primera imagen
+async function uploadSingleImage(files, progressCallback = null) {
   if (!files || files.length === 0) {
     return {
       success: true,
-      successfulUploads: [],
-      failedUploads: [],
-      urls: [],
+      imageUrl: "", // String vacío en lugar de array
     };
   }
 
-  const results = [];
-  const totalFiles = files.length;
+  // Solo tomar la primera imagen
+  const firstFile = files[0];
 
-  for (let i = 0; i < totalFiles; i++) {
-    const file = files[i];
-
-    try {
-      if (progressCallback) {
-        progressCallback({
-          current: i + 1,
-          total: totalFiles,
-          fileName: file.name,
-          percentage: Math.round(((i + 1) / totalFiles) * 100),
-        });
-      }
-
-      const result = await uploadImageToCloudinary(file);
-      results.push(result);
-
-      if (i < totalFiles - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
-    } catch (error) {
-      console.error(`Error processing file ${file.name}:`, error);
-      results.push({
-        success: false,
-        error: error.message,
-        fileName: file.name,
+  try {
+    if (progressCallback) {
+      progressCallback({
+        current: 1,
+        total: 1,
+        fileName: firstFile.name,
+        percentage: 50,
       });
     }
+
+    const result = await uploadImageToCloudinary(firstFile);
+
+    if (progressCallback) {
+      progressCallback({
+        current: 1,
+        total: 1,
+        fileName: firstFile.name,
+        percentage: 100,
+      });
+    }
+
+    if (result.success) {
+      return {
+        success: true,
+        imageUrl: result.url, // Una sola URL como string
+        uploadedImage: result,
+      };
+    } else {
+      return {
+        success: false,
+        imageUrl: "", // String vacío si falla
+        error: result.error,
+      };
+    }
+  } catch (error) {
+    console.error(`Error processing file ${firstFile.name}:`, error);
+    return {
+      success: false,
+      imageUrl: "", // String vacío si hay error
+      error: error.message,
+    };
   }
-
-  const successfulUploads = results.filter((result) => result.success);
-  const failedUploads = results.filter((result) => !result.success);
-
-  return {
-    success: failedUploads.length === 0,
-    successfulUploads,
-    failedUploads,
-    urls: successfulUploads.map((upload) => upload.url),
-    totalProcessed: results.length,
-  };
 }
 
 // =============================================
@@ -538,60 +560,70 @@ function showImagePreviews(files, containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  // CORREGIDO: No duplicar archivos, usar los archivos tal como vienen
-  currentFiles = Array.from(files);
-  container.innerHTML = "";
-
-  if (currentFiles.length === 0) {
+  // MODIFICADO: Solo mostrar la primera imagen
+  const firstFile = files[0];
+  if (!firstFile) {
     container.innerHTML =
-      '<p class="text-muted">No hay imágenes seleccionadas</p>';
+      '<p class="text-muted">No hay imagen seleccionada</p>';
     return;
   }
 
-  currentFiles.forEach((file, index) => {
-    if (file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const previewDiv = document.createElement("div");
-        previewDiv.className = "image-preview-item";
-        previewDiv.innerHTML = `
-          <div class="preview-image-container">
-            <img src="${e.target.result}" alt="Preview ${
-          index + 1
-        }" class="preview-image">
-            <button type="button" class="btn btn-sm btn-danger remove-image-btn" onclick="removeImagePreview(${index})">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-          <div class="preview-info">
-            <small class="text-muted">${file.name}</small>
-            <small class="text-muted d-block">${(
-              file.size /
-              1024 /
-              1024
-            ).toFixed(2)} MB</small>
-          </div>
-        `;
-        container.appendChild(previewDiv);
-      };
-      reader.readAsDataURL(file);
-    }
-  });
+  currentFiles = [firstFile]; // Solo guardar la primera imagen
+  container.innerHTML = "";
+
+  if (firstFile.type.startsWith("image/")) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const previewDiv = document.createElement("div");
+      previewDiv.className = "image-preview-item";
+      previewDiv.innerHTML = `
+        <div class="preview-image-container">
+          <img src="${e.target.result}" alt="Preview" class="preview-image">
+          <button type="button" class="btn btn-sm btn-danger remove-image-btn" onclick="removeImagePreview(0)">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="preview-info">
+          <small class="text-muted">${firstFile.name}</small>
+          <small class="text-muted d-block">${(
+            firstFile.size /
+            1024 /
+            1024
+          ).toFixed(2)} MB</small>
+        </div>
+      `;
+      container.appendChild(previewDiv);
+    };
+    reader.readAsDataURL(firstFile);
+  }
+
+  // Si hay más archivos, mostrar mensaje informativo
+  if (files.length > 1) {
+    const infoDiv = document.createElement("div");
+    infoDiv.className = "alert alert-info mt-2";
+    infoDiv.innerHTML = `
+      <i class="fas fa-info-circle me-1"></i>
+      Solo se utilizará la primera imagen. ${
+        files.length - 1
+      } imagen(es) adicional(es) ignorada(s).
+    `;
+    container.appendChild(infoDiv);
+  }
 }
 
 window.removeImagePreview = function (index) {
-  if (index < 0 || index >= currentFiles.length) return;
-
-  currentFiles.splice(index, 1);
+  currentFiles = [];
 
   const fileInput = document.getElementById("eventImages");
   if (fileInput) {
-    const dt = new DataTransfer();
-    currentFiles.forEach((file) => dt.items.add(file));
-    fileInput.files = dt.files;
+    fileInput.value = ""; // Limpiar el input
   }
 
-  showImagePreviews(currentFiles, "imagePreviewContainer");
+  const container = document.getElementById("imagePreviewContainer");
+  if (container) {
+    container.innerHTML =
+      '<p class="text-muted">No hay imagen seleccionada</p>';
+  }
 };
 
 // =============================================
@@ -614,33 +646,26 @@ async function createEvent(eventData) {
       throw new Error("Sesión no válida");
     }
 
-    let imageUrls = [];
+    let imageUrl = ""; // MODIFICADO: Variable string en lugar de array
 
-    // CORREGIDO: Solo subir imágenes si realmente existen
+    // MODIFICADO: Solo subir la primera imagen si existe
     if (eventData.images && eventData.images.length > 0) {
-      console.log(`Subiendo ${eventData.images.length} imágenes únicas...`);
+      console.log(`Subiendo imagen: ${eventData.images[0].name}...`);
 
       const progressCallback = (progress) => {
         updateUploadProgress(progress);
       };
 
-      const uploadResult = await uploadMultipleImages(
-        Array.from(eventData.images), // CORREGIDO: Convertir FileList a Array sin duplicar
+      const uploadResult = await uploadSingleImage(
+        Array.from(eventData.images),
         progressCallback
       );
 
-      if (uploadResult.successfulUploads.length > 0) {
-        imageUrls = uploadResult.urls;
-        console.log(
-          `${uploadResult.successfulUploads.length} imágenes subidas exitosamente`
-        );
-      }
-
-      if (uploadResult.failedUploads.length > 0) {
-        console.warn(
-          `${uploadResult.failedUploads.length} imágenes fallaron:`,
-          uploadResult.failedUploads
-        );
+      if (uploadResult.success && uploadResult.imageUrl) {
+        imageUrl = uploadResult.imageUrl; // MODIFICADO: Asignar string directamente
+        console.log(`Imagen subida exitosamente: ${imageUrl}`);
+      } else if (uploadResult.error) {
+        console.warn(`Error al subir imagen: ${uploadResult.error}`);
       }
     }
 
@@ -664,7 +689,7 @@ async function createEvent(eventData) {
         : null,
       requisitos: eventData.requisitos?.trim() || "",
       materiales: eventData.materiales?.trim() || "",
-      foto: imageUrls, // CORREGIDO: Solo las URLs únicas
+      foto: imageUrl, // MODIFICADO: String en lugar de array
       createdBy: session.correo,
       createdAt: serverTimestamp(),
       voluntariosRegistrados: 0,
@@ -673,7 +698,7 @@ async function createEvent(eventData) {
 
     console.log("Creando evento en base de datos...", {
       titulo: newEvent.titulo,
-      foto: newEvent.foto.length,
+      foto: newEvent.foto, // Ahora es string
     });
 
     // CORREGIDO: Una sola operación de escritura a la base de datos
@@ -683,11 +708,8 @@ async function createEvent(eventData) {
     return {
       success: true,
       id: docRef.id,
-      imageUrls: imageUrls,
-      totalImages: imageUrls.length,
-      failedImages: eventData.images
-        ? eventData.images.length - imageUrls.length
-        : 0,
+      imageUrl: imageUrl, // MODIFICADO: Retornar string
+      hasImage: imageUrl !== "",
     };
   } catch (error) {
     console.error("=== ERROR EN CREACIÓN DE EVENTO ===", error);
@@ -709,7 +731,7 @@ function updateUploadProgress(progress) {
     }
 
     if (progressText) {
-      progressText.textContent = `Subiendo ${progress.fileName} (${progress.current}/${progress.total})`;
+      progressText.textContent = `Subiendo ${progress.fileName}...`;
     }
   }
 }
@@ -775,41 +797,38 @@ function handleImageSelection(files) {
 
   isProcessingFiles = true; // Establecer bandera
 
-  console.log(`Procesando ${files.length} archivos seleccionados`);
+  console.log(
+    `Procesando ${files.length} archivos seleccionados (solo se usará el primero)`
+  );
 
   const validFiles = [];
   const errors = [];
 
-  Array.from(files).forEach((file) => {
-    if (!file.type.startsWith("image/")) {
-      errors.push(`${file.name} no es una imagen válida`);
-      return;
-    }
+  // MODIFICADO: Solo validar la primera imagen
+  const firstFile = files[0];
 
-    if (file.size > 10 * 1024 * 1024) {
-      errors.push(`${file.name} es demasiado grande (máximo 10MB)`);
-      return;
-    }
-
-    validFiles.push(file);
-  });
+  if (!firstFile.type.startsWith("image/")) {
+    errors.push(`${firstFile.name} no es una imagen válida`);
+  } else if (firstFile.size > 10 * 1024 * 1024) {
+    errors.push(`${firstFile.name} es demasiado grande (máximo 10MB)`);
+  } else {
+    validFiles.push(firstFile);
+  }
 
   if (errors.length > 0) {
-    alert("Errores encontrados:\n" + errors.join("\n"));
+    alert("Error encontrado:\n" + errors.join("\n"));
   }
 
   if (validFiles.length > 0) {
-    console.log(`${validFiles.length} archivos válidos encontrados`);
+    console.log(`Imagen válida encontrada: ${validFiles[0].name}`);
 
-    // Solo actualizar si hay archivos inválidos filtrados
-    if (validFiles.length !== files.length) {
-      const dt = new DataTransfer();
-      validFiles.forEach((file) => dt.items.add(file));
-      document.getElementById("eventImages").files = dt.files;
-    }
+    // Actualizar el input para que solo contenga la primera imagen válida
+    const dt = new DataTransfer();
+    dt.items.add(validFiles[0]);
+    document.getElementById("eventImages").files = dt.files;
 
-    showImagePreviews(validFiles, "imagePreviewContainer");
-    currentFiles = validFiles;
+    showImagePreviews([validFiles[0]], "imagePreviewContainer");
+    currentFiles = [validFiles[0]];
   }
 
   isProcessingFiles = false; // Limpiar bandera
@@ -837,8 +856,13 @@ function setupDragAndDrop(uploadSection, fileInput) {
     const files = e.dataTransfer.files;
     const input = document.getElementById("eventImages");
     if (input) {
-      input.files = files;
-      handleImageSelection(files);
+      // Solo asignar la primera imagen
+      const dt = new DataTransfer();
+      if (files.length > 0) {
+        dt.items.add(files[0]);
+      }
+      input.files = dt.files;
+      handleImageSelection(dt.files);
     }
   });
 }
@@ -887,7 +911,7 @@ async function handleFormSubmit(e) {
     }
 
     if (eventData.images && eventData.images.length > 0) {
-      showUploadProgress(eventData.images.length);
+      showUploadProgress(1); // MODIFICADO: Solo 1 imagen
     }
 
     // CORREGIDO: Solo una llamada a createEvent
@@ -897,11 +921,8 @@ async function handleFormSubmit(e) {
 
     if (result.success) {
       let message = "¡Evento creado exitosamente!";
-      if (result.totalImages > 0) {
-        message += `\n${result.totalImages} imagen(es) subida(s).`;
-      }
-      if (result.failedImages > 0) {
-        message += `\n${result.failedImages} imagen(es) no se pudieron subir.`;
+      if (result.hasImage) {
+        message += "\nImagen subida correctamente.";
       }
 
       alert(message);
@@ -981,7 +1002,7 @@ function showUploadProgress(totalImages) {
     <div class="d-flex align-items-center">
       <i class="fas fa-cloud-upload-alt me-2"></i>
       <div class="flex-grow-1">
-        <div class="upload-text">Preparando subida de ${totalImages} imagen(es)...</div>
+        <div class="upload-text">Preparando subida de imagen...</div>
         <div class="progress mt-2">
           <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
         </div>
@@ -1013,7 +1034,6 @@ function resetForm() {
     }
   }
 }
-
 // =============================================
 // FUNCIONES DE EVENTOS
 // =============================================
