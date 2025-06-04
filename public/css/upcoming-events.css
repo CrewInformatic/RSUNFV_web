@@ -1,0 +1,194 @@
+/* Estilos para eventos futuros */
+.border-orange { 
+  border: 2px solid #FF8C00 !important; 
+}
+
+.bg-orange { 
+  background-color: #FF8C00 !important; 
+}
+
+.text-orange { 
+  color: #FF8C00 !important; 
+}
+
+.btn-orange {
+  background-color: #FF8C00; 
+  border-color: #FF8C00; 
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.btn-orange:hover {
+  background-color: #E67A00; 
+  border-color: #E67A00; 
+  color: white;
+  transform: translateY(-1px);
+}
+
+.btn-outline-orange {
+  color: #FF8C00; 
+  border-color: #FF8C00; 
+  background-color: transparent;
+  transition: all 0.2s ease;
+}
+
+.btn-outline-orange:hover {
+  background-color: #FF8C00; 
+  border-color: #FF8C00; 
+  color: white;
+  transform: translateY(-1px);
+}
+
+.text-sm { 
+  font-size: 0.875rem; 
+}
+
+/* Estilos para vista previa de imágenes */
+.event-image-preview {
+  position: fixed; 
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%);
+  z-index: 1050; 
+  max-width: 80vw; 
+  max-height: 80vh;
+  border-radius: 8px; 
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.preview-overlay {
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%;
+  background-color: rgba(0,0,0,0.8); 
+  z-index: 1049;
+  cursor: pointer;
+}
+
+/* Estilos para modal de foto */
+.photo-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+.photo-modal-overlay {
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  cursor: pointer;
+}
+
+.photo-modal-content {
+  background: white;
+  border-radius: 16px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  cursor: default;
+}
+
+.photo-modal-header {
+  background: linear-gradient(135deg, #FF8C00, #FF7700);
+  color: white;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.photo-modal-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.photo-modal-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.photo-modal-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.photo-modal-body {
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f8f9fa;
+}
+
+.photo-preview-img {
+  width: 100%;
+  height: auto;
+  max-height: 70vh;
+  object-fit: contain;
+  display: block;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from { 
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to { 
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  from { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  to { 
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .photo-modal-content {
+    max-width: 95vw;
+    max-height: 95vh;
+  }
+  
+  .photo-modal-header {
+    padding: 0.75rem 1rem;
+  }
+  
+  .photo-modal-title {
+    font-size: 1rem;
+  }
+  
+  .photo-preview-img {
+    max-height: 60vh;
+  }
+}

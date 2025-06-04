@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
   updateEventCounts();
 });
 
-// Funciones de búsqueda y filtrado (implementación básica)
+// Funciones de búsqueda y filtrado (implementación básica FALTA MEJORAR)
 document.addEventListener("DOMContentLoaded", function () {
   // Búsqueda en eventos futuros
   const searchUpcoming = document.getElementById("searchUpcoming");
