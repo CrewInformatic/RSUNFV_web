@@ -312,7 +312,7 @@ function createUpcomingEventCard(event, fechaInicio, fechaFin) {
                 <i class="fas fa-users me-2 text-orange"></i>
                 <span class="text-dark small fw-medium">${
                   event.voluntariosRegistrados || 0
-                } / ${event.maxVoluntarios || "∞"}</span>
+                } / ${event.cantidadVoluntariosMax || "∞"}</span>
               </div>
             </div>
           </div>

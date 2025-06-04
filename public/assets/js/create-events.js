@@ -331,13 +331,10 @@ async function createEvent(eventData) {
       descripcion: eventData.descripcion.trim(),
       tipo: eventData.tipo || "general",
       fechaInicio: Timestamp.fromDate(new Date(eventData.fechaInicio)),
-      fechaFin: eventData.fechaFin
-        ? Timestamp.fromDate(new Date(eventData.fechaFin))
-        : null,
       horaInicio: eventData.horaInicio || "",
       horaFin: eventData.horaFin || "",
       ubicacion: eventData.ubicacion?.trim() || "",
-      maxVoluntarios: eventData.maxVoluntarios
+      cantidadVoluntariosMax: eventData.maxVoluntarios
         ? parseInt(eventData.maxVoluntarios)
         : null,
       requisitos: eventData.requisitos?.trim() || "",
@@ -345,7 +342,7 @@ async function createEvent(eventData) {
       foto: imageUrl,
       createdBy: session.correo,
       createdAt: serverTimestamp(),
-      voluntariosRegistrados: 0,
+      voluntariosInscritos: 0,
       estado: "activo",
     };
 
@@ -673,7 +670,6 @@ async function handleFormSubmit(e) {
 
   return false;
 }
-
 /**
  * Recopilar datos del formulario
  */
@@ -694,7 +690,6 @@ function collectFormData(form) {
     images: imageFiles && imageFiles.length > 0 ? imageFiles : null,
   };
 }
-
 /**
  * Validar datos del evento
  */
