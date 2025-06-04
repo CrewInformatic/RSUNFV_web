@@ -24,11 +24,97 @@ function getFirebaseDB() {
 }
 
 // =============================================
+// FUNCIONES AUXILIARES PARA FECHAS STRING
+// =============================================
+
+/**
+ * Convertir string de fecha a objeto Date
+ * Formatos soportados: "YYYY-MM-DD", "DD/MM/YYYY", "MM/DD/YYYY"
+ */
+function parseStringToDate(dateString) {
+  if (!dateString || typeof dateString !== "string") {
+    console.warn("⚠️ Fecha inválida:", dateString);
+    return new Date();
+  }
+
+  // Limpiar la string de espacios extra
+  dateString = dateString.trim();
+
+  try {
+    // Formato ISO: YYYY-MM-DD
+    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return new Date(dateString + "T00:00:00");
+    }
+
+    // Formato DD/MM/YYYY
+    if (dateString.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+      const [day, month, year] = dateString.split("/");
+      return new Date(year, month - 1, day);
+    }
+
+    // Formato MM/DD/YYYY
+    if (dateString.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+      // Intentar como MM/DD/YYYY si DD/MM/YYYY no funcionó
+      const [month, day, year] = dateString.split("/");
+      const date = new Date(year, month - 1, day);
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    }
+
+    // Intentar parseado directo
+    const parsedDate = new Date(dateString);
+    if (!isNaN(parsedDate.getTime())) {
+      return parsedDate;
+    }
+
+    console.warn("⚠️ No se pudo parsear la fecha:", dateString);
+    return new Date();
+  } catch (error) {
+    console.error("❌ Error al parsear fecha:", dateString, error);
+    return new Date();
+  }
+}
+
+/**
+ * Obtener fecha de inicio del día actual como string
+ */
+function getTodayAsString() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Comparar si una fecha string es mayor o igual a hoy
+ */
+function isDateFromToday(dateString) {
+  const eventDate = parseStringToDate(dateString);
+  const today = new Date();
+
+  // Resetear horas para comparar solo fechas
+  const eventDateOnly = new Date(
+    eventDate.getFullYear(),
+    eventDate.getMonth(),
+    eventDate.getDate()
+  );
+  const todayOnly = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  );
+
+  return eventDateOnly >= todayOnly;
+}
+
+// =============================================
 // FUNCIONES PARA EVENTOS FUTUROS
 // =============================================
 
 /**
- * Cargar y mostrar eventos futuros
+ * Cargar y mostrar eventos futuros - ACTUALIZADA PARA FECHAS STRING
  */
 export async function loadUpcomingEvents() {
   console.log("🔄 Iniciando carga de eventos futuros...");
@@ -45,25 +131,13 @@ export async function loadUpcomingEvents() {
       throw new Error("Firebase no está inicializado");
     }
 
-    // Crear fecha de inicio del día actual (00:00:00)
-    const now = new Date();
-    const startOfToday = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate()
-    );
-
-    console.log("📅 Consultando eventos desde:", startOfToday);
+    console.log("📅 Consultando eventos desde hoy...");
 
     const eventosRef = collection(firebaseDB, "eventos");
 
-    // SOLUCIÓN: Separar las consultas para evitar el error de índice
-    // Primero consultar por fecha, luego filtrar por estado en memoria
-    const q = query(
-      eventosRef,
-      where("fechaInicio", ">=", Timestamp.fromDate(startOfToday)),
-      orderBy("fechaInicio", "asc")
-    );
+    // CONSULTA SIMPLIFICADA: Solo obtener eventos activos
+    // Ya no podemos filtrar por fecha en la consulta porque es string
+    const q = query(eventosRef, where("estado", "==", "activo"));
 
     const querySnapshot = await getDocs(q);
     const events = [];
@@ -71,33 +145,30 @@ export async function loadUpcomingEvents() {
     querySnapshot.forEach((docSnapshot) => {
       const eventData = { id: docSnapshot.id, ...docSnapshot.data() };
 
-      // Filtrar eventos activos en memoria (evita necesidad de índice compuesto)
-      if (eventData.estado === "activo") {
+      // Filtrar eventos futuros en memoria
+      if (eventData.fechaInicio && isDateFromToday(eventData.fechaInicio)) {
         console.log("📋 Evento encontrado:", {
           id: eventData.id,
           titulo: eventData.titulo,
-          fechaInicio: eventData.fechaInicio?.toDate(),
+          fechaInicio: eventData.fechaInicio,
+          fechaParsed: parseStringToDate(eventData.fechaInicio),
           estado: eventData.estado,
         });
         events.push(eventData);
       }
     });
 
-    // Los eventos ya vienen ordenados por fechaInicio gracias al orderBy
+    // Ordenar eventos por fecha manualmente
+    events.sort((a, b) => {
+      const dateA = parseStringToDate(a.fechaInicio);
+      const dateB = parseStringToDate(b.fechaInicio);
+      return dateA - dateB;
+    });
+
     displayUpcomingEvents(events);
     console.log(`✅ Cargados ${events.length} eventos futuros activos`);
   } catch (error) {
     console.error("❌ Error al cargar eventos futuros:", error);
-
-    // Si el error persiste, usar consulta alternativa sin orderBy
-    if (
-      error.message.includes("index") ||
-      error.message.includes("requires an index")
-    ) {
-      console.log("🔄 Intentando consulta alternativa sin orderBy...");
-      await loadUpcomingEventsAlternative();
-      return;
-    }
 
     if (eventsContainer) {
       eventsContainer.innerHTML = `
@@ -105,11 +176,6 @@ export async function loadUpcomingEvents() {
           <i class="fas fa-exclamation-triangle fa-2x mb-2" style="color: #FF8C00;"></i>
           <div class="fw-bold" style="color: #CC6A00;">Error al cargar eventos futuros</div>
           <small class="text-muted d-block mb-2">Error: ${error.message}</small>
-          ${
-            error.message.includes("index")
-              ? '<small class="text-orange">Intentando método alternativo...</small>'
-              : ""
-          }
           <br>
           <button class="btn btn-orange btn-sm mt-2" onclick="window.loadUpcomingEvents()">
             <i class="fas fa-redo"></i> Reintentar
@@ -123,83 +189,7 @@ export async function loadUpcomingEvents() {
 }
 
 /**
- * Consulta alternativa sin orderBy para evitar problemas de índice
- */
-async function loadUpcomingEventsAlternative() {
-  console.log("🔄 Ejecutando consulta alternativa...");
-
-  const eventsContainer = document.getElementById("upcomingEvents");
-
-  try {
-    const firebaseDB = getFirebaseDB();
-    if (!firebaseDB) {
-      throw new Error("Firebase no está inicializado");
-    }
-
-    const now = new Date();
-    const startOfToday = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate()
-    );
-
-    const eventosRef = collection(firebaseDB, "eventos");
-
-    // Consulta solo por fecha, sin orderBy
-    const q = query(
-      eventosRef,
-      where("fechaInicio", ">=", Timestamp.fromDate(startOfToday))
-    );
-
-    const querySnapshot = await getDocs(q);
-    const events = [];
-
-    querySnapshot.forEach((docSnapshot) => {
-      const eventData = { id: docSnapshot.id, ...docSnapshot.data() };
-
-      // Filtrar eventos activos
-      if (eventData.estado === "activo") {
-        events.push(eventData);
-      }
-    });
-
-    // Ordenar manualmente por fecha
-    events.sort((a, b) => {
-      const dateA = a.fechaInicio?.toDate() || new Date();
-      const dateB = b.fechaInicio?.toDate() || new Date();
-      return dateA - dateB;
-    });
-
-    displayUpcomingEvents(events);
-    console.log(
-      `✅ Cargados ${events.length} eventos futuros (método alternativo)`
-    );
-  } catch (error) {
-    console.error("❌ Error en consulta alternativa:", error);
-
-    if (eventsContainer) {
-      eventsContainer.innerHTML = `
-        <div class="text-center py-4">
-          <i class="fas fa-exclamation-triangle fa-2x mb-2" style="color: #FF8C00;"></i>
-          <div class="fw-bold" style="color: #CC6A00;">Error al cargar eventos</div>
-          <small class="text-muted d-block mb-2">No se pudieron cargar los eventos futuros</small>
-          <small class="text-muted d-block mb-3">Error: ${error.message}</small>
-          <div class="d-flex gap-2 justify-content-center">
-            <button class="btn btn-orange btn-sm" onclick="window.loadUpcomingEvents()">
-              <i class="fas fa-redo"></i> Reintentar
-            </button>
-            <button class="btn btn-outline-orange btn-sm" onclick="window.debugFirebase()">
-              <i class="fas fa-bug"></i> Debug
-            </button>
-          </div>
-        </div>
-      `;
-    }
-  }
-}
-
-/**
- * Mostrar eventos futuros en el DOM
+ * Mostrar eventos futuros en el DOM - ACTUALIZADA PARA FECHAS STRING
  */
 function displayUpcomingEvents(events) {
   const eventsContainer = document.getElementById("upcomingEvents");
@@ -224,8 +214,8 @@ function displayUpcomingEvents(events) {
 
   let eventsHTML = "";
   events.forEach((event) => {
-    const fechaInicio = event.fechaInicio?.toDate() || new Date();
-    const fechaFin = event.fechaFin?.toDate() || null;
+    const fechaInicio = parseStringToDate(event.fechaInicio);
+    const fechaFin = event.fechaFin ? parseStringToDate(event.fechaFin) : null;
 
     eventsHTML += createUpcomingEventCard(event, fechaInicio, fechaFin);
   });
@@ -235,7 +225,7 @@ function displayUpcomingEvents(events) {
 }
 
 /**
- * Crear tarjeta HTML para evento futuro (versión compacta)
+ * Crear tarjeta HTML para evento futuro (versión compacta) - ACTUALIZADA
  */
 function createUpcomingEventCard(event, fechaInicio, fechaFin) {
   // Verificar si el evento es hoy
@@ -445,7 +435,7 @@ function handleEscKey(event) {
 }
 
 /**
- * Formatear fecha para mostrar
+ * Formatear fecha para mostrar - ACTUALIZADA PARA FECHAS STRING
  */
 function formatEventDate(date) {
   const today = new Date();
@@ -561,6 +551,22 @@ window.debugFirebase = function () {
     getDocs(eventosRef)
       .then((snapshot) => {
         console.log(`- Total eventos en BD: ${snapshot.size}`);
+
+        // Mostrar algunos ejemplos de fechas
+        let count = 0;
+        snapshot.forEach((doc) => {
+          if (count < 3) {
+            const data = doc.data();
+            console.log(`- Evento ${count + 1}:`, {
+              id: doc.id,
+              titulo: data.titulo,
+              fechaInicio: data.fechaInicio,
+              fechaParsed: parseStringToDate(data.fechaInicio),
+              estado: data.estado,
+            });
+            count++;
+          }
+        });
       })
       .catch((err) => {
         console.error("- Error al consultar eventos:", err);
@@ -664,4 +670,6 @@ if (document.readyState === "loading") {
 // Exportar función de inicialización
 window.initializeUpcomingEvents = initializeUpcomingEvents;
 
-console.log("📅 Módulo upcoming-events.js cargado correctamente");
+console.log(
+  "📅 Módulo upcoming-events.js cargado correctamente - VERSION STRING DATES"
+);

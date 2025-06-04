@@ -2,7 +2,6 @@
 import {
   collection,
   addDoc,
-  Timestamp,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
@@ -330,7 +329,7 @@ async function createEvent(eventData) {
       titulo: eventData.titulo.trim(),
       descripcion: eventData.descripcion.trim(),
       tipo: eventData.tipo || "general",
-      fechaInicio: Timestamp.fromDate(new Date(eventData.fechaInicio)),
+      fechaInicio: eventData.fechaInicio, // Guardar como string
       horaInicio: eventData.horaInicio || "",
       horaFin: eventData.horaFin || "",
       ubicacion: eventData.ubicacion?.trim() || "",
@@ -342,7 +341,7 @@ async function createEvent(eventData) {
       foto: imageUrl,
       createdBy: session.correo,
       createdAt: serverTimestamp(),
-      voluntariosInscritos: 0,
+      voluntariosInscritos: [], // Array vacío de strings
       estado: "activo",
     };
 
@@ -350,6 +349,8 @@ async function createEvent(eventData) {
       titulo: newEvent.titulo,
       foto: newEvent.foto,
       createdBy: newEvent.createdBy,
+      fechaInicio: newEvent.fechaInicio,
+      voluntariosInscritos: newEvent.voluntariosInscritos,
     });
 
     // Guardar en Firestore
@@ -613,6 +614,7 @@ async function handleFormSubmit(e) {
     const eventData = collectFormData(form);
     console.log("📋 Datos recopilados:", {
       titulo: eventData.titulo,
+      fechaInicio: eventData.fechaInicio,
       imagenes: eventData.images ? eventData.images.length : 0,
     });
 

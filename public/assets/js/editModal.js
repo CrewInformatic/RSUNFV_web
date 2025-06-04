@@ -215,14 +215,16 @@ async function loadEventData(eventId) {
     document.getElementById("editEventType").value =
       eventData.tipo || "general";
 
-    // Convertir fecha de Firestore a formato de input
+    // Convertir fecha de string a formato de input
     if (eventData.fechaInicio) {
-      const fecha = eventData.fechaInicio.toDate();
-      document.getElementById("editEventDate").value = fecha
-        .toISOString()
-        .split("T")[0];
-    }
+      // Si ya es string, usarla directamente
+      const fechaStr =
+        typeof eventData.fechaInicio === "string"
+          ? eventData.fechaInicio
+          : eventData.fechaInicio.toDate().toISOString().split("T")[0];
 
+      document.getElementById("editEventDate").value = fechaStr;
+    }
     document.getElementById("editEventStartTime").value =
       eventData.horaInicio || "";
     document.getElementById("editEventEndTime").value = eventData.horaFin || "";
@@ -281,6 +283,14 @@ function setupImageHandling() {
   }
 
   if (uploadSection) {
+    // Agregar evento click para abrir el selector de archivos
+    uploadSection.addEventListener("click", function (e) {
+      e.preventDefault();
+      if (imageInput) {
+        imageInput.click();
+      }
+    });
+
     setupEditDragAndDrop(uploadSection, imageInput);
   }
 }
@@ -520,16 +530,18 @@ window.saveEventChanges = async function (eventId) {
     // Validar fecha futura
     const eventDate = new Date(eventData.fechaInicio);
     const now = new Date();
-    if (eventDate <= now) {
+    now.setHours(0, 0, 0, 0); // Resetear hora para comparar solo fechas
+    eventDate.setHours(0, 0, 0, 0);
+
+    if (eventDate < now) {
       throw new Error("La fecha del evento debe ser futura");
     }
-
     // Preparar datos para actualización
     const updateData = {
       titulo: eventData.titulo,
       descripcion: eventData.descripcion,
       tipo: eventData.tipo,
-      fechaInicio: Timestamp.fromDate(new Date(eventData.fechaInicio)),
+      fechaInicio: eventData.fechaInicio,
       horaInicio: eventData.horaInicio,
       horaFin: eventData.horaFin,
       ubicacion: eventData.ubicacion,
