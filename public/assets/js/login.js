@@ -87,7 +87,7 @@ function checkAuthentication() {
 
   console.log("✅ Sesión encontrada:", {
     correo: session.correo,
-    nombre: session.nombre,
+    nombreUsuario: session.nombreUsuario,
     esAdmin: session.esAdmin,
   });
 
@@ -115,7 +115,7 @@ function checkAdminAuthentication() {
 
   console.log("✅ Usuario administrador verificado:", {
     correo: session.correo,
-    nombre: session.nombre,
+    nombreUsuario: session.nombreUsuario,
   });
 
   return session;
@@ -190,7 +190,7 @@ window.showProfile = function () {
   const session = getStoredSession();
   if (session) {
     alert(
-      `Perfil de Usuario:\n\nNombre: ${session.nombre}\nCorreo: ${
+      `Perfil de Usuario:\n\nnombreUsuario: ${session.nombreUsuario}\nCorreo: ${
         session.correo
       }\nRol: ${
         session.esAdmin ? "Administrador" : "Usuario"
@@ -236,7 +236,7 @@ function initializeAdminPage() {
 function updateUserInfo(session) {
   const userDisplayName = document.getElementById("userDisplayName");
   if (userDisplayName) {
-    userDisplayName.textContent = session.nombre || session.correo;
+    userDisplayName.textContent = session.nombreUsuario || session.correo;
   }
 
   // Actualizar otros elementos de la interfaz si existen
@@ -435,7 +435,7 @@ window.handleLogin = async function (event) {
     const userSession = {
       uid: user.uid,
       correo: user.email, // Email desde Authentication
-      nombre: userData.nombre, // Desde Firestore
+      nombreUsuario: userData.nombreUsuario, // Desde Firestore
       apellido: userData.apellido || "", // Desde Firestore
       edad: userData.edad, // Desde Firestore
       codigoUsuario: userData.codigoUsuario, // Desde Firestore
@@ -456,7 +456,7 @@ window.handleLogin = async function (event) {
     // PASO 6: Mostrar mensaje de éxito
     showModal(
       "¡Bienvenido!",
-      `Hola ${userData.nombre}. Redirigiendo a tu portal...`,
+      `Hola ${userData.nombreUsuario}. Redirigiendo a tu portal...`,
       "✅",
       "success"
     );
@@ -554,7 +554,7 @@ onAuthStateChanged(auth, async (user) => {
       const userSession = {
         uid: user.uid,
         correo: user.email, // Email desde Authentication
-        nombre: userData.nombre, // Desde Firestore
+        nombreUsuario: userData.nombreUsuario, // Desde Firestore
         apellido: userData.apellido || "", // Desde Firestore
         edad: userData.edad, // Desde Firestore
         codigoUsuario: userData.codigoUsuario, // Desde Firestore

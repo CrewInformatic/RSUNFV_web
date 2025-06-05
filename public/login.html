@@ -7,123 +7,8 @@
     <link rel="stylesheet" href="css/Login.css" />
     <script type="module" src="/public/assets/js/register.js" defer></script>
     <script type="module" src="/public/assets/js/login.js" defer></script>
+    <link rel="stylesheet" href="css/verificationEmail.css" />
   </head>
-    <style>
-      /* Estilos adicionales para el modal */
-      .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        animation: fadeIn 0.3s ease;
-      }
-
-      .modal.show {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-
-      .modal-content {
-        background: white;
-        padding: 30px;
-        border-radius: 15px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-        text-align: center;
-        max-width: 400px;
-        width: 90%;
-        animation: slideIn 0.3s ease;
-      }
-
-      .modal-icon {
-        font-size: 60px;
-        margin-bottom: 20px;
-      }
-
-      .modal-title {
-        font-size: 24px;
-        margin-bottom: 15px;
-        color: #343a40;
-      }
-
-      .modal-message {
-        font-size: 16px;
-        color: #6c757d;
-        margin-bottom: 25px;
-        line-height: 1.5;
-      }
-
-      .modal-btn {
-        background: var(--naranja-unfv);
-        color: white;
-        border: none;
-        padding: 12px 30px;
-        border-radius: 8px;
-        font-size: 16px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-      }
-
-      .modal-btn:hover {
-        background: var(--naranja-hover);
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(245, 130, 32, 0.3);
-      }
-
-      .modal-btn.success {
-        background: #27ae60;
-      }
-
-      .modal-btn.success:hover {
-        background: #2ecc71;
-        box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
-      }
-
-      .modal-btn.error {
-        background: #e74c3c;
-      }
-
-      .modal-btn.error:hover {
-        background: #c0392b;
-        box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
-      }
-
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-
-      @keyframes slideIn {
-        from { 
-          opacity: 0;
-          transform: translateY(-50px);
-        }
-        to { 
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      /* Loading animation */
-      .loading {
-        display: inline-block;
-        width: 20px;
-        height: 20px;
-        border: 3px solid #ffffff;
-        border-radius: 50%;
-        border-top-color: transparent;
-        animation: spin 1s ease-in-out infinite;
-        margin-right: 10px;
-      }
-
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-    </style>
   </head>
   <body>
     <!-- Modal para mensajes -->
@@ -200,94 +85,164 @@
 </div>
           </form>
         </div>
-
-        <!-- Formulario de Registro -->
-        <div id="register-form" class="form-container">
-          <h3 class="form-title">Únete a la comunidad UNFV</h3>
-          <form onsubmit="handleRegister(event)">
-            <div class="form-group">
-              <input
-                type="text"
-                class="form-input"
-                placeholder="Nombre completo"
-                id="name"
-              />
-            </div>
-            <div class="form-group">
-              <input
-                type="email"
-                class="form-input"
-                placeholder="Correo electrónico"
-                required
-                id="email"
-              />
-            </div>
-            <div class="form-group">
-              <input
-                type="password"
-                class="form-input"
-                placeholder="Contraseña"
-                required
-                id="password"
-                minlength="6"
-              />
-            </div>
-            <div class="form-group">
-  <input
-    type="number"
-    class="form-input"
-    placeholder="Edad"
-    required
-    id="edad"
-    min="16"
-    max="80"
-  />
-</div>
+<!-- Formulario de Registro -->
+<div id="register-form" class="form-container">
+  <h3 class="form-title">Únete a la comunidad UNFV</h3>
+  <form onsubmit="handleRegister(event)">
+    <div class="form-group">
+      <input
+        type="text"
+        class="form-input"
+        placeholder="Nombre"
+        required
+        id="nombreUsuario"
+      />
+    </div>
+    <div class="form-group">
+      <input
+        type="text"
+        class="form-input"
+        placeholder="Apellido"
+        required
+        id="apellidoUsuario"
+      />
+    </div>
+    <div class="form-group">
+      <input
+        type="text"
+        class="form-input"
+        placeholder="Código de estudiante"
+        required
+        id="codigoUsuario"
+        pattern="[0-9]{8,12}"
+        title="Ingresa un código válido de 8-12 dígitos"
+      />
+    </div>
+    <div class="form-group">
+      <input
+        type="email"
+        class="form-input"
+        placeholder="Correo electrónico"
+        required
+        id="correo"
+      />
+    </div>
+    <div class="form-group">
+      <input
+        type="date"
+        class="form-input"
+        required
+        id="fechaNacimiento"
+        title="Fecha de nacimiento"
+      />
+    </div>
+    <div class="form-group">
+      <input
+        type="tel"
+        class="form-input"
+        placeholder="Número de celular"
+        required
+        id="celular"
+        pattern="[0-9]{9}"
+        title="Ingresa un número de celular válido (9 dígitos)"
+      />
+    </div>
+    <div class="form-group">
+      <select class="form-input" required id="poloTallaID" onchange="updatePoloTallaDisplay()">
+        <option value="">Selecciona talla del polo</option>
+        <option value="1">XS</option>
+        <option value="2">S</option>
+        <option value="3">M</option>
+        <option value="4">L</option>
+        <option value="5">XL</option>
+        <option value="6">XXL</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <select class="form-input" required id="facultadID" onchange="updateFacultadDisplay()">
+        <option value="">Selecciona tu facultad</option>
+        <option value="1">Ingeniería Industrial y de Sistemas</option>
+        <option value="2">Ingeniería Civil</option>
+        <option value="3">Medicina Humana</option>
+        <option value="4">Derecho y Ciencia Política</option>
+        <option value="5">Educación</option>
+        <option value="6">Ciencias Económicas</option>
+        <option value="7">Administración</option>
+        <option value="8">Ciencias Sociales</option>
+        <option value="9">Psicología</option>
+        <option value="10">Ingeniería Electrónica e Informática</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <select class="form-input" required id="escuelaID" onchange="updateEscuelaDisplay()">
+        <option value="">Selecciona tu escuela</option>
+        <option value="1">Ingeniería de Sistemas</option>
+        <option value="2">Ingeniería Industrial</option>
+        <option value="3">Ingeniería Civil</option>
+        <option value="4">Medicina Humana</option>
+        <option value="5">Derecho</option>
+        <option value="6">Ciencia Política</option>
+        <option value="7">Educación Inicial</option>
+        <option value="8">Educación Primaria</option>
+        <option value="9">Educación Secundaria</option>
+        <option value="10">Economía</option>
+        <option value="11">Administración</option>
+        <option value="12">Sociología</option>
+        <option value="13">Trabajo Social</option>
+        <option value="14">Psicología</option>
+        <option value="15">Ingeniería Electrónica</option>
+        <option value="16">Ingeniería Informática</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <select class="form-input" required id="ciclo">
+        <option value="">Selecciona tu ciclo</option>
+        <option value="I">I Ciclo</option>
+        <option value="II">II Ciclo</option>
+        <option value="III">III Ciclo</option>
+        <option value="IV">IV Ciclo</option>
+        <option value="V">V Ciclo</option>
+        <option value="VI">VI Ciclo</option>
+        <option value="VII">VII Ciclo</option>
+        <option value="VIII">VIII Ciclo</option>
+        <option value="IX">IX Ciclo</option>
+        <option value="X">X Ciclo</option>
+      </select>
+    </div>
 <div class="form-group">
   <input
-    type="text"
-    class="form-input"
-    placeholder="Código de estudiante"
-    required
-    id="codigo_estudiante"
-    pattern="[0-9]{8,12}"
-    title="Ingresa un código válido de 8-12 dígitos"
+    type="file"
+    class="form-input file-input"
+    accept="image/*"
+    id="fotoPerfilHash"
+    title="Foto de perfil"
+    onchange="handleFileSelect(this)"
   />
-</div>
-<div class="form-group">
-  <select class="form-input" required id="facultad">
-    <option value="">Selecciona tu facultad</option>
-    <option value="Ingeniería Industrial y de Sistemas">Ingeniería Industrial y de Sistemas</option>
-    <option value="Ingeniería Civil">Ingeniería Civil</option>
-    <option value="Medicina Humana">Medicina Humana</option>
-    <option value="Derecho y Ciencia Política">Derecho y Ciencia Política</option>
-    <option value="Educación">Educación</option>
-    <option value="Ciencias Económicas">Ciencias Económicas</option>
-    <option value="Administración">Administración</option>
-    <option value="Ciencias Sociales">Ciencias Sociales</option>
-    <option value="Psicología">Psicología</option>
-    <option value="Ingeniería Electrónica e Informática">Ingeniería Electrónica e Informática</option>
-  </select>
-</div>
-<div class="form-group">
-  <select class="form-input" required id="ciclo">
-    <option value="">Selecciona tu ciclo</option>
-    <option value="I">I Ciclo</option>
-    <option value="II">II Ciclo</option>
-    <option value="III">III Ciclo</option>
-    <option value="IV">IV Ciclo</option>
-    <option value="V">V Ciclo</option>
-    <option value="VI">VI Ciclo</option>
-    <option value="VII">VII Ciclo</option>
-    <option value="VIII">VIII Ciclo</option>
-    <option value="IX">IX Ciclo</option>
-    <option value="X">X Ciclo</option>
-  </select>
-</div>
-            <button type="submit" class="btn" id="submit">Crear Cuenta</button>
-          </form>
-        </div>
+  <label for="fotoPerfilHash" class="file-label">
 
+    <div class="file-text">
+      <span class="file-main-text">Subir foto de perfil</span>
+      <span class="file-sub-text">(Opcional - JPG, PNG máx. 5MB)</span>
+    </div>
+  </label>
+  <div class="image-preview" id="imagePreview">
+    <img class="preview-img" id="previewImg" alt="Vista previa">
+    <div class="preview-name" id="previewName"></div>
+  </div>
+</div>
+    <div class="form-group">
+      <input
+        type="password"
+        class="form-input"
+        placeholder="Contraseña"
+        required
+        id="password"
+        minlength="6"
+      />
+    </div>
+    <button type="submit" class="btn" id="submit">Crear Cuenta</button>
+  </form>
+</div>
         <!-- Panel de Bienvenida (después del login) -->
         <div id="welcome-panel" class="welcome-panel">
           <h3 class="welcome-title">¡Bienvenido!</h3>

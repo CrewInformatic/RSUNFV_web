@@ -1,3 +1,4 @@
+import { EmailVerificationSystem } from "./emailVerification.js";
 // register.js
 import {
   auth,
@@ -5,6 +6,7 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
   collection,
+  sendEmailVerification,
   doc,
   getDoc,
   setDoc,
@@ -12,6 +14,15 @@ import {
   where,
   getDocs,
 } from "./firebase_config.js";
+
+// =============================================
+// CONFIGURACIÓN DE CLOUDINARY
+// =============================================
+const CLOUDINARY_CONFIG = {
+  cloudName: "dupkeaqnz",
+  uploadPreset: "u5jbjfxu",
+  apiKey: "572426943132833",
+};
 
 // Referencias a elementos del DOM
 const modal = document.getElementById("messageModal");
@@ -68,11 +79,140 @@ window.switchTab = function (tabName) {
   closeModal();
 };
 
+// Función para manejar selección de archivo y vista previa
+window.handleFileSelect = function (input) {
+  const file = input.files[0];
+  const preview = document.getElementById("imagePreview");
+  const previewImg = document.getElementById("previewImg");
+  const previewName = document.getElementById("previewName");
+
+  if (file) {
+    // Validar tamaño (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showModal(
+        "Archivo muy grande",
+        "La imagen no puede superar los 5MB",
+        "📁",
+        "error"
+      );
+      input.value = "";
+      return;
+    }
+
+    // Validar tipo
+    if (!file.type.startsWith("image/")) {
+      showModal(
+        "Formato inválido",
+        "Solo se permiten archivos de imagen (JPG, PNG, etc.)",
+        "🖼️",
+        "error"
+      );
+      input.value = "";
+      return;
+    }
+
+    // Mostrar vista previa
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      previewImg.src = e.target.result;
+      previewName.textContent = file.name;
+      preview.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  } else {
+    preview.style.display = "none";
+  }
+};
+
+// Función para actualizar display de talla de polo
+window.updatePoloTallaDisplay = function () {
+  const select = document.getElementById("poloTallaID");
+  console.log("Talla seleccionada:", select.value);
+};
+
+// Función para actualizar display de facultad
+window.updateFacultadDisplay = function () {
+  const select = document.getElementById("facultadID");
+  console.log("Facultad seleccionada:", select.value);
+};
+
+// Función para actualizar display de escuela
+window.updateEscuelaDisplay = function () {
+  const select = document.getElementById("escuelaID");
+  console.log("Escuela seleccionada:", select.value);
+};
+
+// =============================================
+// FUNCIONES DE CLOUDINARY
+// =============================================
+
+// Función para subir imagen a Cloudinary
+async function uploadImageToCloudinary(file) {
+  try {
+    console.log("📸 Iniciando subida de imagen a Cloudinary...");
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", CLOUDINARY_CONFIG.uploadPreset);
+    formData.append("cloud_name", CLOUDINARY_CONFIG.cloudName);
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.secure_url) {
+      console.log(
+        "✅ Imagen subida exitosamente a Cloudinary:",
+        data.secure_url
+      );
+      return data.secure_url;
+    } else {
+      throw new Error("No se recibió URL de la imagen");
+    }
+  } catch (error) {
+    console.error("❌ Error al subir imagen a Cloudinary:", error);
+    throw error;
+  }
+}
+
+// =============================================
+// FUNCIONES DE UTILIDAD
+// =============================================
+
+// Función para calcular edad desde fecha de nacimiento
+function calculateAge(birthDate) {
+  const birth = new Date(birthDate);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+
+  return age;
+}
+
+// Función para obtener timestamp actual en formato string
+function getCurrentTimestamp() {
+  return new Date().toISOString();
+}
+
 // =============================================
 // FUNCIONES DE FIRESTORE DATABASE
 // =============================================
 
-// FUNCIÓN CORREGIDA: Crear perfil del usuario en Firestore
+// Función para crear perfil del usuario en Firestore
 async function createUserProfile(uid, userData) {
   try {
     console.log("🔥 INICIANDO CREACIÓN DE PERFIL EN FIRESTORE");
@@ -95,51 +235,57 @@ async function createUserProfile(uid, userData) {
 
     console.log("✅ Validaciones iniciales pasadas");
 
-    // CREAR REFERENCIA AL DOCUMENTO con el UID
+    // Crear referencia al documento con el UID
     const userDocRef = doc(db, "usuarios", uid);
     console.log("📄 Referencia al documento creada:", userDocRef.path);
 
-    // ESTRUCTURA SIMPLIFICADA Y CORREGIDA DEL DOCUMENTO
+    // Calcular edad desde fecha de nacimiento
+    const edad = calculateAge(userData.fechaNacimiento);
+    const currentTimestamp = getCurrentTimestamp();
+
+    // Estructura del documento según especificaciones
     const userProfile = {
+      // ID del usuario (UID de Firebase Auth)
+      idUsuario: uid,
+
       // Información personal básica
-      nombre: userData.nombre || "",
-      apellido: userData.apellido || "",
-      edad: Number(userData.edad) || 0,
-      fechaNacimientoID: userData.fechaNacimiento || "",
+      nombreUsuario: userData.nombreUsuario || "",
+      apellidoUsuario: userData.apellidoUsuario || "",
+      correo: userData.correo || "",
+      fechaNacimiento: userData.fechaNacimiento || "",
+      edad: edad,
 
       // Información académica
-      codigoUsuario: userData.codigo_estudiante || "",
-      facultad: userData.facultad || "",
+      codigoUsuario: userData.codigoUsuario || "",
+      facultadID: userData.facultadID || "",
+      escuelaID: userData.escuelaID || "",
       ciclo: userData.ciclo || "",
-      escuela: userData.escuela || "",
+      poloTallaID: userData.poloTallaID || "",
 
       // Configuración de la cuenta
-      esAdmin: false,
-      estadoActivo: true,
+      esAdmin: false, // Boolean por defecto
+      estadoActivo: "true", // String por defecto
 
-      // Elementos adicionales (arrays vacíos iniciales)
-      medallasID: [],
-      fotoPerfil: "",
-      fotoPerfilHash: "",
+      // Elementos adicionales
+      medallasID: "", // String vacío por defecto
+      fotoPerfilHash: userData.fotoPerfilHash || "", // URL de Cloudinary
 
-      // Timestamps con formato ISO
-      fechaRegistro: new Date().toISOString(),
-      ultimoAcceso: new Date().toISOString(),
+      // Timestamps en formato string
+      fechaRegistro: currentTimestamp,
+      fechaModificacion: currentTimestamp,
+      ultimoAcceso: currentTimestamp,
     };
 
     console.log("📋 DOCUMENTO A GUARDAR:", userProfile);
 
-    // GUARDAR EL DOCUMENTO EN FIRESTORE
+    // Guardar el documento en Firestore
     console.log("💾 Guardando documento en Firestore...");
-
     await setDoc(userDocRef, userProfile, { merge: false });
 
     console.log("✅ ¡DOCUMENTO GUARDADO EXITOSAMENTE!");
 
-    // VERIFICACIÓN INMEDIATA
+    // Verificación inmediata
     console.log("🔍 Verificando que el documento se guardó correctamente...");
-
-    // Esperar un momento antes de verificar
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const docSnap = await getDoc(userDocRef);
@@ -169,9 +315,6 @@ async function createUserProfile(uid, userData) {
         case "permission-denied":
           console.error(
             "❌ Error de permisos: Verifica las reglas de seguridad de Firestore"
-          );
-          console.error(
-            "💡 Sugerencia: Las reglas deben permitir escritura para usuarios autenticados"
           );
           break;
         case "unavailable":
@@ -216,42 +359,59 @@ async function checkStudentCodeExists(codigo) {
 // FUNCIÓN PRINCIPAL DE REGISTRO
 // =============================================
 
-// FUNCIÓN MEJORADA: Manejar el REGISTRO COMPLETO
+// Función para manejar el registro completo
 window.handleRegister = async function (event) {
   event.preventDefault();
   console.log("📝 Iniciando proceso de registro...");
 
-  // Obtener todos los datos del formulario
-  const nombre = document.getElementById("name")?.value.trim() || "";
-  const apellido = document.getElementById("apellido")?.value.trim() || "";
+  // Obtener todos los datos del formulario usando los IDs correctos del HTML
+  const nombreUsuario =
+    document.getElementById("nombreUsuario")?.value.trim() || "";
+  const apellidoUsuario =
+    document.getElementById("apellidoUsuario")?.value.trim() || "";
   const correo =
-    document.getElementById("email")?.value.trim().toLowerCase() || "";
+    document.getElementById("correo")?.value.trim().toLowerCase() || "";
   const password = document.getElementById("password")?.value || "";
-  const edad = parseInt(document.getElementById("edad")?.value) || 0;
-  const codigo_estudiante =
-    document.getElementById("codigo_estudiante")?.value.trim() || "";
-  const facultad = document.getElementById("facultad")?.value || "";
-  const ciclo = document.getElementById("ciclo")?.value || "";
-  const escuela = document.getElementById("escuela")?.value || "";
+  const codigoUsuario =
+    document.getElementById("codigoUsuario")?.value.trim() || "";
   const fechaNacimiento =
     document.getElementById("fechaNacimiento")?.value || "";
+  const celular = document.getElementById("celular")?.value.trim() || "";
+  const poloTallaID = document.getElementById("poloTallaID")?.value || "";
+  const facultadID = document.getElementById("facultadID")?.value || "";
+  const escuelaID = document.getElementById("escuelaID")?.value || "";
+  const ciclo = document.getElementById("ciclo")?.value || "";
+  const fotoPerfilFile = document.getElementById("fotoPerfilHash")?.files[0];
 
   console.log("📋 Datos del formulario recibidos:", {
-    nombre,
-    apellido,
+    nombreUsuario,
+    apellidoUsuario,
     correo,
-    edad,
-    codigo_estudiante,
-    facultad,
+    codigoUsuario,
+    fechaNacimiento,
+    celular,
+    poloTallaID,
+    facultadID,
+    escuelaID,
     ciclo,
-    escuela,
+    fotoPerfilFile: fotoPerfilFile ? fotoPerfilFile.name : "No seleccionada",
   });
 
   // Validaciones completas
-  if (nombre.length < 2) {
+  if (nombreUsuario.length < 2) {
     showModal(
       "Error de validación",
       "El nombre debe tener al menos 2 caracteres",
+      "📝",
+      "error"
+    );
+    return;
+  }
+
+  if (apellidoUsuario.length < 2) {
+    showModal(
+      "Error de validación",
+      "El apellido debe tener al menos 2 caracteres",
       "📝",
       "error"
     );
@@ -268,17 +428,7 @@ window.handleRegister = async function (event) {
     return;
   }
 
-  if (!edad || edad < 16 || edad > 80) {
-    showModal(
-      "Error de validación",
-      "La edad debe estar entre 16 y 80 años",
-      "🎂",
-      "error"
-    );
-    return;
-  }
-
-  if (!codigo_estudiante || codigo_estudiante.length < 8) {
+  if (!codigoUsuario || codigoUsuario.length < 8) {
     showModal(
       "Error de validación",
       "El código de estudiante debe tener al menos 8 dígitos",
@@ -288,11 +438,63 @@ window.handleRegister = async function (event) {
     return;
   }
 
-  if (!facultad) {
+  if (!fechaNacimiento) {
+    showModal(
+      "Error de validación",
+      "Debes seleccionar tu fecha de nacimiento",
+      "📅",
+      "error"
+    );
+    return;
+  }
+
+  // Validar edad calculada
+  const edad = calculateAge(fechaNacimiento);
+  if (edad < 16 || edad > 80) {
+    showModal(
+      "Error de validación",
+      "La edad debe estar entre 16 y 80 años",
+      "🎂",
+      "error"
+    );
+    return;
+  }
+
+  if (!celular || !/^[0-9]{9}$/.test(celular)) {
+    showModal(
+      "Error de validación",
+      "El número de celular debe tener 9 dígitos",
+      "📱",
+      "error"
+    );
+    return;
+  }
+
+  if (!poloTallaID) {
+    showModal(
+      "Error de validación",
+      "Debes seleccionar la talla del polo",
+      "👕",
+      "error"
+    );
+    return;
+  }
+
+  if (!facultadID) {
     showModal(
       "Error de validación",
       "Debes seleccionar una facultad",
       "🏫",
+      "error"
+    );
+    return;
+  }
+
+  if (!escuelaID) {
+    showModal(
+      "Error de validación",
+      "Debes seleccionar una escuela",
+      "🎓",
       "error"
     );
     return;
@@ -326,7 +528,7 @@ window.handleRegister = async function (event) {
     console.log("🔍 Verificando si el código de estudiante ya existe...");
 
     // PASO 1: Verificar si el código de estudiante ya existe en Firestore
-    const codeExists = await checkStudentCodeExists(codigo_estudiante);
+    const codeExists = await checkStudentCodeExists(codigoUsuario);
     if (codeExists) {
       setRegisterLoading(false);
       showModal(
@@ -338,9 +540,27 @@ window.handleRegister = async function (event) {
       return;
     }
 
+    // PASO 2: Subir imagen a Cloudinary si existe
+    let fotoPerfilHash = "";
+    if (fotoPerfilFile) {
+      console.log("📸 Subiendo imagen de perfil a Cloudinary...");
+      try {
+        fotoPerfilHash = await uploadImageToCloudinary(fotoPerfilFile);
+        console.log("✅ Imagen subida exitosamente:", fotoPerfilHash);
+      } catch (uploadError) {
+        console.error("❌ Error al subir imagen:", uploadError);
+        showModal(
+          "Error de imagen",
+          "No se pudo subir la imagen de perfil. El registro continuará sin foto.",
+          "📸",
+          "warning"
+        );
+      }
+    }
+
     console.log("🔐 Creando usuario en Firebase Authentication...");
 
-    // PASO 2: Crear usuario en Firebase Authentication
+    // PASO 3: Crear usuario en Firebase Authentication
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       correo,
@@ -353,28 +573,31 @@ window.handleRegister = async function (event) {
       user.uid
     );
 
-    // PASO 3: Actualizar el displayName
+    // PASO 4: Actualizar el displayName
     await updateProfile(user, {
-      displayName: `${nombre} ${apellido}`,
+      displayName: `${nombreUsuario} ${apellidoUsuario}`,
     });
 
     console.log("📝 Preparando datos para Firestore...");
 
-    // PASO 4: Preparar datos limpios para Firestore
+    // PASO 5: Preparar datos limpios para Firestore
     const userData = {
-      nombre: nombre,
-      apellido: apellido,
-      edad: edad,
-      codigo_estudiante: codigo_estudiante,
-      facultad: facultad,
-      ciclo: ciclo,
-      escuela: escuela,
+      nombreUsuario: nombreUsuario,
+      apellidoUsuario: apellidoUsuario,
+      correo: correo,
+      codigoUsuario: codigoUsuario,
       fechaNacimiento: fechaNacimiento,
+      celular: celular,
+      poloTallaID: poloTallaID,
+      facultadID: facultadID,
+      escuelaID: escuelaID,
+      ciclo: ciclo,
+      fotoPerfilHash: fotoPerfilHash,
     };
 
     console.log("🚀 Creando perfil en Firestore con UID:", user.uid);
 
-    // PASO 5: Crear documento en Firestore
+    // PASO 6: Crear documento en Firestore
     const profileCreated = await createUserProfile(user.uid, userData);
 
     if (!profileCreated) {
@@ -401,41 +624,62 @@ window.handleRegister = async function (event) {
     console.log("🎉 ¡REGISTRO COMPLETADO EXITOSAMENTE!");
     setRegisterLoading(false);
 
-    // PASO 6: Mostrar mensaje de éxito
-    showModal(
-      "¡Registro exitoso!",
-      `¡Bienvenido ${nombre}! Tu cuenta ha sido creada exitosamente.`,
-      "✅",
-      "success"
-    );
+    // PASO 7: Enviar email de verificación
+    try {
+      await sendVerificationEmail(user);
+      console.log("✅ Email de verificación enviado exitosamente");
+    } catch (emailError) {
+      console.error("❌ Error al enviar email de verificación:", emailError);
+      // Si falla el envío de email, eliminar usuario para mantener consistencia
+      try {
+        await user.delete();
+        console.log("✅ Usuario eliminado por fallo en envío de email");
+      } catch (deleteError) {
+        console.error("❌ Error al eliminar usuario:", deleteError);
+      }
 
-    // PASO 7: Limpiar formulario
+      throw new Error(
+        "No se pudo enviar el email de verificación: " + emailError.message
+      );
+    }
+
+    console.log("🎉 ¡REGISTRO COMPLETADO EXITOSAMENTE!");
+    setRegisterLoading(false);
+
+    // PASO 8: Limpiar formulario
     const formFields = [
-      "name",
-      "apellido",
-      "email",
+      "nombreUsuario",
+      "apellidoUsuario",
+      "correo",
       "password",
-      "edad",
-      "codigo_estudiante",
-      "facultad",
-      "ciclo",
-      "escuela",
+      "codigoUsuario",
       "fechaNacimiento",
+      "celular",
+      "poloTallaID",
+      "facultadID",
+      "escuelaID",
+      "ciclo",
+      "fotoPerfilHash",
     ];
     formFields.forEach((fieldId) => {
       const field = document.getElementById(fieldId);
-      if (field) field.value = "";
+      if (field) {
+        if (field.type === "file") {
+          field.value = "";
+          const preview = document.getElementById("imagePreview");
+          if (preview) preview.style.display = "none";
+        } else {
+          field.value = "";
+        }
+      }
     });
 
-    // PASO 8: Cambiar a pestaña de login
-    setTimeout(() => {
-      closeModal();
-      if (typeof switchTab === "function") {
-        switchTab("login");
-      }
-      const emailLogin = document.getElementById("email_login");
-      if (emailLogin) emailLogin.value = correo;
-    }, 3000);
+    // PASO 9: Cerrar modal de registro si está abierto
+    closeModal();
+
+    // PASO 10: Mostrar sistema de verificación de email
+    console.log("📧 Iniciando sistema de verificación de email...");
+    EmailVerificationSystem.showForUser(user, nombreUsuario);
   } catch (error) {
     console.error("❌ Error en registro:", error);
     setRegisterLoading(false);
@@ -481,7 +725,7 @@ if (modal) {
 
 // Inicialización cuando se carga la página
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("🚀 Sistema de registro Firebase inicializado");
+  console.log("🚀 Sistema de registro Firebase con Cloudinary inicializado");
 
   // Agregar efectos a los inputs
   document.querySelectorAll(".form-input").forEach((input) => {
@@ -497,5 +741,32 @@ document.addEventListener("DOMContentLoaded", function () {
 
   console.log("🎯 Inicialización de registro completada");
 });
+async function sendVerificationEmail(user) {
+  try {
+    console.log("📧 Enviando email de verificación...");
 
-console.log("📝 Sistema de registro cargado exitosamente");
+    await sendEmailVerification(user, {
+      url: window.location.origin + "/public/login.html", // URL de retorno después de verificar
+      handleCodeInApp: false,
+    });
+
+    console.log("✅ Email de verificación enviado exitosamente");
+    return true;
+  } catch (error) {
+    console.error("❌ Error al enviar email de verificación:", error);
+
+    switch (error.code) {
+      case "auth/too-many-requests":
+        throw new Error(
+          "Demasiados intentos. Espera un momento antes de intentar nuevamente."
+        );
+      case "auth/network-request-failed":
+        throw new Error("Error de conexión. Verifica tu conexión a internet.");
+      default:
+        throw new Error(
+          "Error al enviar email de verificación: " + error.message
+        );
+    }
+  }
+}
+console.log("📝 Sistema de registro con Cloudinary cargado exitosamente");

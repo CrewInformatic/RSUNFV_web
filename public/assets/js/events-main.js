@@ -103,7 +103,7 @@ function checkAuthentication() {
 
   console.log("✅ Usuario administrador verificado:", {
     correo: session.correo,
-    nombre: session.nombre,
+    nombreUsuario: session.nombreUsuario,
   });
 
   return session;
@@ -139,7 +139,7 @@ window.showProfile = function () {
   const session = getStoredSession();
   if (session) {
     alert(
-      `Perfil de Usuario:\n\nNombre: ${session.nombre}\nCorreo: ${
+      `Perfil de Usuario:\n\nnombreUsuario: ${session.nombreUsuario}\nCorreo: ${
         session.correo
       }\nRol: ${
         session.esAdmin ? "Administrador" : "Usuario"
@@ -206,7 +206,7 @@ function initializeSidebar() {
 function updateUserInfo(session) {
   const userDisplayName = document.getElementById("userDisplayName");
   if (userDisplayName) {
-    userDisplayName.textContent = session.nombre || session.correo;
+    userDisplayName.textContent = session.nombreUsuario || session.correo;
   }
 }
 

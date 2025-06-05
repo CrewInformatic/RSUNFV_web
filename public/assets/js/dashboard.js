@@ -83,7 +83,7 @@ function checkAuthentication() {
 
   console.log("✅ Usuario administrador verificado:", {
     correo: session.correo,
-    nombre: session.nombre,
+    nombreUsuario: session.nombreUsuario,
   });
 
   return session;
@@ -156,7 +156,7 @@ window.showProfile = function () {
   const session = getStoredSession();
   if (session) {
     alert(
-      `Perfil de Usuario:\n\nNombre: ${session.nombre}\nCorreo: ${
+      `Perfil de Usuario:\n\nnombreUsuario: ${session.nombreUsuario}\nCorreo: ${
         session.correo
       }\nRol: ${
         session.esAdmin ? "Administrador" : "Usuario"
@@ -324,7 +324,7 @@ async function loadRecentEvents() {
       const eventData = { id: doc.id, ...doc.data() };
       console.log("📅 Evento encontrado:", {
         id: doc.id,
-        titulo: eventData.titulo || eventData.nombre,
+        titulo: eventData.titulo || eventData.nombreUsuario,
         fechaInicio: eventData.fechaInicio,
         fechaCreacion: eventData.fechaCreacion,
       });
@@ -356,8 +356,8 @@ async function loadRecentEvents() {
       if (!a.fechaInicio && b.fechaInicio) return 1;
 
       // 4. Como último recurso, ordenar alfabéticamente por título
-      const titleA = (a.titulo || a.nombre || "").toLowerCase();
-      const titleB = (b.titulo || b.nombre || "").toLowerCase();
+      const titleA = (a.titulo || a.nombreUsuario || "").toLowerCase();
+      const titleB = (b.titulo || b.nombreUsuario || "").toLowerCase();
       return titleA.localeCompare(titleB);
     });
 
@@ -370,7 +370,9 @@ async function loadRecentEvents() {
     console.log("🎯 Eventos que se mostrarán:");
     recentEvents.forEach((event, index) => {
       console.log(
-        `${index + 1}. ${event.titulo || event.nombre} - ${event.fechaInicio}`
+        `${index + 1}. ${event.titulo || event.nombreUsuario} - ${
+          event.fechaInicio
+        }`
       );
     });
 
@@ -435,7 +437,7 @@ function updateEventsTable(events) {
   events.forEach((event, index) => {
     console.log(`🔧 Procesando evento ${index + 1}:`, {
       id: event.id,
-      titulo: event.titulo || event.nombre,
+      titulo: event.titulo || event.nombreUsuario,
       ubicacion: event.ubicacion || event.ubicación,
       fechaInicio: event.fechaInicio,
       cantidadVoluntarios: event.cantidadVoluntarios || event.voluntarios,
@@ -499,7 +501,7 @@ function updateEventsTable(events) {
       event.cantidadVoluntarios || event.voluntarios || event.capacidad || 0;
 
     // Manejo de título y descripción
-    const titulo = event.titulo || event.nombre || "Sin nombre";
+    const titulo = event.titulo || event.nombreUsuario || "Sin nombreUsuario";
     const descripcion = event.descripcion || event.resumen || "Sin descripción";
 
     tableHTML += `
@@ -644,7 +646,10 @@ window.debugEvents = async function () {
 
       console.log("📋 ===== EVENTO =====");
       console.log("🆔 ID:", doc.id);
-      console.log("📝 Título:", data.titulo || data.nombre || "SIN TÍTULO");
+      console.log(
+        "📝 Título:",
+        data.titulo || data.nombreUsuario || "SIN TÍTULO"
+      );
       console.log("📅 Fecha inicio:", data.fechaInicio);
       console.log("🕐 Fecha creación:", data.fechaCreacion);
       console.log("📍 Ubicación:", data.ubicacion || data.ubicación);
@@ -686,7 +691,7 @@ window.debugEvents = async function () {
     eventosDelDia.forEach((event) => {
       console.log("📅 Evento del 28:", {
         id: event.id,
-        titulo: event.titulo || event.nombre,
+        titulo: event.titulo || event.nombreUsuario,
         fecha: event.fechaInicio,
       });
     });
@@ -796,14 +801,14 @@ async function initializeDashboard() {
 function updateUserInfo(session) {
   const userDisplayName = document.getElementById("userDisplayName");
   if (userDisplayName) {
-    userDisplayName.textContent = session.nombre || session.correo;
+    userDisplayName.textContent = session.nombreUsuario || session.correo;
   }
 
   // Actualizar mensaje de bienvenida si existe
   const welcomeSection = document.querySelector(".welcome-section h2");
   if (welcomeSection) {
     welcomeSection.textContent = `¡Bienvenido${
-      session.nombre ? ", " + session.nombre : ""
+      session.nombreUsuario ? ", " + session.nombreUsuario : ""
     }!`;
   }
 }

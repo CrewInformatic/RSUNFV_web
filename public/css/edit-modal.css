@@ -2,11 +2,6 @@
    ESTILOS PARA MODAL DE EDICIÓN DE EVENTOS
    Archivo: css/edit-modal.css
    ============================================= */
-#editEventImages {
-  position: absolute;
-  left: -9999px;
-  opacity: 0;
-}
 .modal-overlay {
   position: fixed;
   top: 0;
