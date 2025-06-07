@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/emailVerification.css" />
+    <script type="module" src="js/emailVerification.js" defer></script>
+    <title>Verificar Email - Sistema Académico</title>
+
+</head>
+<body class="no-select">
+    <div class="verification-container">
+        <div class="email-icon">📧</div>
+        
+        <h1 class="verification-title">Verifica tu correo electrónico</h1>
+        
+        <p class="verification-subtitle">
+            Hemos enviado un enlace de verificación a tu correo electrónico. 
+            Haz clic en el enlace para activar tu cuenta.
+        </p>
+
+        <div class="user-email" id="userEmail">
+            <!-- Email se insertará aquí -->
+        </div>
+
+        <div class="verification-steps">
+            <h3>Pasos para verificar:</h3>
+            <ol>
+                <li>Revisa tu bandeja de entrada</li>
+                <li>Busca el email de "Sistema Académico"</li>
+                <li>Haz clic en el enlace de verificación</li>
+                <li>Regresa a esta página</li>
+            </ol>
+        </div>
+
+        <div class="loading-spinner" id="loadingSpinner"></div>
+
+        <div class="status-message" id="statusMessage"></div>
+
+        <div class="verification-check" id="verificationCheck">
+            <div class="check-icon">✅</div>
+            <h3 style="color: #38a169; margin-bottom: 10px;">¡Email verificado!</h3>
+            <p style="color: #4a5568;">Tu cuenta ha sido activada exitosamente.</p>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="checkVerificationBtn" onclick="checkEmailVerification()">
+                Verificar Estado del Email
+            </button>
+            
+            <button class="btn btn-secondary" id="resendEmailBtn" onclick="resendVerificationEmail()" disabled>
+                Reenviar Email de Verificación
+            </button>
+            
+            <div class="countdown-timer" id="countdownTimer"></div>
+            <div class="resend-info">Podrás solicitar un nuevo email en <span id="countdown">60</span> segundos</div>
+        </div>
+    </div>
+
+    <!-- Overlay para bloquear interacciones -->
+    <div class="verification-overlay" id="verificationOverlay">
+        <div class="overlay-content">
+            <div class="loading-spinner" style="display: block; margin-bottom: 20px;"></div>
+            <h3>Verificando...</h3>
+            <p>Por favor espera mientras verificamos tu email.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,5 +1,4 @@
-import { EmailVerificationSystem } from "./emailVerification.js";
-// register.js
+// register.js - VERSIÓN ACTUALIZADA CON REDIRECCIÓN A VERIFICACIÓN
 import {
   auth,
   db,
@@ -356,6 +355,85 @@ async function checkStudentCodeExists(codigo) {
 }
 
 // =============================================
+// FUNCIONES DE VERIFICACIÓN DE EMAIL
+// =============================================
+
+// Función para enviar email de verificación
+async function sendVerificationEmail(user) {
+  try {
+    console.log("📧 Enviando email de verificación...");
+
+    await sendEmailVerification(user, {
+      url: window.location.origin + "/public/login.html", // URL de retorno después de verificar
+      handleCodeInApp: false,
+    });
+
+    console.log("✅ Email de verificación enviado exitosamente");
+    return true;
+  } catch (error) {
+    console.error("❌ Error al enviar email de verificación:", error);
+
+    switch (error.code) {
+      case "auth/too-many-requests":
+        throw new Error(
+          "Demasiados intentos. Espera un momento antes de intentar nuevamente."
+        );
+      case "auth/network-request-failed":
+        throw new Error("Error de conexión. Verifica tu conexión a internet.");
+      default:
+        throw new Error(
+          "Error al enviar email de verificación: " + error.message
+        );
+    }
+  }
+}
+
+// Función para redireccionar a página de verificación
+function redirectToVerificationPage(user, userName) {
+  try {
+    console.log("🔄 Preparando redirección a página de verificación...");
+
+    // Guardar datos necesarios en localStorage para la página de verificación
+    localStorage.setItem("verificationEmail", user.email);
+    localStorage.setItem("verificationUserName", userName);
+    localStorage.setItem("verificationUID", user.uid);
+    localStorage.setItem("registrationCompleted", "true");
+
+    console.log("💾 Datos guardados en localStorage para verificación");
+
+    // Construir URL con parámetros
+    const verificationUrl = `${window.location.origin}/emailVerification.html`;
+    verificationUrl.searchParams.set("email", user.email);
+    verificationUrl.searchParams.set("name", userName);
+    verificationUrl.searchParams.set("uid", user.uid);
+
+    console.log("🔗 URL de verificación:", verificationUrl.toString());
+
+    // Mostrar mensaje de transición
+    showModal(
+      "Registro exitoso",
+      "Tu cuenta ha sido creada. Serás redirigido para verificar tu email.",
+      "✅",
+      "success"
+    );
+
+    // Redireccionar después de 2 segundos
+    setTimeout(() => {
+      console.log("🚀 Redirigiendo a página de verificación...");
+      window.location.href = verificationUrl.toString();
+    }, 2000);
+  } catch (error) {
+    console.error("❌ Error en redirección:", error);
+    showModal(
+      "Error de redirección",
+      "Hubo un problema al redireccionar. Por favor, verifica tu email manualmente.",
+      "⚠️",
+      "error"
+    );
+  }
+}
+
+// =============================================
 // FUNCIÓN PRINCIPAL DE REGISTRO
 // =============================================
 
@@ -621,8 +699,7 @@ window.handleRegister = async function (event) {
       throw new Error("Error al crear el perfil del usuario en Firestore");
     }
 
-    console.log("🎉 ¡REGISTRO COMPLETADO EXITOSAMENTE!");
-    setRegisterLoading(false);
+    console.log("📧 Enviando email de verificación...");
 
     // PASO 7: Enviar email de verificación
     try {
@@ -630,6 +707,7 @@ window.handleRegister = async function (event) {
       console.log("✅ Email de verificación enviado exitosamente");
     } catch (emailError) {
       console.error("❌ Error al enviar email de verificación:", emailError);
+
       // Si falla el envío de email, eliminar usuario para mantener consistencia
       try {
         await user.delete();
@@ -677,9 +755,9 @@ window.handleRegister = async function (event) {
     // PASO 9: Cerrar modal de registro si está abierto
     closeModal();
 
-    // PASO 10: Mostrar sistema de verificación de email
-    console.log("📧 Iniciando sistema de verificación de email...");
-    EmailVerificationSystem.showForUser(user, nombreUsuario);
+    // PASO 10: Redireccionar a página de verificación
+    console.log("🔄 Redirigiendo a página de verificación...");
+    redirectToVerificationPage(user, nombreUsuario);
   } catch (error) {
     console.error("❌ Error en registro:", error);
     setRegisterLoading(false);
@@ -727,6 +805,18 @@ if (modal) {
 document.addEventListener("DOMContentLoaded", function () {
   console.log("🚀 Sistema de registro Firebase con Cloudinary inicializado");
 
+  // Verificar si el usuario viene de una redirección de verificación fallida
+  const registrationCompleted = localStorage.getItem("registrationCompleted");
+  if (registrationCompleted === "true") {
+    console.log(
+      "🔄 Usuario regresó de verificación, limpiando localStorage..."
+    );
+    localStorage.removeItem("registrationCompleted");
+    localStorage.removeItem("verificationEmail");
+    localStorage.removeItem("verificationUserName");
+    localStorage.removeItem("verificationUID");
+  }
+
   // Agregar efectos a los inputs
   document.querySelectorAll(".form-input").forEach((input) => {
     input.addEventListener("focus", function () {
@@ -741,32 +831,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   console.log("🎯 Inicialización de registro completada");
 });
-async function sendVerificationEmail(user) {
-  try {
-    console.log("📧 Enviando email de verificación...");
 
-    await sendEmailVerification(user, {
-      url: window.location.origin + "/public/login.html", // URL de retorno después de verificar
-      handleCodeInApp: false,
-    });
-
-    console.log("✅ Email de verificación enviado exitosamente");
-    return true;
-  } catch (error) {
-    console.error("❌ Error al enviar email de verificación:", error);
-
-    switch (error.code) {
-      case "auth/too-many-requests":
-        throw new Error(
-          "Demasiados intentos. Espera un momento antes de intentar nuevamente."
-        );
-      case "auth/network-request-failed":
-        throw new Error("Error de conexión. Verifica tu conexión a internet.");
-      default:
-        throw new Error(
-          "Error al enviar email de verificación: " + error.message
-        );
-    }
-  }
-}
-console.log("📝 Sistema de registro con Cloudinary cargado exitosamente");
+console.log(
+  "📝 Sistema de registro con verificación de email cargado exitosamente"
+);
