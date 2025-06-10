@@ -364,7 +364,7 @@ async function sendVerificationEmail(user) {
     console.log("📧 Enviando email de verificación...");
 
     await sendEmailVerification(user, {
-      url: window.location.origin + "/public/login.html", // URL de retorno después de verificar
+      url: window.location.origin + "/login.html", // URL de retorno después de verificar
       handleCodeInApp: false,
     });
 
@@ -389,6 +389,7 @@ async function sendVerificationEmail(user) {
 }
 
 // Función para redireccionar a página de verificación
+// Función corregida para redireccionar a página de verificación
 function redirectToVerificationPage(user, userName) {
   try {
     console.log("🔄 Preparando redirección a página de verificación...");
@@ -401,13 +402,20 @@ function redirectToVerificationPage(user, userName) {
 
     console.log("💾 Datos guardados en localStorage para verificación");
 
-    // Construir URL con parámetros
-    const verificationUrl = `${window.location.origin}/emailVerification.html`;
-    verificationUrl.searchParams.set("email", user.email);
-    verificationUrl.searchParams.set("name", userName);
-    verificationUrl.searchParams.set("uid", user.uid);
+    // SOLUCIÓN CORRECTA PARA ESTRUCTURA CON CARPETA PUBLIC:
+    // En Firebase Hosting, los archivos de la carpeta 'public' se sirven desde la raíz
+    // Así que emailVerification.html está directamente en el dominio raíz
+    const verificationUrl = `/emailVerification.html?email=${encodeURIComponent(
+      user.email
+    )}&name=${encodeURIComponent(userName)}&uid=${encodeURIComponent(
+      user.uid
+    )}`;
 
-    console.log("🔗 URL de verificación:", verificationUrl.toString());
+    console.log("🔗 URL de verificación:", verificationUrl);
+    console.log(
+      "🔗 URL completa será:",
+      window.location.origin + verificationUrl
+    );
 
     // Mostrar mensaje de transición
     showModal(
@@ -420,7 +428,10 @@ function redirectToVerificationPage(user, userName) {
     // Redireccionar después de 2 segundos
     setTimeout(() => {
       console.log("🚀 Redirigiendo a página de verificación...");
-      window.location.href = verificationUrl.toString();
+      console.log("🚀 URL final:", verificationUrl);
+
+      // Usar ruta absoluta desde la raíz
+      window.location.href = verificationUrl;
     }, 2000);
   } catch (error) {
     console.error("❌ Error en redirección:", error);

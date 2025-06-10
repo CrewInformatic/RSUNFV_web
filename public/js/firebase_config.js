@@ -11,6 +11,7 @@ import {
   confirmPasswordReset,
   verifyPasswordResetCode,
   sendEmailVerification,
+  applyActionCode,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 import {
   getFirestore,
@@ -57,6 +58,7 @@ export {
   collection,
   doc,
   sendEmailVerification,
+  applyActionCode,
   getDoc,
   setDoc,
   query,
