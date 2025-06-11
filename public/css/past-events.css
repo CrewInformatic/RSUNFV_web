@@ -1,0 +1,751 @@
+/* =============================================
+   ESTILOS PARA EVENTOS PASADOS - MINIATURAS
+   COLORES UNFV: NARANJA Y BLANCO
+   ============================================= */
+
+/* Contenedor principal de la imagen del evento */
+.event-image-container {
+  position: relative;
+  width: 100%;
+  height: 120px; /* Altura fija para consistencia */
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(255, 140, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  background: linear-gradient(135deg, #fff5f0 0%, #ffe4d6 100%);
+  border: 2px solid #ff8c00;
+}
+
+.event-image-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 140, 0, 0.3);
+  border-color: #ff7700;
+}
+
+/* Estilo para la miniatura de imagen */
+.event-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  background: linear-gradient(90deg, #fff5f0 25%, #ffe4d6 50%, #fff5f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Quitar animación cuando la imagen se carga */
+.event-thumbnail[src]:not([src=""]) {
+  background: none;
+  animation: none;
+}
+
+.event-thumbnail:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+/* Overlay con icono de ampliar */
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 140, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 8px;
+  pointer-events: none; /* IMPORTANTE: Evita conflictos con el click */
+}
+
+.event-image-container:hover .image-overlay {
+  opacity: 1;
+}
+
+.image-overlay i {
+  color: white;
+  font-size: 28px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  transform: scale(1);
+  transition: transform 0.2s ease;
+}
+
+.event-image-container:hover .image-overlay i {
+  transform: scale(1.1);
+}
+
+/* =============================================
+   ESTILOS PARA EL MODAL DE IMAGEN
+   ============================================= */
+/* =============================================
+   MODAL CONTENT RESPONSIVE - VERSIÓN CORREGIDA
+   ============================================= */
+
+/* Modal base - Optimizado para desktop/laptop */
+#imageModal .modal-dialog {
+  max-width: 70vw; /* Reducido de 90vw a 70vw para desktop */
+  max-height: 80vh; /* Reducido de 90vh a 80vh para desktop */
+  margin: 1.75rem auto;
+  display: flex;
+  align-items: center;
+  min-height: calc(100vh - 3.5rem);
+}
+
+#imageModal .modal-content {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(255, 140, 0, 0.3);
+  border: 2px solid #ff8c00;
+  width: 100%;
+  max-width: 70vw; /* Reducido para desktop */
+  max-height: 80vh; /* Reducido para desktop */
+  margin: 0 auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Estilos específicos para pantallas grandes (desktop/laptop) */
+@media (min-width: 992px) {
+  #imageModal .modal-dialog {
+    max-width: 60vw; /* Aún más pequeño en pantallas grandes */
+    max-height: 75vh;
+  }
+  
+  #imageModal .modal-content {
+    max-width: 60vw;
+    max-height: 75vh;
+  }
+  
+  #imageModal .modal-body img {
+    max-height: 60vh; /* Imagen más controlada en desktop */
+  }
+}
+
+/* Tablets y pantallas medianas (768px y menos) */
+@media (max-width: 768px) {
+  #imageModal .modal-dialog {
+    max-width: 95vw;
+    max-height: 95vh;
+    margin: 0.5rem auto;
+    min-height: calc(100vh - 1rem);
+  }
+  
+  #imageModal .modal-content {
+    max-width: 95vw;
+    max-height: 95vh;
+    border-radius: 8px;
+    box-shadow: 0 8px 25px rgba(255, 140, 0, 0.4);
+    margin: 0;
+  }
+}
+
+/* Móviles (480px y menos) */
+@media (max-width: 480px) {
+  #imageModal .modal-dialog {
+    max-width: 100vw;
+    max-height: 100vh;
+    margin: 0;
+    min-height: 100vh;
+    align-items: flex-start;
+    padding: 10px;
+  }
+  
+  #imageModal .modal-content {
+    max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+    border-radius: 6px;
+    margin: 0;
+    box-shadow: 0 5px 20px rgba(255, 140, 0, 0.5);
+  }
+  
+  #imageModal .modal-body {
+    padding: 10px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  #imageModal .modal-body img {
+    max-width: 100%;
+    max-height: calc(100vh - 120px); /* Resta espacio para header y footer */
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+  
+  #imageModal .modal-header {
+    padding: 10px 15px;
+    border-radius: 6px 6px 0 0;
+  }
+  
+  #imageModal .modal-footer {
+    padding: 10px 15px;
+    border-radius: 0 0 6px 6px;
+  }
+}
+
+/* Para pantallas muy pequeñas (320px y menos) */
+@media (max-width: 320px) {
+  #imageModal .modal-dialog {
+    padding: 5px;
+  }
+  
+  #imageModal .modal-content {
+    max-width: calc(100vw - 10px);
+    max-height: calc(100vh - 10px);
+    border-radius: 4px;
+  }
+  
+  #imageModal .modal-body img {
+    max-height: calc(100vh - 100px); /* Menos espacio para header/footer más pequeños */
+  }
+  
+  #imageModal .modal-header,
+  #imageModal .modal-footer {
+    padding: 8px 10px;
+  }
+  
+  #imageModal .modal-title {
+    font-size: 0.9rem;
+  }
+}
+
+/* Orientación horizontal en móviles */
+@media (max-width: 768px) and (orientation: landscape) {
+  #imageModal .modal-dialog {
+    max-height: 100vh;
+    margin: 0;
+    padding: 5px;
+  }
+  
+  #imageModal .modal-content {
+    max-height: calc(100vh - 10px);
+  }
+  
+  #imageModal .modal-body img {
+    max-height: calc(100vh - 80px);
+  }
+  
+  #imageModal .modal-header,
+  #imageModal .modal-footer {
+    padding: 8px 15px;
+  }
+}
+
+/* Estilos adicionales para mejor usabilidad móvil */
+@media (max-width: 480px) {
+  /* Hacer el botón de cerrar más grande en móviles */
+  #imageModal .btn-close {
+    width: 32px;
+    height: 32px;
+    font-size: 1.2rem;
+  }
+  
+  /* Centrar mejor el modal en móviles */
+  #imageModal.modal {
+    padding: 0 !important;
+  }
+  
+  #imageModal .modal-dialog {
+    margin: 0 auto;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* =============================================
+   ESTILOS PARA TARJETAS DE EVENTOS
+   ============================================= */
+
+/* Tarjeta principal del evento */
+.event-card {
+  margin-bottom: 20px;
+  border: 2px solid #ff8c00;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(255, 140, 0, 0.15);
+  transition: all 0.3s ease;
+  background: white;
+  overflow: hidden;
+  opacity: 0;
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.event-card:hover {
+  box-shadow: 0 8px 25px rgba(255, 140, 0, 0.25);
+  border-color: #ff7700;
+  transform: translateY(-2px);
+}
+
+/* Tarjeta cancelada */
+.event-card.event-cancelled {
+  background: #fff5f0;
+  border-color: #ff6b6b;
+  opacity: 0.85;
+}
+
+.event-card.event-cancelled:hover {
+  border-color: #ff5252;
+}
+
+/* Header de la tarjeta */
+.event-card-header {
+  background: linear-gradient(135deg, #ff8c00 0%, #ff7700 100%);
+  padding: 15px 20px;
+  border-bottom: 2px solid #ffe4d6;
+  color: white;
+}
+
+.event-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  line-height: 1.3;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Cuerpo de la tarjeta */
+.event-card-body {
+  padding: 20px;
+  background: #fffaf7;
+}
+
+/* Metadatos del evento */
+.event-meta {
+  margin-bottom: 15px;
+}
+
+.event-meta-item {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.event-meta-item i {
+  width: 18px;
+  text-align: center;
+  margin-top: 2px;
+  flex-shrink: 0;
+  color: #ff8c00;
+}
+
+.event-meta-item span {
+  color: #5d4037;
+}
+
+/* Descripción del evento */
+.event-description {
+  color: #9c9593;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 15px 0;
+  padding: 12px;
+  background: #0a0a0a;
+  border-radius: 6px;
+  border-left: 4px solid #ff8c00;
+}
+
+/* Badges de estado */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-completed {
+  background: #c8e6c9;
+  color: #2e7d32;
+  border: 2px solid #81c784;
+}
+
+.status-cancelled {
+  background: #ffcdd2;
+  color: #c62828;
+  border: 2px solid #ef5350;
+}
+
+.status-progress {
+  background: #fff3e0;
+  color: #e65100;
+  border: 2px solid #ffb74d;
+}
+
+.status-past {
+  background: #f5f5f5;
+  color: #424242;
+  border: 2px solid #bdbdbd;
+}
+
+/* Acciones del evento */
+.event-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 2px solid #ffe4d6;
+}
+
+.event-actions .btn {
+  font-size: 0.85rem;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  font-weight: 600;
+}
+
+.event-actions .btn-primary {
+  background: linear-gradient(135deg, #ff8c00, #ff7700);
+  border: 2px solid #ff8c00;
+  color: white;
+}
+
+.event-actions .btn-primary:hover {
+  background: linear-gradient(135deg, #ff7700, #ff6600);
+  border-color: #ff7700;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+}
+
+.event-actions .btn-secondary {
+  background: white;
+  border: 2px solid #ff8c00;
+  color: #ff8c00;
+}
+
+.event-actions .btn-secondary:hover {
+  background: #ff8c00;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+}
+
+.event-actions .btn-outline-danger {
+  border: 2px solid #ff6b6b;
+  color: #ff6b6b;
+  background: white;
+}
+
+.event-actions .btn-outline-danger:hover {
+  background: #ff6b6b;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+/* =============================================
+   ANIMACIONES Y EFECTOS
+   ============================================= */
+
+/* Animación de shimmer para carga de imagen */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Animación de aparición de tarjetas */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animación de pulso para elementos destacados */
+@keyframes pulse-orange {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 140, 0, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 140, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 140, 0, 0);
+  }
+}
+
+/* =============================================
+   ESTILOS RESPONSIVOS
+   ============================================= */
+
+/* Tablets */
+@media (max-width: 768px) {
+  .event-image-container {
+    height: 100px;
+    border-width: 1px;
+  }
+  
+  .event-thumbnail {
+    height: 100px;
+  }
+  
+  .image-overlay i {
+    font-size: 22px;
+  }
+  
+  .event-card {
+    border-width: 1px;
+  }
+  
+  .event-card-body {
+    padding: 15px;
+  }
+  
+  .event-card-header {
+    padding: 12px 15px;
+  }
+  
+  .event-title {
+    font-size: 1.1rem;
+  }
+  
+  .event-meta-item {
+    font-size: 0.85rem;
+  }
+  
+  .event-actions {
+    flex-direction: column;
+  }
+  
+  .event-actions .btn {
+    width: 100%;
+  }
+  
+  #imageModal .modal-dialog {
+    margin: 10px;
+    max-width: calc(100vw - 20px);
+  }
+  
+  #imageModal .modal-body img {
+    max-height: 50vh;
+  }
+}
+
+/* Móviles pequeños */
+@media (max-width: 480px) {
+  .event-image-container {
+    height: 80px;
+    border-width: 1px;
+  }
+  
+  .event-thumbnail {
+    height: 80px;
+  }
+  
+  .image-overlay i {
+    font-size: 18px;
+  }
+  
+  .event-card {
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border-width: 1px;
+  }
+  
+  .event-card-body {
+    padding: 12px;
+  }
+  
+  .event-card-header {
+    padding: 10px 12px;
+  }
+  
+  .event-title {
+    font-size: 1rem;
+  }
+  
+  .event-meta-item {
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+  }
+  
+  .event-description {
+    font-size: 0.85rem;
+    padding: 10px;
+    border-left-width: 3px;
+  }
+  
+  .status-badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-width: 1px;
+  }
+  
+  .event-actions .btn {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    border-width: 1px;
+  }
+}
+
+/* =============================================
+   MEJORAS DE ACCESIBILIDAD
+   ============================================= */
+
+/* Focus visible para teclado */
+.event-image-container:focus-visible {
+  outline: 3px solid #ff8c00;
+  outline-offset: 2px;
+}
+
+.event-thumbnail:focus-visible {
+  outline: 3px solid #ff8c00;
+  outline-offset: 2px;
+}
+
+.event-actions .btn:focus-visible {
+  outline: 3px solid #ff8c00;
+  outline-offset: 2px;
+}
+
+/* Mejorar contraste para modo oscuro */
+@media (prefers-color-scheme: dark) {
+  .event-card {
+    background: #2d2d2d;
+    border-color: #ff8c00;
+    color: #ffffff;
+  }
+  
+  .event-card-header {
+    background: linear-gradient(135deg, #ff8c00, #ff7700);
+  }
+  
+  .event-card-body {
+    background: #ffffff;
+  }
+  
+  .event-title {
+    color: white;
+  }
+  
+  .event-meta-item span {
+    color: #000000;
+  }
+  
+  .event-description {
+    background: #e9e2e2;
+    color: #000000;
+    border-left-color: #ff8c00;
+  }
+  
+  #imageModal .modal-content {
+    background: #2d2d2d;
+    color: #ffffff;
+    border-color: #ff8c00;
+  }
+  
+  #imageModal .modal-body,
+  #imageModal .modal-footer {
+    background: #ffffff;
+  }
+  
+  .event-actions .btn-secondary {
+    background: #2d2d2d;
+    color: #ff8c00;
+  }
+}
+
+/* =============================================
+   UTILIDADES ADICIONALES
+   ============================================= */
+
+/* Clase para ocultar elemento si no hay imagen */
+.no-image .event-image-container {
+  display: none;
+}
+
+/* Clase para imagen con error */
+.image-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff5f0;
+  color: #5d4037;
+  font-size: 0.9rem;
+  border: 2px solid #ffe4d6;
+}
+
+.image-error i {
+  margin-right: 8px;
+  font-size: 1.2rem;
+  color: #ff8c00;
+}
+
+/* Optimización de rendimiento */
+.event-thumbnail {
+  will-change: transform, opacity;
+}
+
+.event-card {
+  will-change: transform, box-shadow;
+}
+
+.image-overlay {
+  will-change: opacity;
+}
+
+/* =============================================
+   ELEMENTOS ESPECIALES UNFV
+   ============================================= */
+
+/* Acento especial para elementos destacados */
+.unfv-highlight {
+  position: relative;
+}
+
+.unfv-highlight::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #ff8c00, #ff7700, #ff8c00);
+  border-radius: 14px;
+  z-index: -1;
+  animation: pulse-orange 2s infinite;
+}
+
+/* Separador con estilo UNFV */
+.unfv-divider {
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #ff8c00, transparent);
+  margin: 20px 0;
+  border-radius: 2px;
+}
+
+/* Texto destacado UNFV */
+.unfv-text-primary {
+  color: #ff8c00 !important;
+  font-weight: 600;
+}
+
+.unfv-bg-primary {
+  background: linear-gradient(135deg, #ff8c00, #ff7700) !important;
+  color: white !important;
+}

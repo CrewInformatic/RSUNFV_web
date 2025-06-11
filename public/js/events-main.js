@@ -27,8 +27,6 @@ window.firebaseDB = db;
 window.firebaseTimestamp = Timestamp;
 window.firebaseServerTimestamp = serverTimestamp;
 
-console.log("🔥 Firebase importado desde firebase_config.js correctamente");
-
 // =============================================
 // VARIABLES GLOBALES COMPARTIDAS
 // =============================================
@@ -77,34 +75,24 @@ function clearSession() {
   try {
     window.currentUser = null;
     sessionStorage.removeItem("userSession");
-    console.log("🧹 Sesión limpiada");
   } catch (error) {
     console.error("❌ Error al limpiar sesión:", error);
   }
 }
 
 function checkAuthentication() {
-  console.log("🔍 Verificando autenticación...");
-
   const session = getStoredSession();
 
   if (!session) {
-    console.log("❌ No hay sesión activa, redirigiendo al login");
     window.location.href = "index.html";
     return null;
   }
 
   if (!session.esAdmin) {
-    console.log("❌ Usuario sin privilegios de administrador");
     alert("No tienes permisos para acceder a esta página");
     window.location.href = "portal_test.html";
     return null;
   }
-
-  console.log("✅ Usuario administrador verificado:", {
-    correo: session.correo,
-    nombreUsuario: session.nombreUsuario,
-  });
 
   return session;
 }
@@ -155,7 +143,6 @@ window.showSettings = function () {
 window.handleLogout = function () {
   const confirmed = confirm("¿Estás seguro de que deseas cerrar sesión?");
   if (confirmed) {
-    console.log("Cerrando sesión...");
     clearSession();
     alert("Sesión cerrada exitosamente");
     window.location.href = "index.html";
@@ -215,8 +202,6 @@ function updateUserInfo(session) {
 // =============================================
 
 async function initializeEventsPage() {
-  console.log("🚀 Inicializando página de eventos...");
-
   try {
     // Verificar autenticación
     const session = checkAuthentication();
@@ -232,30 +217,16 @@ async function initializeEventsPage() {
     await waitForModules();
 
     // Inicializar módulos en orden específico
-    console.log("📊 Inicializando módulos...");
-
-    // 1. Inicializar módulo de creación de eventos
     if (window.initializeCreateEvent) {
-      console.log("📝 Inicializando módulo de creación de eventos...");
       window.initializeCreateEvent();
-    } else {
-      console.warn("⚠️ Módulo de creación de eventos no disponible");
     }
 
-    // 2. Inicializar módulo de eventos futuros
     if (window.initializeUpcomingEvents) {
-      console.log("📅 Inicializando módulo de eventos futuros...");
       window.initializeUpcomingEvents();
-    } else {
-      console.warn("⚠️ Módulo de eventos futuros no disponible");
     }
 
-    // 3. Inicializar módulo de eventos pasados
     if (window.initializePastEvents) {
-      console.log("📋 Inicializando módulo de eventos pasados...");
       window.initializePastEvents();
-    } else {
-      console.warn("⚠️ Módulo de eventos pasados no disponible");
     }
 
     // Configurar event listeners para las pestañas
@@ -263,8 +234,6 @@ async function initializeEventsPage() {
 
     // Cargar eventos iniciales de la pestaña activa
     loadInitialEvents();
-
-    console.log("✅ Página de eventos inicializada correctamente");
   } catch (error) {
     console.error("❌ Error durante la inicialización:", error);
     alert("Error al inicializar la página. Por favor, recarga la página.");
@@ -276,8 +245,8 @@ async function initializeEventsPage() {
 // =============================================
 
 async function waitForModules() {
-  const maxWait = 5000; // 5 segundos máximo
-  const interval = 100; // Verificar cada 100ms
+  const maxWait = 5000;
+  const interval = 100;
   let waited = 0;
 
   return new Promise((resolve) => {
@@ -288,15 +257,7 @@ async function waitForModules() {
         typeof window.initializeUpcomingEvents === "function";
       const pastEventsReady = typeof window.initializePastEvents === "function";
 
-      console.log("🔍 Verificando módulos:", {
-        createEvent: createEventReady,
-        upcomingEvents: upcomingEventsReady,
-        pastEvents: pastEventsReady,
-        waited: `${waited}ms`,
-      });
-
       if (createEventReady && upcomingEventsReady && pastEventsReady) {
-        console.log("✅ Todos los módulos están listos");
         resolve();
         return;
       }
@@ -304,11 +265,6 @@ async function waitForModules() {
       waited += interval;
       if (waited >= maxWait) {
         console.warn("⚠️ Tiempo de espera agotado para cargar módulos");
-        console.log("📊 Estado final de módulos:", {
-          createEvent: createEventReady,
-          upcomingEvents: upcomingEventsReady,
-          pastEvents: pastEventsReady,
-        });
         resolve();
         return;
       }
@@ -325,33 +281,23 @@ async function waitForModules() {
 // =============================================
 
 function setupTabListeners() {
-  console.log("🏷️ Configurando listeners de pestañas...");
-
   const upcomingTab = document.getElementById("upcoming-tab");
   const pastTab = document.getElementById("past-tab");
 
   if (upcomingTab) {
     upcomingTab.addEventListener("shown.bs.tab", function () {
-      console.log("📅 Pestaña de eventos futuros activada");
       if (window.loadUpcomingEvents) {
         window.loadUpcomingEvents();
       }
     });
-    console.log("✅ Listener configurado para pestaña de eventos futuros");
-  } else {
-    console.warn("⚠️ Pestaña 'upcoming-tab' no encontrada");
   }
 
   if (pastTab) {
     pastTab.addEventListener("shown.bs.tab", function () {
-      console.log("📋 Pestaña de eventos pasados activada");
       if (window.loadPastEvents) {
         window.loadPastEvents();
       }
     });
-    console.log("✅ Listener configurado para pestaña de eventos pasados");
-  } else {
-    console.warn("⚠️ Pestaña 'past-tab' no encontrada");
   }
 }
 
@@ -360,30 +306,23 @@ function setupTabListeners() {
 // =============================================
 
 function loadInitialEvents() {
-  console.log("🔄 Cargando eventos iniciales...");
-
-  // Determinar qué pestaña está activa
   const activeTab = document.querySelector(".nav-link.active");
   const upcomingPane = document.getElementById("upcoming");
 
   if (activeTab && activeTab.id === "upcoming-tab") {
-    console.log("📅 Cargando eventos futuros (pestaña activa)");
     if (window.loadUpcomingEvents) {
       window.loadUpcomingEvents();
     }
   } else if (upcomingPane && upcomingPane.classList.contains("active")) {
-    console.log("📅 Cargando eventos futuros (panel activo)");
     if (window.loadUpcomingEvents) {
       window.loadUpcomingEvents();
     }
   } else if (activeTab && activeTab.id === "past-tab") {
-    console.log("📋 Cargando eventos pasados (pestaña activa)");
     if (window.loadPastEvents) {
       window.loadPastEvents();
     }
   } else {
     // Por defecto, cargar eventos futuros
-    console.log("📅 Cargando eventos futuros (por defecto)");
     if (window.loadUpcomingEvents) {
       window.loadUpcomingEvents();
     }
@@ -396,16 +335,13 @@ function loadInitialEvents() {
 
 // Función para refrescar eventos
 window.refreshEvents = function () {
-  console.log("🔄 Refrescando eventos...");
   const activeTab = document.querySelector(".nav-link.active");
   if (activeTab && activeTab.id === "past-tab") {
     if (window.loadPastEvents) {
-      console.log("📋 Refrescando eventos pasados");
       window.loadPastEvents();
     }
   } else {
     if (window.loadUpcomingEvents) {
-      console.log("📅 Refrescando eventos futuros");
       window.loadUpcomingEvents();
     }
   }
@@ -438,11 +374,9 @@ window.updateUserInfo = updateUserInfo;
 // Inicializar cuando el DOM esté listo
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", function () {
-    console.log("📄 DOM cargado, inicializando en 300ms...");
-    setTimeout(initializeEventsPage, 300); // Delay más largo para asegurar carga completa
+    setTimeout(initializeEventsPage, 300);
   });
 } else {
-  console.log("📄 DOM ya cargado, inicializando en 300ms...");
   setTimeout(initializeEventsPage, 300);
 }
 
@@ -458,7 +392,6 @@ window.showError = function (message, error = null) {
 
 // Función para mostrar mensajes de éxito
 window.showSuccess = function (message) {
-  console.log("✅ Éxito:", message);
   alert(message);
 };
 
@@ -472,7 +405,7 @@ window.validateSession = function () {
   return session;
 };
 
-// Función de debug para verificar estado de los módulos
+// Función de debug para verificar estado de los módulos (solo en desarrollo)
 window.debugModules = function () {
   console.log("🔍 Estado de los módulos:");
   console.log("- Firebase DB:", !!window.firebaseDB);
@@ -485,12 +418,9 @@ window.debugModules = function () {
 
 // Función para forzar recarga de eventos futuros
 window.forceLoadUpcoming = function () {
-  console.log("🔄 Forzando carga de eventos futuros...");
   if (window.loadUpcomingEvents) {
     window.loadUpcomingEvents();
   } else {
     console.error("❌ Función loadUpcomingEvents no disponible");
   }
 };
-
-console.log("🔧 Archivo coordinador events-main.js cargado correctamente");

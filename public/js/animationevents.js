@@ -120,7 +120,6 @@ function filterEventsByType(tabType, eventType) {
       return;
     }
 
-    // Aquí deberías agregar lógica para filtrar por tipo
     // Por ahora, mostramos todos los eventos
     card.style.display = "block";
   });

@@ -21,40 +21,34 @@ const modalMessage = document.getElementById("modalMessage");
 const modalBtn = document.getElementById("modalBtn");
 
 // =============================================
-// FUNCIONES DE GESTIÓN DE SESIÓN CORREGIDAS
+// FUNCIONES DE GESTIÓN DE SESIÓN
 // =============================================
 
-// OPCIÓN 1: Usar un sistema global de sesión que funcione en ambas páginas
 function saveSession(userSession) {
   try {
-    // Guardar tanto en memoria como en sessionStorage (solo para persistencia entre páginas)
     currentUser = userSession;
     sessionStorage.setItem("userSession", JSON.stringify(userSession));
-    console.log("✅ Sesión guardada:", userSession);
   } catch (error) {
-    console.error("❌ Error al guardar sesión:", error);
+    console.error("Error al guardar sesión:", error);
   }
 }
 
 function getStoredSession() {
   try {
-    // Primero intentar obtener de memoria
     if (currentUser) {
       return currentUser;
     }
 
-    // Si no está en memoria, intentar obtener de sessionStorage
     const storedSession = sessionStorage.getItem("userSession");
     if (storedSession) {
       const parsedSession = JSON.parse(storedSession);
-      currentUser = parsedSession; // Actualizar la variable en memoria
+      currentUser = parsedSession;
       return parsedSession;
     }
 
     return null;
   } catch (error) {
-    console.error("❌ Error al obtener sesión:", error);
-    // Limpiar sessionStorage si hay error
+    console.error("Error al obtener sesión:", error);
     sessionStorage.removeItem("userSession");
     return null;
   }
@@ -64,68 +58,47 @@ function clearSession() {
   try {
     currentUser = null;
     sessionStorage.removeItem("userSession");
-    console.log("🧹 Sesión limpiada");
   } catch (error) {
-    console.error("❌ Error al limpiar sesión:", error);
+    console.error("Error al limpiar sesión:", error);
   }
 }
 
 // =============================================
-// FUNCIÓN MEJORADA DE VERIFICACIÓN DE AUTENTICACIÓN
+// FUNCIÓN DE VERIFICACIÓN DE AUTENTICACIÓN
 // =============================================
 
 function checkAuthentication() {
-  console.log("🔍 Verificando autenticación...");
-
   const session = getStoredSession();
 
   if (!session) {
-    console.log("❌ No hay sesión activa, redirigiendo al login");
     window.location.href = "index.html";
     return null;
   }
 
-  console.log("✅ Sesión encontrada:", {
-    correo: session.correo,
-    nombreUsuario: session.nombreUsuario,
-    esAdmin: session.esAdmin,
-  });
-
   return session;
 }
 
-// Función específica para verificar permisos de admin
 function checkAdminAuthentication() {
-  console.log("🔍 Verificando autenticación de administrador...");
-
   const session = getStoredSession();
 
   if (!session) {
-    console.log("❌ No hay sesión activa, redirigiendo al login");
     window.location.href = "index.html";
     return null;
   }
 
   if (!session.esAdmin) {
-    console.log("❌ Usuario sin privilegios de administrador");
     alert("No tienes permisos para acceder a esta página");
     window.location.href = "portal_test.html";
     return null;
   }
 
-  console.log("✅ Usuario administrador verificado:", {
-    correo: session.correo,
-    nombreUsuario: session.nombreUsuario,
-  });
-
   return session;
 }
 
 // =============================================
-// FUNCIONES UTILITARIAS MEJORADAS
+// FUNCIONES UTILITARIAS
 // =============================================
 
-// Para usar en login.js
 window.getCurrentSession = function () {
   return getStoredSession();
 };
@@ -160,7 +133,7 @@ window.requireAdmin = async function () {
 };
 
 // =============================================
-// FUNCIONES DE NAVEGACIÓN CORREGIDAS
+// FUNCIONES DE NAVEGACIÓN
 // =============================================
 
 window.navigateToPage = function (pageName) {
@@ -206,7 +179,6 @@ window.showSettings = function () {
 window.handleLogout = function () {
   const confirmed = confirm("¿Estás seguro de que deseas cerrar sesión?");
   if (confirmed) {
-    console.log("Cerrando sesión...");
     clearSession();
     alert("Sesión cerrada exitosamente");
     window.location.href = "index.html";
@@ -214,22 +186,16 @@ window.handleLogout = function () {
 };
 
 // =============================================
-// INICIALIZACIÓN MEJORADA PARA PÁGINAS DE ADMIN
+// INICIALIZACIÓN PARA PÁGINAS DE ADMIN
 // =============================================
 
 function initializeAdminPage() {
-  console.log("🚀 Inicializando página de administrador...");
-
-  // Verificar autenticación de admin inmediatamente
   const session = checkAdminAuthentication();
   if (!session) {
-    return; // Si no pasa la verificación, ya fue redirigido
+    return;
   }
 
-  // Actualizar información del usuario en la interfaz
   updateUserInfo(session);
-
-  console.log("✅ Página de administrador inicializada correctamente");
   return session;
 }
 
@@ -239,7 +205,6 @@ function updateUserInfo(session) {
     userDisplayName.textContent = session.nombreUsuario || session.correo;
   }
 
-  // Actualizar otros elementos de la interfaz si existen
   const userEmail = document.getElementById("userEmail");
   if (userEmail) {
     userEmail.textContent = session.correo;
@@ -255,7 +220,6 @@ function updateUserInfo(session) {
 // EXPORTAR FUNCIONES PARA USO GLOBAL
 // =============================================
 
-// Hacer disponibles las funciones globalmente
 window.saveSession = saveSession;
 window.getStoredSession = getStoredSession;
 window.clearSession = clearSession;
@@ -268,7 +232,6 @@ window.updateUserInfo = updateUserInfo;
 // FUNCIONES DE INTERFAZ DE USUARIO
 // =============================================
 
-// Función para mostrar modal
 function showModal(title, message, icon, type = "error") {
   modalTitle.textContent = title;
   modalMessage.textContent = message;
@@ -278,12 +241,10 @@ function showModal(title, message, icon, type = "error") {
   modal.classList.add("show");
 }
 
-// Función para cerrar modal
 window.closeModal = function () {
   modal.classList.remove("show");
 };
 
-// Función de loading para login
 function setLoginLoading(isLoading) {
   const loginBtn = document.getElementById("submit_login");
   if (loginBtn) {
@@ -297,7 +258,6 @@ function setLoginLoading(isLoading) {
   }
 }
 
-// Función para cambiar entre pestañas
 window.switchTab = function (tabName) {
   document
     .querySelectorAll(".tab-btn")
@@ -316,37 +276,31 @@ window.switchTab = function (tabName) {
 // FUNCIONES DE FIRESTORE DATABASE
 // =============================================
 
-// Obtener datos completos del usuario desde Firestore
 async function getUserData(uid) {
   try {
-    console.log("🔍 Obteniendo datos del usuario con UID:", uid);
     const userDocRef = doc(db, "usuarios", uid);
     const userDoc = await getDoc(userDocRef);
 
     if (userDoc.exists()) {
       const userData = { id: uid, ...userDoc.data() };
-      console.log("✅ Datos del usuario obtenidos desde Firestore:", userData);
       return userData;
     } else {
-      console.log("⚠️ No se encontraron datos del usuario en Firestore");
       return null;
     }
   } catch (error) {
-    console.error("❌ Error al obtener datos del usuario:", error);
+    console.error("Error al obtener datos del usuario:", error);
     return null;
   }
 }
 
-// Actualizar último acceso del usuario
 async function updateLastAccess(uid) {
   try {
     const userDocRef = doc(db, "usuarios", uid);
     await updateDoc(userDocRef, {
       ultimoAcceso: new Date().toISOString(),
     });
-    console.log("✅ Último acceso actualizado en Firestore");
   } catch (error) {
-    console.error("❌ Error al actualizar último acceso:", error);
+    console.error("Error al actualizar último acceso:", error);
   }
 }
 
@@ -354,13 +308,10 @@ async function updateLastAccess(uid) {
 // FUNCIONES DE REDIRECCIÓN
 // =============================================
 
-// Redireccionar según el rol del usuario
 function redirectUserByRole(userData) {
   if (userData.esAdmin === true) {
-    console.log("🔒 Redirigiendo a admin dashboard");
     window.location.href = "admin-dashboard.html";
   } else {
-    console.log("👤 Redirigiendo a portal estudiantil");
     window.location.href = "portal_test.html";
   }
 }
@@ -369,17 +320,14 @@ function redirectUserByRole(userData) {
 // FUNCIÓN PRINCIPAL DE LOGIN
 // =============================================
 
-// Función para manejar el LOGIN
 window.handleLogin = async function (event) {
   event.preventDefault();
-  console.log("🔑 Iniciando proceso de login...");
 
   const email =
     document.getElementById("email_login")?.value.trim().toLowerCase() || "";
   const password =
     document.getElementById("password_login")?.value.trim() || "";
 
-  // Validaciones básicas
   if (!email || !password) {
     showModal(
       "Campos incompletos",
@@ -390,7 +338,6 @@ window.handleLogin = async function (event) {
     return;
   }
 
-  // Validar formato de email
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     showModal(
@@ -405,9 +352,6 @@ window.handleLogin = async function (event) {
   setLoginLoading(true);
 
   try {
-    console.log("🔐 Verificando credenciales en Firebase Authentication...");
-
-    // PASO 1: Iniciar sesión con Firebase Authentication
     const userCredential = await signInWithEmailAndPassword(
       auth,
       email,
@@ -415,45 +359,31 @@ window.handleLogin = async function (event) {
     );
     const user = userCredential.user;
 
-    console.log("✅ Login exitoso con Firebase Authentication. UID:", user.uid);
-
-    // PASO 2: Obtener datos completos del usuario desde Firestore
     const userData = await getUserData(user.uid);
 
     if (!userData) {
       throw new Error("No se encontraron datos del usuario en Firestore");
     }
 
-    console.log("📋 Datos del usuario obtenidos desde Firestore:", userData);
-
-    // PASO 3: Actualizar último acceso en Firestore
     await updateLastAccess(user.uid);
 
     setLoginLoading(false);
 
-    // PASO 4: Crear sesión del usuario combinando datos de Auth y Firestore
     const userSession = {
       uid: user.uid,
-      correo: user.email, // Email desde Authentication
-      nombreUsuario: userData.nombreUsuario, // Desde Firestore
-      apellido: userData.apellido || "", // Desde Firestore
-      edad: userData.edad, // Desde Firestore
-      codigoUsuario: userData.codigoUsuario, // Desde Firestore
-      facultad: userData.facultad, // Desde Firestore
-      ciclo: userData.ciclo, // Desde Firestore
-      esAdmin: userData.esAdmin || false, // Desde Firestore
+      correo: user.email,
+      nombreUsuario: userData.nombreUsuario,
+      apellido: userData.apellido || "",
+      edad: userData.edad,
+      codigoUsuario: userData.codigoUsuario,
+      facultad: userData.facultad,
+      ciclo: userData.ciclo,
+      esAdmin: userData.esAdmin || false,
       loginTime: new Date().toISOString(),
     };
 
-    // PASO 5: Guardar sesión
     saveSession(userSession);
 
-    console.log(
-      "✅ Sesión creada combinando datos de Authentication y Firestore:",
-      userSession
-    );
-
-    // PASO 6: Mostrar mensaje de éxito
     showModal(
       "¡Bienvenido!",
       `Hola ${userData.nombreUsuario}. Redirigiendo a tu portal...`,
@@ -461,19 +391,17 @@ window.handleLogin = async function (event) {
       "success"
     );
 
-    // PASO 7: Redirigir según el rol después de 2 segundos
     setTimeout(() => {
       closeModal();
       redirectUserByRole(userData);
     }, 2000);
   } catch (error) {
-    console.error("❌ Error en login:", error);
+    console.error("Error en login:", error);
     setLoginLoading(false);
 
     let errorMessage =
       "Hubo un problema al iniciar sesión. Intenta nuevamente.";
 
-    // Manejar errores específicos de Firebase
     switch (error.code) {
       case "auth/user-not-found":
         errorMessage = "No existe una cuenta con este correo electrónico.";
@@ -507,15 +435,9 @@ window.handleLogin = async function (event) {
 // FUNCIÓN DE LOGOUT
 // =============================================
 
-// Función para cerrar sesión
 window.logout = async function () {
   try {
-    console.log("👋 Cerrando sesión...");
-
-    // Cerrar sesión en Firebase Auth
     await signOut(auth);
-
-    // Limpiar sesión local
     clearSession();
 
     showModal(
@@ -530,8 +452,7 @@ window.logout = async function () {
       window.location.href = "index.html";
     }, 2000);
   } catch (error) {
-    console.error("❌ Error al cerrar sesión:", error);
-    // Forzar limpieza local incluso si falla el logout de Firebase
+    console.error("Error al cerrar sesión:", error);
     clearSession();
     window.location.href = "index.html";
   }
@@ -541,42 +462,35 @@ window.logout = async function () {
 // OBSERVER DE ESTADO DE AUTENTICACIÓN
 // =============================================
 
-// Escuchar cambios en el estado de autenticación
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    console.log("👤 Usuario autenticado detectado:", user.uid);
-
-    // Obtener datos completos del usuario desde Firestore
     const userData = await getUserData(user.uid);
 
     if (userData) {
-      // Crear sesión con los datos completos
       const userSession = {
         uid: user.uid,
-        correo: user.email, // Email desde Authentication
-        nombreUsuario: userData.nombreUsuario, // Desde Firestore
-        apellido: userData.apellido || "", // Desde Firestore
-        edad: userData.edad, // Desde Firestore
-        codigoUsuario: userData.codigoUsuario, // Desde Firestore
-        facultad: userData.facultad, // Desde Firestore
-        ciclo: userData.ciclo, // Desde Firestore
-        esAdmin: userData.esAdmin || false, // Desde Firestore
+        correo: user.email,
+        nombreUsuario: userData.nombreUsuario,
+        apellido: userData.apellido || "",
+        edad: userData.edad,
+        codigoUsuario: userData.codigoUsuario,
+        facultad: userData.facultad,
+        ciclo: userData.ciclo,
+        esAdmin: userData.esAdmin || false,
         loginTime: new Date().toISOString(),
       };
 
       saveSession(userSession);
     }
   } else {
-    console.log("🚫 Usuario no autenticado");
     clearSession();
   }
 });
 
 // =============================================
-// FUNCIONES UTILITARIAS
+// FUNCIONES UTILITARIAS DUPLICADAS (LIMPIAR)
 // =============================================
 
-// Funciones utilitarias para usar en otras páginas
 window.getCurrentSession = function () {
   return currentUser || getStoredSession();
 };
@@ -617,7 +531,6 @@ window.requireAdmin = async function () {
 // INICIALIZACIÓN
 // =============================================
 
-// Cerrar modal al hacer clic fuera de él
 if (modal) {
   modal.addEventListener("click", function (event) {
     if (event.target === modal) {
@@ -626,25 +539,15 @@ if (modal) {
   });
 }
 
-// Inicialización cuando se carga la página
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("🚀 Sistema de login Firebase inicializado");
-
-  // Verificar Firebase Auth
-  if (auth) {
-    console.log("✅ Firebase Authentication: Conectado");
-  } else {
-    console.error("❌ Firebase Authentication: No disponible");
+  if (!auth) {
+    console.error("Firebase Authentication: No disponible");
   }
 
-  // Verificar Firestore
-  if (db) {
-    console.log("✅ Firestore Database: Conectado");
-  } else {
-    console.error("❌ Firestore Database: No disponible");
+  if (!db) {
+    console.error("Firestore Database: No disponible");
   }
 
-  // Agregar efectos a los inputs
   document.querySelectorAll(".form-input").forEach((input) => {
     input.addEventListener("focus", function () {
       this.parentNode.style.transform = "scale(1.02)";
@@ -655,8 +558,4 @@ document.addEventListener("DOMContentLoaded", function () {
       this.parentNode.style.transform = "scale(1)";
     });
   });
-
-  console.log("🎯 Inicialización de login completada");
 });
-
-console.log("🔑 Sistema de login cargado exitosamente");

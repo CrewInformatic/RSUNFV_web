@@ -1,7 +1,4 @@
-// SOLUCIÓN ALTERNATIVA: Modificar el JavaScript para aceptar parámetros desde localStorage o sessionStorage
-// También verificar si venimos del enlace directo
-
-// Importar Firebase (ajusta la ruta según tu estructura)
+// confirm-pasword Importar Firebase (ajusta la ruta según tu estructura)
 import {
   auth,
   confirmPasswordReset,
@@ -27,7 +24,7 @@ let verifiedEmail = null;
 let actionCodeVerified = false;
 let currentActionCode = null;
 
-// NUEVA FUNCIÓN: Verificar si venimos de un enlace de Firebase válido
+// Verificar si venimos de un enlace de Firebase válido
 function checkFirebaseReferrer() {
   const referrer = document.referrer;
   const currentDomain = window.location.hostname;
@@ -42,8 +39,6 @@ function checkFirebaseReferrer() {
     "outlook.office.com",
   ];
 
-  console.log("Referrer:", referrer);
-
   if (referrer) {
     const referrerDomain = new URL(referrer).hostname;
     return validReferrers.some(
@@ -55,7 +50,7 @@ function checkFirebaseReferrer() {
   return false;
 }
 
-// NUEVA FUNCIÓN: Intentar obtener parámetros de diferentes fuentes
+// Intentar obtener parámetros de diferentes fuentes
 function getResetParameters() {
   // Método 1: Desde URL (preferido)
   const urlParams = new URLSearchParams(window.location.search);
@@ -63,59 +58,15 @@ function getResetParameters() {
   let actionCode = urlParams.get("oobCode");
 
   if (mode && actionCode) {
-    console.log("Parámetros encontrados en URL");
     return { mode, actionCode, source: "url" };
   }
-
-  // Método 2: Desde localStorage (si se guardaron previamente)
-  try {
-    const savedParams = localStorage.getItem("firebaseResetParams");
-    if (savedParams) {
-      const params = JSON.parse(savedParams);
-      console.log("Parámetros encontrados en localStorage");
-      return { ...params, source: "localStorage" };
-    }
-  } catch (e) {
-    console.log("No se pudieron obtener parámetros de localStorage");
-  }
-
-  // Método 3: Desde sessionStorage
-  try {
-    const savedParams = sessionStorage.getItem("firebaseResetParams");
-    if (savedParams) {
-      const params = JSON.parse(savedParams);
-      console.log("Parámetros encontrados en sessionStorage");
-      return { ...params, source: "sessionStorage" };
-    }
-  } catch (e) {
-    console.log("No se pudieron obtener parámetros de sessionStorage");
-  }
-
-  // Método 4: Verificar si hay un fragmento en la URL (algunos clientes de correo lo usan)
-  const hash = window.location.hash.substring(1);
-  if (hash) {
-    const hashParams = new URLSearchParams(hash);
-    mode = hashParams.get("mode");
-    actionCode = hashParams.get("oobCode");
-
-    if (mode && actionCode) {
-      console.log("Parámetros encontrados en fragment/hash");
-      return { mode, actionCode, source: "hash" };
-    }
-  }
-
   return null;
 }
 
-// FUNCIÓN MODIFICADA: Verificar parámetros con más flexibilidad
+// Verificar parámetros con más flexibilidad
 async function checkUrlParams() {
-  console.log("Verificando parámetros de restablecimiento...");
-
   const params = getResetParameters();
   const isValidReferrer = checkFirebaseReferrer();
-
-  console.log("Parámetros obtenidos:", params);
-  console.log("Referrer válido:", isValidReferrer);
 
   // Si no tenemos parámetros pero tenemos un referrer válido, mostrar ayuda
   if (!params && isValidReferrer) {
@@ -174,7 +125,7 @@ async function checkUrlParams() {
       JSON.stringify({ mode, actionCode })
     );
   } catch (e) {
-    console.log("No se pudieron guardar parámetros en sessionStorage");
+    // Error silenciado para producción
   }
 
   // Verificar el código de acción
@@ -184,7 +135,6 @@ async function checkUrlParams() {
       `Enlace verificado correctamente (fuente: ${source}). Puedes proceder a cambiar tu contraseña.`
     );
   } catch (error) {
-    console.error("Error al verificar enlace:", error);
     handleVerificationError(error);
   }
 }
@@ -216,7 +166,7 @@ function handleVerificationError(error) {
   }, 5000);
 }
 
-// FUNCIÓN MODIFICADA: Verificar código con el parámetro almacenado
+// Verificar código con el parámetro almacenado
 async function verifyActionCodeAndGetEmail() {
   if (!currentActionCode) {
     const params = getResetParameters();
@@ -230,9 +180,7 @@ async function verifyActionCodeAndGetEmail() {
   }
 
   try {
-    console.log("Verificando código de acción...");
     const email = await verifyPasswordResetCode(auth, currentActionCode);
-    console.log("Código verificado. Email asociado:", email);
 
     verifiedEmail = email;
     actionCodeVerified = true;
@@ -245,22 +193,20 @@ async function verifyActionCodeAndGetEmail() {
 
     return email;
   } catch (error) {
-    console.error("Error al verificar código:", error);
     actionCodeVerified = false;
     throw error;
   }
 }
 
-// FUNCIÓN MODIFICADA: Reset password usando el código almacenado
+// Reset password usando el código almacenado
 async function resetPassword(event) {
   event.preventDefault();
-  console.log("Iniciando proceso de restablecimiento seguro...");
 
   const email = confirmEmailInput.value.trim().toLowerCase();
   const newPassword = newPasswordInput.value;
   const confirmPassword = confirmPasswordInput.value;
 
-  // Todas las validaciones anteriores se mantienen igual...
+  // Validaciones
   if (!email || !newPassword || !confirmPassword) {
     showMessage("Por favor completa todos los campos", true);
     return;
@@ -317,17 +263,14 @@ async function resetPassword(event) {
   resetBtn.disabled = true;
 
   try {
-    console.log("Confirmando cambio de contraseña...");
-
     await confirmPasswordReset(auth, currentActionCode, newPassword);
-    console.log("Contraseña cambiada exitosamente");
 
     // Limpiar datos almacenados
     try {
       sessionStorage.removeItem("firebaseResetParams");
       localStorage.removeItem("firebaseResetParams");
     } catch (e) {
-      console.log("Error al limpiar storage");
+      // Error silenciado para producción
     }
 
     newPasswordInput.value = "";
@@ -344,7 +287,6 @@ async function resetPassword(event) {
       }, 3000);
     }, 2000);
   } catch (error) {
-    console.error("Error al cambiar contraseña:", error);
     handleResetError(error);
   } finally {
     resetBtn.textContent = originalText;
@@ -395,10 +337,7 @@ function handleResetError(error) {
   showMessage(errorMessageText, true);
 }
 
-// Resto de funciones se mantienen igual...
 function showMessage(message, isError = false) {
-  console.log(`[${isError ? "ERROR" : "SUCCESS"}] ${message}`);
-
   if (isError) {
     errorMessage.querySelector("#error-text").textContent = message;
     errorMessage.style.display = "block";
@@ -507,8 +446,6 @@ resetForm.addEventListener("submit", (e) => {
 
 // Inicializar cuando se carga la página
 document.addEventListener("DOMContentLoaded", async function () {
-  console.log("Página de restablecimiento cargada");
-
   errorMessage.style.display = "none";
   successMessage.style.display = "none";
   successContainer.style.display = "none";

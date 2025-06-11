@@ -520,7 +520,6 @@ export function editEvent(eventId) {
  */
 export function viewVolunteers(eventId) {
   console.log("👥 Viendo voluntarios del evento:", eventId);
-  // TODO: Implementar vista de voluntarios
   alert(`Ver voluntarios del evento: ${eventId}`);
 }
 

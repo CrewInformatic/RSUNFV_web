@@ -1,4 +1,4 @@
-// Esta página captura los parámetros de Firebase y redirige según el tipo de operación
+// firebase-redirect.js Esta página captura los parámetros de Firebase y redirige según el tipo de operación
 function processFirebaseAction() {
   console.log("Procesando parámetros de Firebase...");
 

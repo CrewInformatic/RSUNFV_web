@@ -42,8 +42,6 @@ function getFirebaseDB() {
  * Crear y mostrar modal de edición
  */
 export function showEditModal(eventId) {
-  console.log("🔧 Abriendo modal de edición para evento:", eventId);
-
   // Verificar si ya existe un modal y eliminarlo
   const existingModal = document.getElementById("editEventModal");
   if (existingModal) {
@@ -140,14 +138,25 @@ function createEditModal(eventId) {
           <div class="form-group">
             <label>Imagen del Evento:</label>
             <div class="current-image-container" id="currentImageContainer"></div>
-            <div class="image-upload-section" id="editImageUploadSection">
-              <input type="file" id="editEventImages" accept="image/*" class="file-input">
-              <div class="upload-text">
-                <i class="fas fa-cloud-upload-alt"></i>
-                <p>Arrastra una nueva imagen aquí o haz clic para seleccionar</p>
-                <small>Solo se permitirá una imagen (máx. 10MB)</small>
+            
+            <div class="image-upload-wrapper">
+              <input type="file" id="editEventImages" accept="image/*" class="file-input" style="display: none;">
+              <div class="image-upload-section" id="editImageUploadSection">
+                <div class="upload-icon">
+                  <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <div class="upload-text">
+                  <p class="upload-main-text">Haz clic aquí o arrastra una imagen</p>
+                  <small class="upload-sub-text">Solo se permite una imagen (máx. 10MB)</small>
+                  <small class="upload-formats">Formatos: JPG, PNG, GIF, WEBP</small>
+                </div>
+                <button type="button" class="btn-select-file">
+                  <i class="fas fa-folder-open"></i>
+                  Seleccionar Archivo
+                </button>
               </div>
             </div>
+            
             <div id="editImagePreviewContainer" class="image-preview-container"></div>
           </div>
         </form>
@@ -157,10 +166,12 @@ function createEditModal(eventId) {
       
       <div class="modal-footer">
         <button type="button" class="btn-cancel" onclick="closeEditModal()">
+          <i class="fas fa-times"></i>
           Cancelar
         </button>
         <button type="button" class="btn-save" onclick="saveEventChanges('${eventId}')">
-          💾 Guardar Cambios
+          <i class="fas fa-save"></i>
+          Guardar Cambios
         </button>
       </div>
     </div>
@@ -190,8 +201,6 @@ function getStoredSession() {
  * Cargar datos del evento desde Firestore
  */
 async function loadEventData(eventId) {
-  console.log(`📥 Cargando datos del evento ${eventId} desde Firestore`);
-
   try {
     // Obtener la instancia de Firebase DB
     const db = getFirebaseDB();
@@ -206,7 +215,6 @@ async function loadEventData(eventId) {
     }
 
     const eventData = eventDoc.data();
-    console.log("📋 Datos del evento cargados:", eventData);
 
     // Llenar el formulario con los datos
     document.getElementById("editEventTitle").value = eventData.titulo || "";
@@ -258,13 +266,19 @@ function showCurrentImage(imageUrl) {
   if (imageUrl) {
     container.innerHTML = `
       <div class="current-image">
-        <img src="${imageUrl}" alt="Imagen actual del evento" class="current-event-image">
-        <p class="text-muted mt-1">Imagen actual del evento</p>
+        <div class="current-image-wrapper">
+          <img src="${imageUrl}" alt="Imagen actual del evento" class="current-event-image">
+          <div class="current-image-overlay">
+          </div>
+        </div>
       </div>
     `;
   } else {
     container.innerHTML = `
-      <p class="text-muted">No hay imagen actual</p>
+      <div class="no-current-image">
+        <i class="fas fa-image-slash"></i>
+        <p>No hay imagen actual</p>
+      </div>
     `;
   }
 }
@@ -272,9 +286,11 @@ function showCurrentImage(imageUrl) {
 /**
  * Configurar manejo de imágenes en el modal de edición
  */
+
 function setupImageHandling() {
   const imageInput = document.getElementById("editEventImages");
   const uploadSection = document.getElementById("editImageUploadSection");
+  const selectButton = uploadSection?.querySelector(".btn-select-file");
 
   if (imageInput) {
     imageInput.addEventListener("change", function (e) {
@@ -283,15 +299,27 @@ function setupImageHandling() {
   }
 
   if (uploadSection) {
-    // Agregar evento click para abrir el selector de archivos
+    // Evento click para toda la sección de upload - CORREGIDO
     uploadSection.addEventListener("click", function (e) {
       e.preventDefault();
+      e.stopPropagation();
       if (imageInput) {
         imageInput.click();
       }
     });
 
     setupEditDragAndDrop(uploadSection, imageInput);
+  }
+
+  // Evento específico para el botón - CORREGIDO
+  if (selectButton && imageInput) {
+    selectButton.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (imageInput) {
+        imageInput.click();
+      }
+    });
   }
 }
 
@@ -300,7 +328,6 @@ function setupImageHandling() {
  */
 function handleEditImageSelection(files) {
   if (isProcessingEditFiles) {
-    console.log("⚠️ Ya procesando archivos, ignorando...");
     return;
   }
 
@@ -310,19 +337,28 @@ function handleEditImageSelection(files) {
 
   const firstFile = files[0];
 
-  if (!firstFile.type.startsWith("image/")) {
-    alert(`${firstFile.name} no es una imagen válida`);
+  // Validar tipo de archivo
+  const validTypes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+  ];
+  if (!validTypes.includes(firstFile.type)) {
+    alert(
+      `${firstFile.name} no es un formato de imagen válido. Use: JPG, PNG, GIF o WEBP`
+    );
     isProcessingEditFiles = false;
     return;
   }
 
+  // Validar tamaño
   if (firstFile.size > 10 * 1024 * 1024) {
     alert(`${firstFile.name} es demasiado grande (máximo 10MB)`);
     isProcessingEditFiles = false;
     return;
   }
-
-  console.log(`✅ Nueva imagen seleccionada: ${firstFile.name}`);
 
   showEditImagePreview(firstFile);
   currentEditFiles = [firstFile];
@@ -341,19 +377,37 @@ function showEditImagePreview(file) {
   reader.onload = function (e) {
     container.innerHTML = `
       <div class="new-image-preview">
-        <div class="preview-image-container">
-          <img src="${
-            e.target.result
-          }" alt="Nueva imagen" class="preview-image">
-          <button type="button" class="btn btn-sm btn-danger remove-edit-image-btn" onclick="removeEditImagePreview()">
+        <div class="preview-header">
+          <h4 class="preview-title">
+            <i class="fas fa-eye"></i>
+            Nueva Imagen Seleccionada
+          </h4>
+          <button type="button" class="btn-remove-preview" onclick="removeEditImagePreview()">
             <i class="fas fa-times"></i>
           </button>
         </div>
-        <div class="preview-info">
-          <small class="text-success">Nueva imagen: ${file.name}</small>
-          <small class="text-muted d-block">${(file.size / 1024 / 1024).toFixed(
-            2
-          )} MB</small>
+        <div class="preview-content">
+          <div class="preview-image-container">
+            <img src="${
+              e.target.result
+            }" alt="Nueva imagen" class="preview-image">
+          </div>
+          <div class="preview-info">
+            <div class="file-info">
+              <span class="file-name">
+                <i class="fas fa-file-image"></i>
+                ${file.name}
+              </span>
+              <span class="file-size">
+                <i class="fas fa-weight-hanging"></i>
+                ${(file.size / 1024 / 1024).toFixed(2)} MB
+              </span>
+            </div>
+            <div class="file-status">
+              <i class="fas fa-check-circle"></i>
+              Listo para subir
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -365,28 +419,46 @@ function showEditImagePreview(file) {
  * Configurar drag and drop para edición
  */
 function setupEditDragAndDrop(uploadSection, fileInput) {
-  uploadSection.addEventListener("dragover", function (e) {
-    e.preventDefault();
-    uploadSection.classList.add("dragover");
+  ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+    uploadSection.addEventListener(eventName, preventDefaults, false);
   });
 
-  uploadSection.addEventListener("dragleave", function (e) {
+  function preventDefaults(e) {
     e.preventDefault();
-    uploadSection.classList.remove("dragover");
+    e.stopPropagation();
+  }
+
+  ["dragenter", "dragover"].forEach((eventName) => {
+    uploadSection.addEventListener(eventName, highlight, false);
   });
 
-  uploadSection.addEventListener("drop", function (e) {
-    e.preventDefault();
-    uploadSection.classList.remove("dragover");
+  ["dragleave", "drop"].forEach((eventName) => {
+    uploadSection.addEventListener(eventName, unhighlight, false);
+  });
 
-    const files = e.dataTransfer.files;
+  function highlight(e) {
+    uploadSection.classList.add("drag-over");
+  }
+
+  function unhighlight(e) {
+    uploadSection.classList.remove("drag-over");
+  }
+
+  uploadSection.addEventListener("drop", handleDrop, false);
+
+  function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+
     if (files.length > 0) {
-      const dt = new DataTransfer();
-      dt.items.add(files[0]);
-      fileInput.files = dt.files;
-      handleEditImageSelection(dt.files);
+      // Crear un nuevo objeto DataTransfer para asignar al input
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(files[0]);
+      fileInput.files = dataTransfer.files;
+
+      handleEditImageSelection(files);
     }
-  });
+  }
 }
 
 /**
@@ -425,8 +497,6 @@ async function uploadImageToCloudinary(file) {
   formData.append("timestamp", Date.now().toString());
 
   try {
-    console.log(`📤 Subiendo nueva imagen: ${file.name}...`);
-
     const response = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`,
       {
@@ -440,7 +510,6 @@ async function uploadImageToCloudinary(file) {
     }
 
     const data = await response.json();
-    console.log(`✅ Imagen subida exitosamente: ${data.secure_url}`);
 
     return {
       success: true,
@@ -477,16 +546,14 @@ window.closeEditModal = function () {
  */
 window.saveEventChanges = async function (eventId) {
   if (isUpdatingEvent || isEditingEvent) {
-    console.warn("⚠️ Ya se está actualizando el evento");
     return;
   }
 
   isUpdatingEvent = true;
-  console.log(`💾 Guardando cambios del evento ${eventId}`);
 
   const saveBtn = document.querySelector(".btn-save");
   const originalText = saveBtn.innerHTML;
-  saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Guardando...';
+  saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
   saveBtn.disabled = true;
 
   try {
@@ -536,6 +603,7 @@ window.saveEventChanges = async function (eventId) {
     if (eventDate < now) {
       throw new Error("La fecha del evento debe ser futura");
     }
+
     // Preparar datos para actualización
     const updateData = {
       titulo: eventData.titulo,
@@ -553,21 +621,17 @@ window.saveEventChanges = async function (eventId) {
 
     // Subir nueva imagen si se seleccionó una
     if (currentEditFiles.length > 0) {
-      console.log("📤 Subiendo nueva imagen...");
       showEditUploadProgress();
 
       const uploadResult = await uploadImageToCloudinary(currentEditFiles[0]);
       updateData.foto = uploadResult.url;
 
       hideEditUploadProgress();
-      console.log("✅ Nueva imagen subida correctamente");
     }
 
     // Actualizar en Firestore
-    console.log("💾 Actualizando evento en Firestore...");
     await updateDoc(doc(db, "eventos", eventId), updateData);
 
-    console.log("✅ Evento actualizado correctamente");
     alert(`✅ Evento "${eventData.titulo}" actualizado correctamente`);
 
     // Cerrar modal
@@ -596,16 +660,15 @@ function showEditUploadProgress() {
   if (progressDiv) {
     progressDiv.style.display = "block";
     progressDiv.innerHTML = `
-      <div class="alert alert-info">
-        <div class="d-flex align-items-center">
-          <i class="fas fa-cloud-upload-alt me-2"></i>
-          <div class="flex-grow-1">
-            <div>Subiendo nueva imagen...</div>
-            <div class="progress mt-2">
-              <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
-            </div>
-          </div>
+      <div class="upload-progress-content">
+        <div class="progress-header">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <span>Subiendo imagen...</span>
         </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar animated"></div>
+        </div>
+        <small class="progress-text">Por favor espera mientras se sube la imagen</small>
       </div>
     `;
   }

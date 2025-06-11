@@ -27,12 +27,10 @@ let isSubmitting = false;
 // FUNCIÓN PARA OBTENER FIRESTORE DB
 // =============================================
 function getFirestoreDB() {
-  // Intentar obtener de la ventana global
   if (window.firebaseDB) {
     return window.firebaseDB;
   }
 
-  // Si no está disponible, mostrar error
   console.error("❌ Firebase DB no está disponible");
   throw new Error("Base de datos no inicializada. Recarga la página.");
 }
@@ -46,12 +44,10 @@ function getFirestoreDB() {
  */
 function getStoredSession() {
   try {
-    // Intentar usar la función global si está disponible
     if (window.getStoredSession) {
       return window.getStoredSession();
     }
 
-    // Fallback a método directo
     const storedSession = sessionStorage.getItem("userSession");
     if (storedSession) {
       return JSON.parse(storedSession);
@@ -91,12 +87,6 @@ async function uploadImageToCloudinary(file) {
   formData.append("timestamp", Date.now().toString());
 
   try {
-    console.log(
-      `📤 Subiendo imagen: ${file.name} (${(file.size / 1024 / 1024).toFixed(
-        2
-      )}MB)`
-    );
-
     const response = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`,
       {
@@ -116,8 +106,6 @@ async function uploadImageToCloudinary(file) {
     if (!data.secure_url) {
       throw new Error("No se recibió URL de la imagen subida");
     }
-
-    console.log(`✅ Imagen subida exitosamente: ${data.secure_url}`);
 
     return {
       success: true,
@@ -279,15 +267,12 @@ function removeImagePreview(index) {
  */
 async function createEvent(eventData) {
   if (isCreatingEvent) {
-    console.warn("⚠️ Ya se está creando un evento, operación cancelada");
     throw new Error("Ya se está procesando una creación de evento");
   }
 
   isCreatingEvent = true;
-  console.log("=== 🚀 INICIO CREACIÓN DE EVENTO ===");
 
   try {
-    // Obtener base de datos
     const db = getFirestoreDB();
 
     const session = getStoredSession();
@@ -299,8 +284,6 @@ async function createEvent(eventData) {
 
     // Subir imagen si existe
     if (eventData.images && eventData.images.length > 0) {
-      console.log(`📤 Subiendo imagen: ${eventData.images[0].name}...`);
-
       const progressCallback = (progress) => {
         updateUploadProgress(progress);
       };
@@ -312,10 +295,8 @@ async function createEvent(eventData) {
 
       if (uploadResult.success && uploadResult.imageUrl) {
         imageUrl = uploadResult.imageUrl;
-        console.log(`✅ Imagen subida exitosamente: ${imageUrl}`);
       } else if (uploadResult.error) {
         console.warn(`⚠️ Error al subir imagen: ${uploadResult.error}`);
-        // No lanzar error, continuar sin imagen
       }
     }
 
@@ -329,7 +310,7 @@ async function createEvent(eventData) {
       titulo: eventData.titulo.trim(),
       descripcion: eventData.descripcion.trim(),
       tipo: eventData.tipo || "general",
-      fechaInicio: eventData.fechaInicio, // Guardar como string
+      fechaInicio: eventData.fechaInicio,
       horaInicio: eventData.horaInicio || "",
       horaFin: eventData.horaFin || "",
       ubicacion: eventData.ubicacion?.trim() || "",
@@ -341,21 +322,12 @@ async function createEvent(eventData) {
       foto: imageUrl,
       createdBy: session.correo,
       createdAt: serverTimestamp(),
-      voluntariosInscritos: [], // Array vacío de strings
+      voluntariosInscritos: [],
       estado: "activo",
     };
 
-    console.log("💾 Creando evento en base de datos...", {
-      titulo: newEvent.titulo,
-      foto: newEvent.foto,
-      createdBy: newEvent.createdBy,
-      fechaInicio: newEvent.fechaInicio,
-      voluntariosInscritos: newEvent.voluntariosInscritos,
-    });
-
     // Guardar en Firestore
     const docRef = await addDoc(collection(db, "eventos"), newEvent);
-    console.log("=== ✅ EVENTO CREADO EXITOSAMENTE ===", docRef.id);
 
     return {
       success: true,
@@ -364,11 +336,10 @@ async function createEvent(eventData) {
       hasImage: imageUrl !== "",
     };
   } catch (error) {
-    console.error("=== ❌ ERROR EN CREACIÓN DE EVENTO ===", error);
+    console.error("❌ Error en creación de evento:", error);
     throw error;
   } finally {
     isCreatingEvent = false;
-    console.log("=== 🏁 FIN PROCESO CREACIÓN ===");
   }
 }
 
@@ -454,32 +425,23 @@ function checkFirebaseAvailable() {
  */
 function initializeEventForm() {
   if (isFormInitialized) {
-    console.log("📝 Formulario ya inicializado, saltando...");
     return;
   }
 
-  // Verificar que Firebase esté disponible
   if (!checkFirebaseAvailable()) {
-    console.log("⏳ Firebase no disponible, reintentando en 1 segundo...");
     setTimeout(initializeEventForm, 1000);
     return;
   }
 
   const form = document.getElementById("createEventForm");
   if (!form) {
-    console.warn("⚠️ Formulario de evento no encontrado");
     return;
   }
 
-  console.log("📝 Inicializando formulario de eventos...");
-
-  // SOLO configurar event listeners si no están ya configurados
   if (!form.hasEventListener) {
-    // Configurar formulario
     form.addEventListener("submit", handleFormSubmit);
-    form.hasEventListener = true; // Flag para evitar duplicados
+    form.hasEventListener = true;
 
-    // Configurar input de imágenes
     const imageInput = document.getElementById("eventImages");
     if (imageInput && !imageInput.hasEventListener) {
       imageInput.addEventListener("change", function (e) {
@@ -495,7 +457,6 @@ function initializeEventForm() {
   }
 
   isFormInitialized = true;
-  console.log("✅ Formulario inicializado correctamente");
 }
 
 /**
@@ -503,17 +464,12 @@ function initializeEventForm() {
  */
 function handleImageSelection(files) {
   if (isProcessingFiles) {
-    console.log("⚠️ Ya procesando archivos, ignorando...");
     return;
   }
 
   if (files.length === 0) return;
 
   isProcessingFiles = true;
-
-  console.log(
-    `📁 Procesando ${files.length} archivos seleccionados (solo se usará el primero)`
-  );
 
   const validFiles = [];
   const errors = [];
@@ -533,7 +489,6 @@ function handleImageSelection(files) {
   }
 
   if (validFiles.length > 0) {
-    console.log(`✅ Imagen válida encontrada: ${validFiles[0].name}`);
     showImagePreviews([validFiles[0]], "imagePreviewContainer");
     currentFiles = [validFiles[0]];
   }
@@ -545,7 +500,7 @@ function handleImageSelection(files) {
  * Configurar drag and drop
  */
 function setupDragAndDrop(uploadSection, fileInput) {
-  if (uploadSection.hasDragDrop) return; // Evitar duplicados
+  if (uploadSection.hasDragDrop) return;
 
   uploadSection.addEventListener("dragover", function (e) {
     e.preventDefault();
@@ -563,7 +518,6 @@ function setupDragAndDrop(uploadSection, fileInput) {
 
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
-      // Actualizar el input de archivo
       const dt = new DataTransfer();
       dt.items.add(files[0]);
       fileInput.files = dt.files;
@@ -582,19 +536,14 @@ async function handleFormSubmit(e) {
   e.stopPropagation();
 
   if (isSubmitting || isCreatingEvent) {
-    console.warn(
-      "⚠️ Ya se está procesando un evento, ignorando envío duplicado"
-    );
     return false;
   }
 
-  // Verificar que Firebase esté disponible antes de proceder
   if (!checkFirebaseAvailable()) {
     return false;
   }
 
   isSubmitting = true;
-  console.log("=== 📤 INICIO ENVÍO DE FORMULARIO ===");
 
   const form = e.target;
   const submitBtn = form.querySelector('button[type="submit"]');
@@ -612,11 +561,6 @@ async function handleFormSubmit(e) {
 
   try {
     const eventData = collectFormData(form);
-    console.log("📋 Datos recopilados:", {
-      titulo: eventData.titulo,
-      fechaInicio: eventData.fechaInicio,
-      imagenes: eventData.images ? eventData.images.length : 0,
-    });
 
     const validation = validateEventData(eventData);
     if (!validation.valid) {
@@ -641,20 +585,16 @@ async function handleFormSubmit(e) {
       alert(message);
       resetForm();
 
-      // Recargar eventos si la función existe
       if (typeof window.loadUpcomingEvents === "function") {
-        console.log("🔄 Recargando eventos futuros...");
         await window.loadUpcomingEvents();
       }
 
-      // También intentar refrescar eventos de forma general
       if (typeof window.refreshEvents === "function") {
-        console.log("🔄 Refrescando eventos...");
         window.refreshEvents();
       }
     }
   } catch (error) {
-    console.error("=== ❌ ERROR EN ENVÍO DE FORMULARIO ===", error);
+    console.error("❌ Error en envío de formulario:", error);
 
     let errorMessage = "Error al crear evento";
     if (error.message) {
@@ -667,11 +607,11 @@ async function handleFormSubmit(e) {
     submitBtn.innerHTML = originalText;
     submitBtn.disabled = false;
     isSubmitting = false;
-    console.log("=== 🏁 FIN ENVÍO DE FORMULARIO ===");
   }
 
   return false;
 }
+
 /**
  * Recopilar datos del formulario
  */
@@ -692,6 +632,7 @@ function collectFormData(form) {
     images: imageFiles && imageFiles.length > 0 ? imageFiles : null,
   };
 }
+
 /**
  * Validar datos del evento
  */
@@ -755,7 +696,6 @@ export {
 // FUNCIONES GLOBALES (para compatibilidad)
 // =============================================
 
-// Hacer funciones disponibles globalmente para onclick en HTML
 window.removeImagePreview = removeImagePreview;
 window.resetForm = resetForm;
 
@@ -768,13 +708,10 @@ window.resetForm = resetForm;
  */
 function initializeOnce() {
   const attemptInit = () => {
-    // Verificar si Firebase está disponible
     if (window.firebaseDB) {
-      console.log("🔥 Firebase disponible, inicializando formulario...");
       initializeEventForm();
     } else {
-      console.log("⏳ Esperando a que Firebase esté disponible...");
-      setTimeout(attemptInit, 500); // Reintentar cada 500ms
+      setTimeout(attemptInit, 500);
     }
   };
 
@@ -791,10 +728,6 @@ function initializeOnce() {
   }
 }
 
-// Ejecutar inicialización
 initializeOnce();
 
-// Exportar función de inicialización
 window.initializeCreateEvent = initializeEventForm;
-
-console.log("📝 Módulo create-event.js cargado correctamente");
