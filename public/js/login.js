@@ -64,6 +64,37 @@ function clearSession() {
 }
 
 // =============================================
+// FUNCIONES DE AUTO-LIMPIADO
+// =============================================
+
+function cleanFormInputs() {
+  const emailInput = document.getElementById("email_login");
+  const passwordInput = document.getElementById("password_login");
+
+  if (emailInput) {
+    emailInput.value = "";
+  }
+  if (passwordInput) {
+    passwordInput.value = "";
+  }
+}
+
+function resetFormStyles() {
+  document.querySelectorAll(".form-input").forEach((input) => {
+    if (input.parentNode) {
+      input.parentNode.style.transform = "scale(1)";
+      input.parentNode.style.transition = "";
+    }
+  });
+}
+
+function autoCleanOnLogin() {
+  cleanFormInputs();
+  resetFormStyles();
+  closeModal();
+}
+
+// =============================================
 // FUNCIÓN DE VERIFICACIÓN DE AUTENTICACIÓN
 // =============================================
 
@@ -284,9 +315,8 @@ async function getUserData(uid) {
     if (userDoc.exists()) {
       const userData = { id: uid, ...userDoc.data() };
       return userData;
-    } else {
-      return null;
     }
+    return null;
   } catch (error) {
     console.error("Error al obtener datos del usuario:", error);
     return null;
@@ -323,11 +353,14 @@ function redirectUserByRole(userData) {
 window.handleLogin = async function (event) {
   event.preventDefault();
 
-  const email =
-    document.getElementById("email_login")?.value.trim().toLowerCase() || "";
-  const password =
-    document.getElementById("password_login")?.value.trim() || "";
+  // Obtener valores del formulario
+  const emailInput = document.getElementById("email_login");
+  const passwordInput = document.getElementById("password_login");
 
+  const email = emailInput?.value?.trim()?.toLowerCase() || "";
+  const password = passwordInput?.value?.trim() || "";
+
+  // Validaciones básicas
   if (!email || !password) {
     showModal(
       "Campos incompletos",
@@ -338,6 +371,7 @@ window.handleLogin = async function (event) {
     return;
   }
 
+  // Validación de email
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     showModal(
@@ -349,9 +383,33 @@ window.handleLogin = async function (event) {
     return;
   }
 
+  // Validación de contraseña
+  if (password.length < 6) {
+    showModal(
+      "Contraseña muy corta",
+      "La contraseña debe tener al menos 6 caracteres.",
+      "🔒",
+      "error"
+    );
+    return;
+  }
+
+  // Verificar que Firebase esté inicializado
+  if (!auth) {
+    console.error("Firebase auth no está inicializado");
+    showModal(
+      "Error del sistema",
+      "Sistema de autenticación no disponible. Recarga la página.",
+      "⚠️",
+      "error"
+    );
+    return;
+  }
+
   setLoginLoading(true);
 
   try {
+    // Intentar el login
     const userCredential = await signInWithEmailAndPassword(
       auth,
       email,
@@ -359,16 +417,32 @@ window.handleLogin = async function (event) {
     );
     const user = userCredential.user;
 
+    // Verificar si el email está verificado
+    if (!user.emailVerified) {
+      setLoginLoading(false);
+      showModal(
+        "Email no verificado",
+        "Debes verificar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada y haz clic en el enlace de verificación.",
+        "📧",
+        "error"
+      );
+      return;
+    }
+
+    // Obtener datos del usuario
     const userData = await getUserData(user.uid);
 
     if (!userData) {
+      console.error("No se encontraron datos del usuario en Firestore");
       throw new Error("No se encontraron datos del usuario en Firestore");
     }
 
+    // Actualizar último acceso
     await updateLastAccess(user.uid);
 
     setLoginLoading(false);
 
+    // Crear sesión
     const userSession = {
       uid: user.uid,
       correo: user.email,
@@ -384,6 +458,9 @@ window.handleLogin = async function (event) {
 
     saveSession(userSession);
 
+    // Auto-limpiado después del login exitoso
+    autoCleanOnLogin();
+
     showModal(
       "¡Bienvenido!",
       `Hola ${userData.nombreUsuario}. Redirigiendo a tu portal...`,
@@ -396,7 +473,8 @@ window.handleLogin = async function (event) {
       redirectUserByRole(userData);
     }, 2000);
   } catch (error) {
-    console.error("Error en login:", error);
+    console.error("Error en login:", error.code);
+
     setLoginLoading(false);
 
     let errorMessage =
@@ -422,8 +500,18 @@ window.handleLogin = async function (event) {
         errorMessage = "Demasiados intentos fallidos. Intenta más tarde.";
         break;
       case "auth/invalid-credential":
+      case "auth/invalid-login-credentials":
         errorMessage =
-          "Las credenciales son inválidas. Verifica tu email y contraseña.";
+          "Email o contraseña incorrectos. Verifica tus credenciales.";
+        break;
+      case "auth/missing-password":
+        errorMessage = "La contraseña es requerida.";
+        break;
+      case "auth/weak-password":
+        errorMessage = "La contraseña debe tener al menos 6 caracteres.";
+        break;
+      default:
+        errorMessage = `Error de autenticación: ${error.message}`;
         break;
     }
 
@@ -486,46 +574,6 @@ onAuthStateChanged(auth, async (user) => {
     clearSession();
   }
 });
-
-// =============================================
-// FUNCIONES UTILITARIAS DUPLICADAS (LIMPIAR)
-// =============================================
-
-window.getCurrentSession = function () {
-  return currentUser || getStoredSession();
-};
-
-window.getCurrentUser = function () {
-  return auth.currentUser;
-};
-
-window.requireAuth = async function () {
-  const user = auth.currentUser;
-  if (!user) {
-    window.location.href = "index.html";
-    return null;
-  }
-
-  const userData = await getUserData(user.uid);
-  return userData;
-};
-
-window.requireAdmin = async function () {
-  const user = auth.currentUser;
-  if (!user) {
-    window.location.href = "index.html";
-    return null;
-  }
-
-  const userData = await getUserData(user.uid);
-  if (!userData || !userData.esAdmin) {
-    alert("No tienes permisos de administrador");
-    window.location.href = "portal_test.html";
-    return null;
-  }
-
-  return userData;
-};
 
 // =============================================
 // INICIALIZACIÓN

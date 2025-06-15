@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="css/Login.css" />
     <script type="module" src="js/login.js" defer></script>
     <script type="module" src="js/register.js" defer></script>
+    <script src="js/faculty-filter.js" defer></script>
     <link rel="stylesheet" href="css/verificationEmail.css" />
   </head>
   </head>
@@ -61,9 +62,11 @@
               <input
                 type="email"
                 class="form-input"
-                placeholder="Correo electrónico"
+                placeholder="ejemplo@unfv.edu.pe"
                 required
                 id="email_login"
+                pattern="[a-zA-Z0-9._%+-]+@unfv\.edu\.pe$"
+                title="Debe ser un correo institucional @unfv.edu.pe"
               />
             </div>
             <div class="form-group">
@@ -96,6 +99,10 @@
         placeholder="Nombre"
         required
         id="nombreUsuario"
+        pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,50}"
+        title="Solo letras y espacios, entre 2 y 50 caracteres"
+        maxlength="50"
+        minlength="2"
       />
     </div>
     <div class="form-group">
@@ -105,6 +112,10 @@
         placeholder="Apellido"
         required
         id="apellidoUsuario"
+        pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,50}"
+        title="Solo letras y espacios, entre 2 y 50 caracteres"
+        maxlength="50"
+        minlength="2"
       />
     </div>
     <div class="form-group">
@@ -116,35 +127,44 @@
         id="codigoUsuario"
         pattern="[0-9]{8,12}"
         title="Ingresa un código válido de 8-12 dígitos"
+        maxlength="12"
+        minlength="8"
       />
     </div>
     <div class="form-group">
       <input
         type="email"
         class="form-input"
-        placeholder="Correo electrónico"
+        placeholder="ejemplo@unfv.edu.pe"
         required
         id="correo"
+        pattern="[a-zA-Z0-9._%+-]+@unfv\.edu\.pe$"
+        title="Debe ser un correo institucional @unfv.edu.pe"
       />
     </div>
     <div class="form-group">
       <input
-        type="date"
+        type="text"
         class="form-input"
+        placeholder="Fecha de nacimiento"
         required
         id="fechaNacimiento"
         title="Fecha de nacimiento"
+        onfocus="this.type='date'"
+        onblur="if(!this.value) this.type='text'"
       />
     </div>
     <div class="form-group">
       <input
         type="tel"
         class="form-input"
-        placeholder="Número de celular"
+        placeholder="Número de celular (9 dígitos)"
         required
         id="celular"
         pattern="[0-9]{9}"
         title="Ingresa un número de celular válido (9 dígitos)"
+        maxlength="9"
+        minlength="9"
       />
     </div>
     <div class="form-group">
@@ -159,40 +179,32 @@
       </select>
     </div>
     <div class="form-group">
-      <select class="form-input" required id="facultadID" onchange="updateFacultadDisplay()">
-        <option value="">Selecciona tu facultad</option>
-        <option value="1">Ingeniería Industrial y de Sistemas</option>
-        <option value="2">Ingeniería Civil</option>
-        <option value="3">Medicina Humana</option>
-        <option value="4">Derecho y Ciencia Política</option>
-        <option value="5">Educación</option>
-        <option value="6">Ciencias Económicas</option>
-        <option value="7">Administración</option>
-        <option value="8">Ciencias Sociales</option>
-        <option value="9">Psicología</option>
-        <option value="10">Ingeniería Electrónica e Informática</option>
-      </select>
+        <select class="form-input" required id="facultadID" onchange="filterEscuelas(); updateFacultadDisplay();">
+            <option value="">Selecciona tu facultad</option>
+            <option value="1">Administración</option>
+            <option value="2">Ciencias Económicas</option>
+            <option value="3">Ciencias Financieras y Contables</option>
+            <option value="4">Ciencias Sociales</option>
+            <option value="5">Derecho y Ciencias Políticas</option>
+            <option value="6">Educación</option>
+            <option value="7">Humanidades</option>
+            <option value="8">Arquitectura y Urbanismo</option>
+            <option value="9">Ingeniería Civil</option>
+            <option value="10">Ingeniería Industrial y de Sistemas</option>
+            <option value="11">Ingeniería Geográfica, Ambiental y Ecoturismo</option>
+            <option value="12">Oceanografía, Pesquería, Ciencias Alimentarias y Acuicultura</option>
+            <option value="13">Ingeniería Electrónica e Informática</option>
+            <option value="14">Ciencias Naturales y Matemática</option>
+            <option value="15">Medicina "Hipólito Unanue" (Ciencias de la Salud)</option>
+            <option value="16">Tecnología Médica</option>
+            <option value="17">Psicología</option>
+        </select>
     </div>
+    
     <div class="form-group">
-      <select class="form-input" required id="escuelaID" onchange="updateEscuelaDisplay()">
-        <option value="">Selecciona tu escuela</option>
-        <option value="1">Ingeniería de Sistemas</option>
-        <option value="2">Ingeniería Industrial</option>
-        <option value="3">Ingeniería Civil</option>
-        <option value="4">Medicina Humana</option>
-        <option value="5">Derecho</option>
-        <option value="6">Ciencia Política</option>
-        <option value="7">Educación Inicial</option>
-        <option value="8">Educación Primaria</option>
-        <option value="9">Educación Secundaria</option>
-        <option value="10">Economía</option>
-        <option value="11">Administración</option>
-        <option value="12">Sociología</option>
-        <option value="13">Trabajo Social</option>
-        <option value="14">Psicología</option>
-        <option value="15">Ingeniería Electrónica</option>
-        <option value="16">Ingeniería Informática</option>
-      </select>
+        <select class="form-input" required id="escuelaID" onchange="updateEscuelaDisplay()">
+            <option value="">Primero selecciona una facultad</option>
+        </select>
     </div>
     <div class="form-group">
       <select class="form-input" required id="ciclo">
@@ -234,10 +246,12 @@
       <input
         type="password"
         class="form-input"
-        placeholder="Contraseña"
+        placeholder="Contraseña (mín. 8 caracteres)"
         required
         id="password"
-        minlength="6"
+        minlength="8"
+        pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$"
+        title="Debe contener al menos: 8 caracteres, 1 mayúscula, 1 minúscula y 1 número"
       />
     </div>
     <button type="submit" class="btn" id="submit">Crear Cuenta</button>
@@ -255,6 +269,19 @@
         </div>
       </div>
     </div>
+
+    <style>
+      /* Estilos adicionales para el campo de fecha */
+      input[type="text"]:focus {
+        outline: 2px solid #ff6b35;
+      }
+      
+      /* Asegurar que el placeholder se vea bien */
+      .form-input::placeholder {
+        color: #aaa;
+        opacity: 1;
+      }
+    </style>
 
   </body>
 </html>

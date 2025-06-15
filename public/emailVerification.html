@@ -1,69 +1,64 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/emailVerification.css" />
-    <script type="module" src="js/emailVerification.js" defer></script>
-    <title>Verificar Email - Sistema Académico</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verificación de Email - UNFV</title>
+    <link rel="stylesheet" href="css/emailVerification.css"/>
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo">📧</div>
+      <h1 id="title">UNFV - Verificación de Email</h1>
 
-</head>
-<body class="no-select">
-    <div class="verification-container">
-        <div class="email-icon">📧</div>
-        
-        <h1 class="verification-title">Verifica tu correo electrónico</h1>
-        
-        <p class="verification-subtitle">
-            Hemos enviado un enlace de verificación a tu correo electrónico. 
-            Haz clic en el enlace para activar tu cuenta.
+      <!-- Mostrar email del usuario -->
+      <div id="email-display" class="email-display hidden">
+        Verificando: <span id="user-email"></span>
+      </div>
+
+      <!-- Spinner de carga -->
+      <div id="loading-spinner" class="spinner"></div>
+
+      <!-- Mensajes -->
+      <div id="message-container"></div>
+
+      <!-- Instrucciones iniciales -->
+      <div id="instructions-section" class="instructions">
+        <h3>🔐 Instrucciones para verificar tu email:</h3>
+        <ol>
+          <li>
+            <strong>Revisa tu correo electrónico</strong> (incluyendo la carpeta
+            de spam)
+          </li>
+          <li><strong>Busca</strong> el email de verificación de Firebase</li>
+          <li><strong>Haz clic</strong> en el enlace de verificación</li>
+          <li>
+            <strong>Serás redirigido</strong> automáticamente de vuelta aquí
+          </li>
+          <li>
+            <strong>Una vez verificado</strong>, podrás iniciar sesión
+            normalmente
+          </li>
+        </ol>
+        <p>
+          💡 <strong>Consejo:</strong> Si no ves el email, revisa tu carpeta de spam
+          o correo no deseado. El proceso puede tomar unos minutos.
         </p>
+      </div>
 
-        <div class="user-email" id="userEmail">
-            <!-- Email se insertará aquí -->
+      <!-- Sección de éxito (oculta inicialmente) -->
+      <div id="success-section" class="hidden">
+        <div class="message success">
+          <strong>✅ ¡Email verificado correctamente!</strong>
+          <div id="verified-email"></div>
         </div>
-
-        <div class="verification-steps">
-            <h3>Pasos para verificar:</h3>
-            <ol>
-                <li>Revisa tu bandeja de entrada</li>
-                <li>Busca el email de "Sistema Académico"</li>
-                <li>Haz clic en el enlace de verificación</li>
-                <li>Regresa a esta página</li>
-            </ol>
+        <div class="countdown">
+          Te redirigiremos al login en
+          <span id="countdown-timer">5</span> segundos...
         </div>
+      </div>
 
-        <div class="loading-spinner" id="loadingSpinner"></div>
-
-        <div class="status-message" id="statusMessage"></div>
-
-        <div class="verification-check" id="verificationCheck">
-            <div class="check-icon">✅</div>
-            <h3 style="color: #38a169; margin-bottom: 10px;">¡Email verificado!</h3>
-            <p style="color: #4a5568;">Tu cuenta ha sido activada exitosamente.</p>
-        </div>
-
-        <div class="action-buttons">
-            <button class="btn btn-primary" id="checkVerificationBtn" onclick="checkEmailVerification()">
-                Verificar Estado del Email
-            </button>
-            
-            <button class="btn btn-secondary" id="resendEmailBtn" onclick="resendVerificationEmail()" disabled>
-                Reenviar Email de Verificación
-            </button>
-            
-            <div class="countdown-timer" id="countdownTimer"></div>
-            <div class="resend-info">Podrás solicitar un nuevo email en <span id="countdown">60</span> segundos</div>
-        </div>
-    </div>
-
-    <!-- Overlay para bloquear interacciones -->
-    <div class="verification-overlay" id="verificationOverlay">
-        <div class="overlay-content">
-            <div class="loading-spinner" style="display: block; margin-bottom: 20px;"></div>
-            <h3>Verificando...</h3>
-            <p>Por favor espera mientras verificamos tu email.</p>
-        </div>
-    </div>
-</body>
+    <!-- Script de JavaScript al final del body para asegurar que el DOM esté cargado -->
+    <script type="module" src="js/emailVerification.js"></script>
+  </body>
 </html>

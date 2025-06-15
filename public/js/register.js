@@ -1,4 +1,4 @@
-// register.js - VERSIÓN ACTUALIZADA CON REDIRECCIÓN A VERIFICACIÓN
+// register.js - VERSIÓN OPTIMIZADA CON VALIDACIÓN UNFV
 import {
   auth,
   db,
@@ -15,7 +15,7 @@ import {
 } from "./firebase_config.js";
 
 // =============================================
-// CONFIGURACIÓN DE CLOUDINARY
+// CONFIGURACIÓN
 // =============================================
 const CLOUDINARY_CONFIG = {
   cloudName: "dupkeaqnz",
@@ -23,7 +23,19 @@ const CLOUDINARY_CONFIG = {
   apiKey: "572426943132833",
 };
 
-// Referencias a elementos del DOM
+// Configuración de validación
+const VALIDATION_CONFIG = {
+  EMAIL_DOMAIN: "@unfv.edu.pe",
+  MIN_NAME_LENGTH: 2,
+  MIN_PASSWORD_LENGTH: 6,
+  MIN_STUDENT_CODE_LENGTH: 8,
+  MIN_AGE: 16,
+  MAX_AGE: 80,
+  PHONE_LENGTH: 9,
+  MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
+};
+
+// Referencias DOM
 const modal = document.getElementById("messageModal");
 const modalIcon = document.getElementById("modalIcon");
 const modalTitle = document.getElementById("modalTitle");
@@ -34,22 +46,32 @@ const modalBtn = document.getElementById("modalBtn");
 // FUNCIONES DE INTERFAZ DE USUARIO
 // =============================================
 
-// Función para mostrar modal
+/**
+ * Muestra un modal con mensaje personalizado
+ * @param {string} title - Título del modal
+ * @param {string} message - Mensaje a mostrar
+ * @param {string} icon - Icono a mostrar
+ * @param {string} type - Tipo de modal (error, success, warning)
+ */
 function showModal(title, message, icon, type = "error") {
   modalTitle.textContent = title;
   modalMessage.textContent = message;
   modalIcon.textContent = icon;
-
   modalBtn.className = `modal-btn ${type}`;
   modal.classList.add("show");
 }
 
-// Función para cerrar modal
+/**
+ * Cierra el modal
+ */
 window.closeModal = function () {
   modal.classList.remove("show");
 };
 
-// Función de loading para registro
+/**
+ * Controla el estado de loading del botón de registro
+ * @param {boolean} isLoading - Estado de loading
+ */
 function setRegisterLoading(isLoading) {
   const registerBtn = document.getElementById("submit");
   if (registerBtn) {
@@ -63,7 +85,10 @@ function setRegisterLoading(isLoading) {
   }
 }
 
-// Función para cambiar entre pestañas
+/**
+ * Cambia entre pestañas del formulario
+ * @param {string} tabName - Nombre de la pestaña
+ */
 window.switchTab = function (tabName) {
   document
     .querySelectorAll(".tab-btn")
@@ -74,11 +99,13 @@ window.switchTab = function (tabName) {
 
   event.target.classList.add("active");
   document.getElementById(tabName + "-form").classList.add("active");
-
   closeModal();
 };
 
-// Función para manejar selección de archivo y vista previa
+/**
+ * Maneja la selección de archivo y vista previa
+ * @param {HTMLInputElement} input - Input de archivo
+ */
 window.handleFileSelect = function (input) {
   const file = input.files[0];
   const preview = document.getElementById("imagePreview");
@@ -86,8 +113,8 @@ window.handleFileSelect = function (input) {
   const previewName = document.getElementById("previewName");
 
   if (file) {
-    // Validar tamaño (5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // Validar tamaño
+    if (file.size > VALIDATION_CONFIG.MAX_FILE_SIZE) {
       showModal(
         "Archivo muy grande",
         "La imagen no puede superar los 5MB",
@@ -123,33 +150,30 @@ window.handleFileSelect = function (input) {
   }
 };
 
-// Función para actualizar display de talla de polo
+// Funciones de actualización de displays
 window.updatePoloTallaDisplay = function () {
-  const select = document.getElementById("poloTallaID");
-  console.log("Talla seleccionada:", select.value);
+  // Función mantenida por compatibilidad
 };
 
-// Función para actualizar display de facultad
 window.updateFacultadDisplay = function () {
-  const select = document.getElementById("facultadID");
-  console.log("Facultad seleccionada:", select.value);
+  // Función mantenida por compatibilidad
 };
 
-// Función para actualizar display de escuela
 window.updateEscuelaDisplay = function () {
-  const select = document.getElementById("escuelaID");
-  console.log("Escuela seleccionada:", select.value);
+  // Función mantenida por compatibilidad
 };
 
 // =============================================
 // FUNCIONES DE CLOUDINARY
 // =============================================
 
-// Función para subir imagen a Cloudinary
+/**
+ * Sube una imagen a Cloudinary
+ * @param {File} file - Archivo de imagen
+ * @returns {Promise<string>} URL de la imagen subida
+ */
 async function uploadImageToCloudinary(file) {
   try {
-    console.log("📸 Iniciando subida de imagen a Cloudinary...");
-
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", CLOUDINARY_CONFIG.uploadPreset);
@@ -170,16 +194,11 @@ async function uploadImageToCloudinary(file) {
     const data = await response.json();
 
     if (data.secure_url) {
-      console.log(
-        "✅ Imagen subida exitosamente a Cloudinary:",
-        data.secure_url
-      );
       return data.secure_url;
     } else {
       throw new Error("No se recibió URL de la imagen");
     }
   } catch (error) {
-    console.error("❌ Error al subir imagen a Cloudinary:", error);
     throw error;
   }
 }
@@ -188,7 +207,11 @@ async function uploadImageToCloudinary(file) {
 // FUNCIONES DE UTILIDAD
 // =============================================
 
-// Función para calcular edad desde fecha de nacimiento
+/**
+ * Calcula la edad desde una fecha de nacimiento
+ * @param {string} birthDate - Fecha de nacimiento en formato YYYY-MM-DD
+ * @returns {number} Edad calculada
+ */
 function calculateAge(birthDate) {
   const birth = new Date(birthDate);
   const today = new Date();
@@ -202,49 +225,179 @@ function calculateAge(birthDate) {
   return age;
 }
 
-// Función para obtener timestamp actual en formato string
+/**
+ * Obtiene timestamp actual en formato ISO string
+ * @returns {string} Timestamp actual
+ */
 function getCurrentTimestamp() {
   return new Date().toISOString();
+}
+
+/**
+ * Valida que el correo tenga el dominio UNFV
+ * @param {string} email - Correo a validar
+ * @returns {boolean} True si es válido, false si no
+ */
+function validateUnfvEmail(email) {
+  const emailRegex = /^[^\s@]+@unfv\.edu\.pe$/;
+  return emailRegex.test(email);
+}
+
+/**
+ * Valida todos los campos del formulario
+ * @param {Object} formData - Datos del formulario
+ * @returns {Object} Resultado de validación con isValid y message
+ */
+function validateFormData(formData) {
+  const {
+    nombreUsuario,
+    apellidoUsuario,
+    correo,
+    password,
+    codigoUsuario,
+    fechaNacimiento,
+    celular,
+    poloTallaID,
+    facultadID,
+    escuelaID,
+    ciclo,
+  } = formData;
+
+  if (nombreUsuario.length < VALIDATION_CONFIG.MIN_NAME_LENGTH) {
+    return {
+      isValid: false,
+      message: "El nombre debe tener al menos 2 caracteres",
+      icon: "📝",
+    };
+  }
+
+  if (apellidoUsuario.length < VALIDATION_CONFIG.MIN_NAME_LENGTH) {
+    return {
+      isValid: false,
+      message: "El apellido debe tener al menos 2 caracteres",
+      icon: "📝",
+    };
+  }
+
+  if (!validateUnfvEmail(correo)) {
+    return {
+      isValid: false,
+      message: "Solo se permiten correos institucionales @unfv.edu.pe",
+      icon: "📧",
+    };
+  }
+
+  if (password.length < VALIDATION_CONFIG.MIN_PASSWORD_LENGTH) {
+    return {
+      isValid: false,
+      message: "La contraseña debe tener al menos 6 caracteres",
+      icon: "🔒",
+    };
+  }
+
+  if (
+    !codigoUsuario ||
+    codigoUsuario.length < VALIDATION_CONFIG.MIN_STUDENT_CODE_LENGTH
+  ) {
+    return {
+      isValid: false,
+      message: "El código de estudiante debe tener al menos 8 dígitos",
+      icon: "🎓",
+    };
+  }
+
+  if (!fechaNacimiento) {
+    return {
+      isValid: false,
+      message: "Debes seleccionar tu fecha de nacimiento",
+      icon: "📅",
+    };
+  }
+
+  const edad = calculateAge(fechaNacimiento);
+  if (edad < VALIDATION_CONFIG.MIN_AGE || edad > VALIDATION_CONFIG.MAX_AGE) {
+    return {
+      isValid: false,
+      message: "La edad debe estar entre 16 y 80 años",
+      icon: "🎂",
+    };
+  }
+
+  if (!celular || !/^[0-9]{9}$/.test(celular)) {
+    return {
+      isValid: false,
+      message: "El número de celular debe tener 9 dígitos",
+      icon: "📱",
+    };
+  }
+
+  if (!poloTallaID) {
+    return {
+      isValid: false,
+      message: "Debes seleccionar la talla del polo",
+      icon: "👕",
+    };
+  }
+
+  if (!facultadID) {
+    return {
+      isValid: false,
+      message: "Debes seleccionar una facultad",
+      icon: "🏫",
+    };
+  }
+
+  if (!escuelaID) {
+    return {
+      isValid: false,
+      message: "Debes seleccionar una escuela",
+      icon: "🎓",
+    };
+  }
+
+  if (!ciclo) {
+    return {
+      isValid: false,
+      message: "Debes seleccionar tu ciclo académico",
+      icon: "📚",
+    };
+  }
+
+  return { isValid: true };
 }
 
 // =============================================
 // FUNCIONES DE FIRESTORE DATABASE
 // =============================================
 
-// Función para crear perfil del usuario en Firestore
+/**
+ * Crea el perfil del usuario en Firestore
+ * @param {string} uid - UID del usuario
+ * @param {Object} userData - Datos del usuario
+ * @returns {Promise<boolean>} True si se creó exitosamente
+ */
 async function createUserProfile(uid, userData) {
   try {
-    console.log("🔥 INICIANDO CREACIÓN DE PERFIL EN FIRESTORE");
-    console.log("📝 UID recibido:", uid);
-    console.log("📝 Datos recibidos:", userData);
-
     // Validación básica del UID
     if (!uid || typeof uid !== "string" || uid.trim().length === 0) {
-      console.error("❌ UID inválido:", uid);
       return false;
     }
 
     // Validación de la conexión a Firestore
     if (!db) {
-      console.error(
-        "❌ La referencia a la base de datos (db) no está disponible"
-      );
       return false;
     }
 
-    console.log("✅ Validaciones iniciales pasadas");
-
-    // Crear referencia al documento con el UID
+    // Crear referencia al documento
     const userDocRef = doc(db, "usuarios", uid);
-    console.log("📄 Referencia al documento creada:", userDocRef.path);
 
-    // Calcular edad desde fecha de nacimiento
+    // Calcular edad y timestamp
     const edad = calculateAge(userData.fechaNacimiento);
     const currentTimestamp = getCurrentTimestamp();
 
-    // Estructura del documento según especificaciones
+    // Estructura del documento
     const userProfile = {
-      // ID del usuario (UID de Firebase Auth)
+      // ID del usuario
       idUsuario: uid,
 
       // Información personal básica
@@ -262,73 +415,49 @@ async function createUserProfile(uid, userData) {
       poloTallaID: userData.poloTallaID || "",
 
       // Configuración de la cuenta
-      esAdmin: false, // Boolean por defecto
-      estadoActivo: "true", // String por defecto
+      esAdmin: false,
+      estadoActivo: "true",
 
       // Elementos adicionales
-      medallasID: "", // String vacío por defecto
-      fotoPerfilHash: userData.fotoPerfilHash || "", // URL de Cloudinary
+      medallasID: "",
+      fotoPerfilHash: userData.fotoPerfilHash || "",
 
-      // Timestamps en formato string
+      // Timestamps
       fechaRegistro: currentTimestamp,
       fechaModificacion: currentTimestamp,
       ultimoAcceso: currentTimestamp,
     };
 
-    console.log("📋 DOCUMENTO A GUARDAR:", userProfile);
-
-    // Guardar el documento en Firestore
-    console.log("💾 Guardando documento en Firestore...");
+    // Guardar el documento
     await setDoc(userDocRef, userProfile, { merge: false });
 
-    console.log("✅ ¡DOCUMENTO GUARDADO EXITOSAMENTE!");
-
-    // Verificación inmediata
-    console.log("🔍 Verificando que el documento se guardó correctamente...");
+    // Verificación
     await new Promise((resolve) => setTimeout(resolve, 1000));
-
     const docSnap = await getDoc(userDocRef);
 
-    if (docSnap.exists()) {
-      const savedData = docSnap.data();
-      console.log("✅ ¡VERIFICACIÓN EXITOSA! Documento existe en Firestore");
-      console.log("📋 Datos guardados:", savedData);
-      console.log(
-        "🎯 Total de campos guardados:",
-        Object.keys(savedData).length
-      );
-      return true;
-    } else {
-      console.error("❌ ERROR: El documento no se encontró después de crearlo");
-      return false;
-    }
+    return docSnap.exists();
   } catch (error) {
-    console.error("❌ ERROR CRÍTICO al crear perfil en Firestore:");
-    console.error("❌ Nombre del error:", error.name);
-    console.error("❌ Mensaje:", error.message);
-    console.error("❌ Código:", error.code);
-
     // Manejo específico de errores de Firestore
     if (error.code) {
       switch (error.code) {
         case "permission-denied":
           console.error(
-            "❌ Error de permisos: Verifica las reglas de seguridad de Firestore"
+            "Error de permisos: Verifica las reglas de seguridad de Firestore"
           );
           break;
         case "unavailable":
           console.error(
-            "❌ Firestore no disponible: Problema de conexión a la red"
+            "Firestore no disponible: Problema de conexión a la red"
           );
           break;
         case "invalid-argument":
-          console.error("❌ Argumentos inválidos:", userData);
+          console.error("Argumentos inválidos:", userData);
           break;
         case "not-found":
-          console.error("❌ Proyecto de Firestore no encontrado");
+          console.error("Proyecto de Firestore no encontrado");
           break;
         default:
-          console.error("❌ Error de Firestore no manejado:", error.code);
+          console.error("Error de Firestore no manejado:", error.code);
       }
     }
 
@@ -336,20 +465,20 @@ async function createUserProfile(uid, userData) {
   }
 }
 
-// Verificar si el código de estudiante ya existe
+/**
+ * Verifica si un código de estudiante ya existe
+ * @param {string} codigo - Código a verificar
+ * @returns {Promise<boolean>} True si existe, false si no
+ */
 async function checkStudentCodeExists(codigo) {
   try {
-    console.log("🔍 Verificando código de estudiante:", codigo);
     const usuariosRef = collection(db, "usuarios");
     const q = query(usuariosRef, where("codigoUsuario", "==", codigo));
     const querySnapshot = await getDocs(q);
 
-    const exists = !querySnapshot.empty;
-    console.log("🔍 ¿Código existe?", exists);
-
-    return exists;
+    return !querySnapshot.empty;
   } catch (error) {
-    console.error("❌ Error al verificar código de estudiante:", error);
+    console.error("Error al verificar código de estudiante:", error);
     return false;
   }
 }
@@ -358,21 +487,20 @@ async function checkStudentCodeExists(codigo) {
 // FUNCIONES DE VERIFICACIÓN DE EMAIL
 // =============================================
 
-// Función para enviar email de verificación
+/**
+ * Envía email de verificación al usuario
+ * @param {Object} user - Usuario de Firebase Auth
+ * @returns {Promise<boolean>} True si se envió exitosamente
+ */
 async function sendVerificationEmail(user) {
   try {
-    console.log("📧 Enviando email de verificación...");
-
     await sendEmailVerification(user, {
-      url: window.location.origin + "/login.html", // URL de retorno después de verificar
+      url: window.location.origin + "/login.html",
       handleCodeInApp: false,
     });
 
-    console.log("✅ Email de verificación enviado exitosamente");
     return true;
   } catch (error) {
-    console.error("❌ Error al enviar email de verificación:", error);
-
     switch (error.code) {
       case "auth/too-many-requests":
         throw new Error(
@@ -388,34 +516,27 @@ async function sendVerificationEmail(user) {
   }
 }
 
-// Función para redireccionar a página de verificación
-// Función corregida para redireccionar a página de verificación
+/**
+ * Redirecciona a la página de verificación de email
+ * @param {Object} user - Usuario de Firebase Auth
+ * @param {string} userName - Nombre del usuario
+ */
 function redirectToVerificationPage(user, userName) {
   try {
-    console.log("🔄 Preparando redirección a página de verificación...");
-
-    // Guardar datos necesarios en localStorage para la página de verificación
+    // Guardar datos para la página de verificación
     localStorage.setItem("verificationEmail", user.email);
     localStorage.setItem("verificationUserName", userName);
     localStorage.setItem("verificationUID", user.uid);
     localStorage.setItem("registrationCompleted", "true");
 
-    console.log("💾 Datos guardados en localStorage para verificación");
+    const userData = {
+      email: user.email,
+      name: userName,
+      uid: user.uid,
+    };
+    sessionStorage.setItem("verificationData", JSON.stringify(userData));
 
-    // SOLUCIÓN CORRECTA PARA ESTRUCTURA CON CARPETA PUBLIC:
-    // En Firebase Hosting, los archivos de la carpeta 'public' se sirven desde la raíz
-    // Así que emailVerification.html está directamente en el dominio raíz
-    const verificationUrl = `/emailVerification.html?email=${encodeURIComponent(
-      user.email
-    )}&name=${encodeURIComponent(userName)}&uid=${encodeURIComponent(
-      user.uid
-    )}`;
-
-    console.log("🔗 URL de verificación:", verificationUrl);
-    console.log(
-      "🔗 URL completa será:",
-      window.location.origin + verificationUrl
-    );
+    const verificationUrl = `/emailVerification.html`;
 
     // Mostrar mensaje de transición
     showModal(
@@ -427,14 +548,10 @@ function redirectToVerificationPage(user, userName) {
 
     // Redireccionar después de 2 segundos
     setTimeout(() => {
-      console.log("🚀 Redirigiendo a página de verificación...");
-      console.log("🚀 URL final:", verificationUrl);
-
-      // Usar ruta absoluta desde la raíz
       window.location.href = verificationUrl;
-    }, 2000);
+    }, 4000);
   } catch (error) {
-    console.error("❌ Error en redirección:", error);
+    console.error("Error en redirección:", error);
     showModal(
       "Error de redirección",
       "Hubo un problema al redireccionar. Por favor, verifica tu email manualmente.",
@@ -444,168 +561,75 @@ function redirectToVerificationPage(user, userName) {
   }
 }
 
+/**
+ * Limpia los campos del formulario
+ */
+function clearFormFields() {
+  const formFields = [
+    "nombreUsuario",
+    "apellidoUsuario",
+    "correo",
+    "password",
+    "codigoUsuario",
+    "fechaNacimiento",
+    "celular",
+    "poloTallaID",
+    "facultadID",
+    "escuelaID",
+    "ciclo",
+    "fotoPerfilHash",
+  ];
+
+  formFields.forEach((fieldId) => {
+    const field = document.getElementById(fieldId);
+    if (field) {
+      if (field.type === "file") {
+        field.value = "";
+        const preview = document.getElementById("imagePreview");
+        if (preview) preview.style.display = "none";
+      } else {
+        field.value = "";
+      }
+    }
+  });
+}
+
 // =============================================
 // FUNCIÓN PRINCIPAL DE REGISTRO
 // =============================================
 
-// Función para manejar el registro completo
+/**
+ * Maneja el proceso completo de registro
+ * @param {Event} event - Evento del formulario
+ */
 window.handleRegister = async function (event) {
   event.preventDefault();
-  console.log("📝 Iniciando proceso de registro...");
 
-  // Obtener todos los datos del formulario usando los IDs correctos del HTML
-  const nombreUsuario =
-    document.getElementById("nombreUsuario")?.value.trim() || "";
-  const apellidoUsuario =
-    document.getElementById("apellidoUsuario")?.value.trim() || "";
-  const correo =
-    document.getElementById("correo")?.value.trim().toLowerCase() || "";
-  const password = document.getElementById("password")?.value || "";
-  const codigoUsuario =
-    document.getElementById("codigoUsuario")?.value.trim() || "";
-  const fechaNacimiento =
-    document.getElementById("fechaNacimiento")?.value || "";
-  const celular = document.getElementById("celular")?.value.trim() || "";
-  const poloTallaID = document.getElementById("poloTallaID")?.value || "";
-  const facultadID = document.getElementById("facultadID")?.value || "";
-  const escuelaID = document.getElementById("escuelaID")?.value || "";
-  const ciclo = document.getElementById("ciclo")?.value || "";
+  // Obtener datos del formulario
+  const formData = {
+    nombreUsuario: document.getElementById("nombreUsuario")?.value.trim() || "",
+    apellidoUsuario:
+      document.getElementById("apellidoUsuario")?.value.trim() || "",
+    correo: document.getElementById("correo")?.value.trim().toLowerCase() || "",
+    password: document.getElementById("password")?.value || "",
+    codigoUsuario: document.getElementById("codigoUsuario")?.value.trim() || "",
+    fechaNacimiento: document.getElementById("fechaNacimiento")?.value || "",
+    celular: document.getElementById("celular")?.value.trim() || "",
+    poloTallaID: document.getElementById("poloTallaID")?.value || "",
+    facultadID: document.getElementById("facultadID")?.value || "",
+    escuelaID: document.getElementById("escuelaID")?.value || "",
+    ciclo: document.getElementById("ciclo")?.value || "",
+  };
+
   const fotoPerfilFile = document.getElementById("fotoPerfilHash")?.files[0];
 
-  console.log("📋 Datos del formulario recibidos:", {
-    nombreUsuario,
-    apellidoUsuario,
-    correo,
-    codigoUsuario,
-    fechaNacimiento,
-    celular,
-    poloTallaID,
-    facultadID,
-    escuelaID,
-    ciclo,
-    fotoPerfilFile: fotoPerfilFile ? fotoPerfilFile.name : "No seleccionada",
-  });
-
-  // Validaciones completas
-  if (nombreUsuario.length < 2) {
+  // Validar datos del formulario
+  const validation = validateFormData(formData);
+  if (!validation.isValid) {
     showModal(
       "Error de validación",
-      "El nombre debe tener al menos 2 caracteres",
-      "📝",
-      "error"
-    );
-    return;
-  }
-
-  if (apellidoUsuario.length < 2) {
-    showModal(
-      "Error de validación",
-      "El apellido debe tener al menos 2 caracteres",
-      "📝",
-      "error"
-    );
-    return;
-  }
-
-  if (password.length < 6) {
-    showModal(
-      "Error de validación",
-      "La contraseña debe tener al menos 6 caracteres",
-      "🔒",
-      "error"
-    );
-    return;
-  }
-
-  if (!codigoUsuario || codigoUsuario.length < 8) {
-    showModal(
-      "Error de validación",
-      "El código de estudiante debe tener al menos 8 dígitos",
-      "🎓",
-      "error"
-    );
-    return;
-  }
-
-  if (!fechaNacimiento) {
-    showModal(
-      "Error de validación",
-      "Debes seleccionar tu fecha de nacimiento",
-      "📅",
-      "error"
-    );
-    return;
-  }
-
-  // Validar edad calculada
-  const edad = calculateAge(fechaNacimiento);
-  if (edad < 16 || edad > 80) {
-    showModal(
-      "Error de validación",
-      "La edad debe estar entre 16 y 80 años",
-      "🎂",
-      "error"
-    );
-    return;
-  }
-
-  if (!celular || !/^[0-9]{9}$/.test(celular)) {
-    showModal(
-      "Error de validación",
-      "El número de celular debe tener 9 dígitos",
-      "📱",
-      "error"
-    );
-    return;
-  }
-
-  if (!poloTallaID) {
-    showModal(
-      "Error de validación",
-      "Debes seleccionar la talla del polo",
-      "👕",
-      "error"
-    );
-    return;
-  }
-
-  if (!facultadID) {
-    showModal(
-      "Error de validación",
-      "Debes seleccionar una facultad",
-      "🏫",
-      "error"
-    );
-    return;
-  }
-
-  if (!escuelaID) {
-    showModal(
-      "Error de validación",
-      "Debes seleccionar una escuela",
-      "🎓",
-      "error"
-    );
-    return;
-  }
-
-  if (!ciclo) {
-    showModal(
-      "Error de validación",
-      "Debes seleccionar tu ciclo académico",
-      "📚",
-      "error"
-    );
-    return;
-  }
-
-  // Validar formato de email
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(correo)) {
-    showModal(
-      "Correo inválido",
-      "Por favor, ingresa un correo electrónico válido.",
-      "📧",
+      validation.message,
+      validation.icon,
       "error"
     );
     return;
@@ -614,10 +638,8 @@ window.handleRegister = async function (event) {
   setRegisterLoading(true);
 
   try {
-    console.log("🔍 Verificando si el código de estudiante ya existe...");
-
-    // PASO 1: Verificar si el código de estudiante ya existe en Firestore
-    const codeExists = await checkStudentCodeExists(codigoUsuario);
+    // PASO 1: Verificar código de estudiante único
+    const codeExists = await checkStudentCodeExists(formData.codigoUsuario);
     if (codeExists) {
       setRegisterLoading(false);
       showModal(
@@ -632,12 +654,9 @@ window.handleRegister = async function (event) {
     // PASO 2: Subir imagen a Cloudinary si existe
     let fotoPerfilHash = "";
     if (fotoPerfilFile) {
-      console.log("📸 Subiendo imagen de perfil a Cloudinary...");
       try {
         fotoPerfilHash = await uploadImageToCloudinary(fotoPerfilFile);
-        console.log("✅ Imagen subida exitosamente:", fotoPerfilHash);
       } catch (uploadError) {
-        console.error("❌ Error al subir imagen:", uploadError);
         showModal(
           "Error de imagen",
           "No se pudo subir la imagen de perfil. El registro continuará sin foto.",
@@ -647,130 +666,60 @@ window.handleRegister = async function (event) {
       }
     }
 
-    console.log("🔐 Creando usuario en Firebase Authentication...");
-
     // PASO 3: Crear usuario en Firebase Authentication
     const userCredential = await createUserWithEmailAndPassword(
       auth,
-      correo,
-      password
+      formData.correo,
+      formData.password
     );
     const user = userCredential.user;
 
-    console.log(
-      "✅ Usuario creado en Firebase Authentication con UID:",
-      user.uid
-    );
-
-    // PASO 4: Actualizar el displayName
+    // PASO 4: Actualizar displayName
     await updateProfile(user, {
-      displayName: `${nombreUsuario} ${apellidoUsuario}`,
+      displayName: `${formData.nombreUsuario} ${formData.apellidoUsuario}`,
     });
 
-    console.log("📝 Preparando datos para Firestore...");
-
-    // PASO 5: Preparar datos limpios para Firestore
-    const userData = {
-      nombreUsuario: nombreUsuario,
-      apellidoUsuario: apellidoUsuario,
-      correo: correo,
-      codigoUsuario: codigoUsuario,
-      fechaNacimiento: fechaNacimiento,
-      celular: celular,
-      poloTallaID: poloTallaID,
-      facultadID: facultadID,
-      escuelaID: escuelaID,
-      ciclo: ciclo,
-      fotoPerfilHash: fotoPerfilHash,
-    };
-
-    console.log("🚀 Creando perfil en Firestore con UID:", user.uid);
-
-    // PASO 6: Crear documento en Firestore
+    // PASO 5: Crear perfil en Firestore
+    const userData = { ...formData, fotoPerfilHash };
     const profileCreated = await createUserProfile(user.uid, userData);
 
     if (!profileCreated) {
-      console.error(
-        "❌ FALLO CRÍTICO: No se pudo crear el perfil en Firestore"
-      );
-
-      // Eliminar usuario de Authentication para mantener consistencia
+      // Eliminar usuario de Authentication si falla Firestore
       try {
         await user.delete();
-        console.log(
-          "✅ Usuario eliminado de Authentication por fallo en Firestore"
-        );
       } catch (deleteError) {
         console.error(
-          "❌ Error al eliminar usuario de Authentication:",
+          "Error al eliminar usuario de Authentication:",
           deleteError
         );
       }
-
       throw new Error("Error al crear el perfil del usuario en Firestore");
     }
 
-    console.log("📧 Enviando email de verificación...");
-
-    // PASO 7: Enviar email de verificación
+    // PASO 6: Enviar email de verificación
     try {
       await sendVerificationEmail(user);
-      console.log("✅ Email de verificación enviado exitosamente");
     } catch (emailError) {
-      console.error("❌ Error al enviar email de verificación:", emailError);
-
-      // Si falla el envío de email, eliminar usuario para mantener consistencia
+      // Eliminar usuario si falla el envío de email
       try {
         await user.delete();
-        console.log("✅ Usuario eliminado por fallo en envío de email");
       } catch (deleteError) {
-        console.error("❌ Error al eliminar usuario:", deleteError);
+        console.error("Error al eliminar usuario:", deleteError);
       }
-
       throw new Error(
         "No se pudo enviar el email de verificación: " + emailError.message
       );
     }
 
-    console.log("🎉 ¡REGISTRO COMPLETADO EXITOSAMENTE!");
     setRegisterLoading(false);
 
-    // PASO 8: Limpiar formulario
-    const formFields = [
-      "nombreUsuario",
-      "apellidoUsuario",
-      "correo",
-      "password",
-      "codigoUsuario",
-      "fechaNacimiento",
-      "celular",
-      "poloTallaID",
-      "facultadID",
-      "escuelaID",
-      "ciclo",
-      "fotoPerfilHash",
-    ];
-    formFields.forEach((fieldId) => {
-      const field = document.getElementById(fieldId);
-      if (field) {
-        if (field.type === "file") {
-          field.value = "";
-          const preview = document.getElementById("imagePreview");
-          if (preview) preview.style.display = "none";
-        } else {
-          field.value = "";
-        }
-      }
-    });
-
-    // PASO 9: Cerrar modal de registro si está abierto
+    // PASO 7: Limpiar formulario
+    clearFormFields();
     closeModal();
 
-    // PASO 10: Redireccionar a página de verificación
-    console.log("🔄 Redirigiendo a página de verificación...");
-    redirectToVerificationPage(user, nombreUsuario);
+    // PASO 8: Redireccionar a verificación
+    redirectToVerificationPage(user, formData.nombreUsuario);
   } catch (error) {
-    console.error("❌ Error en registro:", error);
     setRegisterLoading(false);
 
     let errorMessage =
@@ -803,7 +752,7 @@ window.handleRegister = async function (event) {
 // INICIALIZACIÓN
 // =============================================
 
-// Cerrar modal al hacer clic fuera de él
+// Event listener para cerrar modal
 if (modal) {
   modal.addEventListener("click", function (event) {
     if (event.target === modal) {
@@ -812,16 +761,11 @@ if (modal) {
   });
 }
 
-// Inicialización cuando se carga la página
+// Inicialización al cargar la página
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("🚀 Sistema de registro Firebase con Cloudinary inicializado");
-
-  // Verificar si el usuario viene de una redirección de verificación fallida
+  // Limpiar datos de verificación si el usuario regresó
   const registrationCompleted = localStorage.getItem("registrationCompleted");
   if (registrationCompleted === "true") {
-    console.log(
-      "🔄 Usuario regresó de verificación, limpiando localStorage..."
-    );
     localStorage.removeItem("registrationCompleted");
     localStorage.removeItem("verificationEmail");
     localStorage.removeItem("verificationUserName");
@@ -839,10 +783,4 @@ document.addEventListener("DOMContentLoaded", function () {
       this.parentNode.style.transform = "scale(1)";
     });
   });
-
-  console.log("🎯 Inicialización de registro completada");
 });
-
-console.log(
-  "📝 Sistema de registro con verificación de email cargado exitosamente"
-);
