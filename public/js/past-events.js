@@ -486,19 +486,9 @@ function getTimeAgo(date) {
  * Crear botones de acciones para eventos pasados
  */
 function createPastEventActions(event) {
-  const baseActions = `
-    <button class="btn btn-outline-info btn-sm" onclick="viewEventDetails('${event.id}')">
-      <i class="fas fa-info-circle me-1"></i>Detalles
-    </button>
-    <button class="btn btn-outline-secondary btn-sm" onclick="viewEventPhotos('${event.id}')">
-      <i class="fas fa-camera me-1"></i>Fotos
-    </button>
-  `;
-
   if (event.estado === "cancelado") {
     return `
       <div class="event-actions">
-        ${baseActions}
         <button class="btn btn-outline-warning btn-sm" onclick="viewCancellationDetails('${event.id}')">
           <i class="fas fa-exclamation-triangle me-1"></i>Cancelación
         </button>
@@ -508,7 +498,6 @@ function createPastEventActions(event) {
 
   return `
     <div class="event-actions">
-      ${baseActions}
       <button class="btn btn-outline-success btn-sm" onclick="viewEventReport('${event.id}')">
         <i class="fas fa-chart-bar me-1"></i>Reporte
       </button>
@@ -583,30 +572,12 @@ function stopAutoRefresh() {
 // =============================================
 
 /**
- * Ver detalles completos del evento
- */
-export function viewEventDetails(eventId) {
-  console.log(`📋 Mostrando detalles del evento: ${eventId}`);
-  // TODO: Implementar modal con detalles completos
-  alert(`Ver detalles completos del evento: ${eventId}`);
-}
-
-/**
  * Ver reporte del evento
  */
 export function viewEventReport(eventId) {
   console.log(`📊 Solicitando reporte para evento: ${eventId}`);
   // TODO: Implementar vista de reporte detallado
   alert(`Generando reporte del evento: ${eventId}`);
-}
-
-/**
- * Ver fotos del evento
- */
-export function viewEventPhotos(eventId) {
-  console.log(`📷 Solicitando fotos para evento: ${eventId}`);
-  // TODO: Implementar galería de fotos
-  alert(`Abriendo galería de fotos del evento: ${eventId}`);
 }
 
 /**
@@ -640,9 +611,7 @@ export function refreshPastEvents() {
 // =============================================
 
 // Exponer funciones al scope global para uso en HTML
-window.viewEventDetails = viewEventDetails;
 window.viewEventReport = viewEventReport;
-window.viewEventPhotos = viewEventPhotos;
 window.viewVolunteersList = viewVolunteersList;
 window.viewCancellationDetails = viewCancellationDetails;
 window.refreshPastEvents = refreshPastEvents;

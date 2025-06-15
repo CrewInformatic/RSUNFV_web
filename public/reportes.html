@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoVoluntarios UNFV - Reportes</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/reportes.css">
+    
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="#" class="sidebar-brand">
+                <i class="fas fa-leaf"></i>
+                <div class="brand-text">
+                    <div>EcoVoluntarios</div>
+                    <div class="brand-subtitle">UNFV</div>
+                </div>
+            </a>
+        </div>
+        
+        <div class="sidebar-nav">
+            <a href="admin-dashboard.html" class="nav-link">
+                <i class="fas fa-chart-line"></i>
+                Dashboard
+            </a>
+            <a href="eventos.html" class="nav-link">
+                <i class="fas fa-calendar-alt"></i>
+                Gestión de Eventos
+            </a>
+            <a href="administradores.html" class="nav-link">
+                <i class="fas fa-users-cog"></i>
+                Administradores
+            </a>
+            <a href="usuarios.html" class="nav-link">
+                <i class="fas fa-user-friends"></i>
+                Usuarios y Roles
+            </a>
+            <a href="configuracion.html" class="nav-link">
+                <i class="fas fa-cogs"></i>
+                Configuración
+            </a>
+            <a href="reportes.html" class="nav-link active">
+                <i class="fas fa-chart-bar"></i>
+                Reportes
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Navbar -->
+        <nav class="top-navbar d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-secondary d-lg-none me-3" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title">
+                    <i class="fas fa-chart-bar me-2 text-warning"></i>
+                    Reportes de Eventos
+                </h1>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle"></i>
+                        <span>HAROLD ARTURO</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#">
+                            <i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                        <li><a class="dropdown-item" href="#">
+                            <i class="fas fa-cog me-2"></i>Configuración</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="content-wrapper">
+            <!-- Filtros de Reportes -->
+            <div class="filters-section">
+                <h5 class="filter-title">
+                    <i class="fas fa-filter"></i>
+                    Filtros de Reportes
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Fecha Inicio</label>
+                        <input type="date" class="form-control" id="fechaInicio">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Fecha Fin</label>
+                        <input type="date" class="form-control" id="fechaFin">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Tipo de Evento</label>
+                        <select class="form-select" id="tipoEvento">
+                            <option value="">Todos los tipos</option>
+                            <option value="reforestacion">Reforestación</option>
+                            <option value="limpieza">Limpieza Ambiental</option>
+                            <option value="educacion">Educación Ambiental</option>
+                            <option value="conservacion">Conservación</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Estado del Evento</label>
+                        <select class="form-select" id="estadoEvento">
+                            <option value="">Todos los estados</option>
+                            <option value="activo">Activo</option>
+                            <option value="finalizado">Finalizado</option>
+                            <option value="cancelado">Cancelado</option>
+                            <option value="en_progreso">En progreso</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12 d-flex justify-content-end">
+                        <button class="btn btn-filter">
+                            <i class="fas fa-search me-2"></i>
+                            Aplicar Filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reportes de Eventos -->
+            <div class="row g-4">
+                <!-- Reporte General de Eventos -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="report-card">
+                        <div class="report-card-header">
+                            <div class="report-card-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <h6 class="report-card-title">Reporte General de Eventos</h6>
+                            <p class="report-card-subtitle">Estadísticas completas de todos los eventos creados</p>
+                        </div>
+                        <div class="report-card-body">
+                            <div class="report-stats">
+                                <div class="stat-item">
+                                    <div class="stat-number">0</div>
+                                    <div class="stat-label">Total Eventos</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">0</div>
+                                    <div class="stat-label">Finalizados</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">0</div>
+                                    <div class="stat-label">Activos</div>
+                                </div>
+                            </div>
+                            <button class="btn-download w-100 text-center">
+                                <i class="fas fa-download"></i>
+                                Descargar PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reporte de Inscripciones -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="report-card">
+                        <div class="report-card-header">
+                            <div class="report-card-icon">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <h6 class="report-card-title">Inscripciones por Evento</h6>
+                            <p class="report-card-subtitle">Análisis de voluntarios inscritos vs capacidad máxima</p>
+                        </div>
+                        <div class="report-card-body">
+                            <div class="report-stats">
+                                <div class="stat-item">
+                                    <div class="stat-number">0</div>
+                                    <div class="stat-label">Total Inscritos</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">0</div>
+                                    <div class="stat-label">Capacidad Total</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">0%</div>
+                                    <div class="stat-label">Ocupación</div>
+                                </div>
+                            </div>
+                            <button class="btn-download w-100 text-center">
+                                <i class="fas fa-download"></i>
+                                Descargar PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reporte por Ubicación -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="report-card">
+                        <div class="report-card-header">
+                            <div class="report-card-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <h6 class="report-card-title">Eventos por Ubicación</h6>
+                            <p class="report-card-subtitle">Distribución geográfica de eventos</p>
+                        </div>
+                        <div class="report-card-body">
+                            <div class="report-stats">
+                                <div class="stat-item">
+                                    <div class="stat-number">0</div>
+                                    <div class="stat-label">Ubicaciones</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">0</div>
+                                    <div class="stat-label">Eventos</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">0</div>
+                                    <div class="stat-label">Promedio/Lugar</div>
+                                </div>
+                            </div>
+                            <button class="btn-download w-100 text-center">
+                                <i class="fas fa-download"></i>
+                                Descargar PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reporte por Tipo de Evento -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="report-card">
+                        <div class="report-card-header">
+                            <div class="report-card-icon">
+                                <i class="fas fa-tags"></i>
+                            </div>
+                            <h6 class="report-card-title">Eventos por Tipo</h6>
+                            <p class="report-card-subtitle">Clasificación por tipo de actividad</p>
+                        </div>
+                        <div class="report-card-body">
+                            <div class="report-stats">
+                                <div class="stat-item">
+                                    <div class="stat-number">0</div>
+                                    <div class="stat-label">Reforestación</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">0</div>
+                                    <div class="stat-label">Limpieza</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">0</div>
+                                    <div class="stat-label">Educación</div>
+                                </div>
+                            </div>
+                            <button class="btn-download w-100 text-center">
+                                <i class="fas fa-download"></i>
+                                Descargar PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reporte de Administradores -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="report-card">
+                        <div class="report-card-header">
+                            <div class="report-card-icon">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <h6 class="report-card-title">Eventos por Administrador</h6>
+                            <p class="report-card-subtitle">Análisis de eventos creados por cada admin</p>
+                        </div>
+                        <div class="report-card-body">
+                            <div class="report-stats">
+                                <div class="stat-item">
+                                    <div class="stat-number">0</div>
+                                    <div class="stat-label">Admins Activos</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">0</div>
+                                    <div class="stat-label">Eventos/Admin</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">0%</div>
+                                    <div class="stat-label">Tasa Éxito</div>
+                                </div>
+                            </div>
+                            <button class="btn-download w-100 text-center">
+                                <i class="fas fa-download"></i>
+                                Descargar PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reporte Temporal -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="report-card">
+                        <div class="report-card-header">
+                            <div class="report-card-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h6 class="report-card-title">Análisis Temporal</h6>
+                            <p class="report-card-subtitle">Tendencias por fechas de creación e inicio</p>
+                        </div>
+                        <div class="report-card-body">
+                            <div class="report-stats">
+                                <div class="stat-item">
+                                    <div class="stat-number">+0%</div>
+                                    <div class="stat-label">Crecimiento</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">0</div>
+                                    <div class="stat-label">Días Promedio</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">0%</div>
+                                    <div class="stat-label">Puntualidad</div>
+                                </div>
+                            </div>
+                            <button class="btn-download w-100 text-center">
+                                <i class="fas fa-download"></i>
+                                Descargar PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de Gráficos -->
+            <div class="row mt-5">
+                <div class="col-lg-6">
+                    <div class="report-card">
+                        <div class="report-card-header">
+                            <h6 class="report-card-title">
+                                <i class="fas fa-chart-pie me-2"></i>
+                                Distribución por Tipo de Evento
+                            </h6>
+                        </div>
+                        <div class="report-card-body">
+                            <canvas id="tipoEventoChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="report-card">
+                        <div class="report-card-header">
+                            <h6 class="report-card-title">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                Eventos por Estado
+                            </h6>
+                        </div>
+                        <div class="report-card-body">
+                            <canvas id="estadoEventoChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Eventos Detallada -->
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="report-card">
+                        <div class="report-card-header">
+                            <h6 class="report-card-title">
+                                <i class="fas fa-table me-2"></i>
+                                Detalle de Eventos
+                            </h6>
+                            <p class="report-card-subtitle">Información completa de todos los eventos</p>
+                        </div>
+                        <div class="report-card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Título</th>
+                                            <th>Ubicación</th>
+                                            <th>Fecha Inicio</th>
+                                            <th>Capacidad Max</th>
+                                            <th>Inscritos</th>
+                                            <th>Estado</th>
+                                            <th>Tipo</th>
+                                            <th>Admin</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="eventosTable">
+                                        <!-- Los datos se cargarán dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-center mt-3">
+                                <button class="btn-download">
+                                    <i class="fas fa-file-excel me-2"></i>
+                                    Exportar a Excel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de Reporte Personalizado -->
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="report-card">
+                        <div class="report-card-header">
+                            <div class="report-card-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <h6 class="report-card-title">Reporte Personalizado</h6>
+                            <p class="report-card-subtitle">Crea un reporte con criterios específicos basados en tu base de datos</p>
+                        </div>
+                        <div class="report-card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Título del Reporte</label>
+                                    <input type="text" class="form-control" placeholder="Ingrese el título del reporte">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Rango de Fechas</label>
+                                    <select class="form-select">
+                                        <option value="">Seleccionar período</option>
+                                        <option value="ultimo_mes">Último mes</option>
+                                        <option value="ultimos_3_meses">Últimos 3 meses</option>
+                                        <option value="ultimo_semestre">Último semestre</option>
+                                        <option value="ultimo_ano">Último año</option>
+                                        <option value="personalizado">Rango personalizado</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Métricas a incluir</label>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="eventosPorTipo" checked>
+                                                <label class="form-check-label" for="eventosPorTipo">
+                                                    Eventos por tipo
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="inscripciones" checked>
+                                                <label class="form-check-label" for="inscripciones">
+                                                    Análisis de inscripciones
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="ubicaciones" checked>
+                                                <label class="form-check-label" for="ubicaciones">
+                                                    Distribución por ubicación
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="administradores" checked>
+                                                <label class="form-check-label" for="administradores">
+                                                    Eventos por administrador
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="estados">
+                                                <label class="form-check-label" for="estados">
+                                                    Estados de eventos
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="temporal">
+                                                <label class="form-check-label" for="temporal">
+                                                    Análisis temporal
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="capacidad">
+                                                <label class="form-check-label" for="capacidad">
+                                                    Análisis de capacidad
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="graficos">
+                                                <label class="form-check-label" for="graficos">
+                                                    Gráficos y visualizaciones
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12 text-center">
+                                    <button class="btn-download">
+                                        <i class="fas fa-magic me-2"></i>
+                                        Generar Reporte Personalizado
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <!-- Reportes JS -->
+    <script type="module" src="js/reportes.js"></script>
+</body>
+</html>
