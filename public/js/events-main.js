@@ -90,7 +90,7 @@ function checkAuthentication() {
 
   if (!session.esAdmin) {
     alert("No tienes permisos para acceder a esta página");
-    window.location.href = "portal_test.html";
+    window.location.href = "descarga_app.html";
     return null;
   }
 

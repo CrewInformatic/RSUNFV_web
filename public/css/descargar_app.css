@@ -1,0 +1,281 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Arial", sans-serif;
+  overflow-x: hidden;
+}
+
+.hero-section {
+  background: linear-gradient(135deg, #ffa726 0%, #ff8a50 50%, #ffb74d 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  --background: radial-gradient(
+    circle at 70% 30%,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 50%
+  );
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.content-left {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.faculty-logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 40px;
+}
+
+.faculty-icon {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  background-image: url("/public/assets/img/logo_fiei.webp");
+  background-size: cover;
+  background-position: center;
+}
+
+.faculty-text {
+  color: #5d4e75;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.main-title {
+  font-size: 5rem;
+  font-weight: 900;
+  color: #ff6b35;
+  line-height: 0.9;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 40px;
+}
+
+.main-title .highlight {
+  color: #724e3c;
+}
+
+.download-btn {
+  background: #ff6b35;
+  color: white;
+  padding: 18px 40px;
+  border: none;
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+  align-self: flex-start;
+}
+
+.download-btn:hover {
+  background: #e55a2b;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(255, 107, 53, 0.4);
+}
+
+.content-right {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.person-image {
+  position: relative;
+  z-index: 3;
+}
+
+.person {
+  width: 400px;
+  height: 500px;
+  background: #575f54;
+  border-radius: 20px 20px 0 0;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  background-image: url("/public/assets/img/voluntariado_unfv_2.jpg");
+  background-size: cover;
+  background-position: -130px;
+}
+
+.person::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  --background: rgba(
+    139,
+    21,
+    56,
+    0.3
+  ); /* Overlay opcional para darle el tono rojizo */
+}
+
+/* Botón de regreso al index */
+.back-to-index {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--naranja-unfv);
+  border: 2px solid rgba(245, 130, 32, 0.3);
+  padding: 10px 20px;
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.back-to-index:hover {
+  background: var(--blanco);
+  border-color: var(--naranja-unfv);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px var(--sombra);
+}
+
+.back-to-index:active {
+  transform: translateY(0);
+}
+
+/* Icono de flecha para el botón de regreso */
+.back-arrow {
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+.back-to-index:hover .back-arrow {
+  transform: translateX(-3px);
+}
+
+.decorative-elements {
+  position: absolute;
+  top: 20%;
+  right: -10%;
+  width: 200px;
+  height: 200px;
+  opacity: 0.1;
+}
+
+.floating-icon {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  animation: float 3s ease-in-out infinite;
+}
+
+.floating-icon:nth-child(1) {
+  top: 10%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.floating-icon:nth-child(2) {
+  top: 30%;
+  right: 20%;
+  animation-delay: 1s;
+}
+
+.floating-icon:nth-child(3) {
+  bottom: 20%;
+  left: 5%;
+  animation-delay: 2s;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .main-title {
+    font-size: 3.5rem;
+  }
+
+  .person {
+    width: 300px;
+    height: 400px;
+  }
+
+  .university-logo,
+  .faculty-logo {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-title {
+    font-size: 2.8rem;
+  }
+
+  .person {
+    width: 250px;
+    height: 350px;
+  }
+
+  .download-btn {
+    padding: 15px 30px;
+    font-size: 16px;
+  }
+}

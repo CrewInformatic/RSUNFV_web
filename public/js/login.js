@@ -119,7 +119,7 @@ function checkAdminAuthentication() {
 
   if (!session.esAdmin) {
     alert("No tienes permisos para acceder a esta página");
-    window.location.href = "portal_test.html";
+    window.location.href = "descarga_app.html";
     return null;
   }
 
@@ -156,7 +156,7 @@ window.requireAdmin = async function () {
 
   if (!session.esAdmin) {
     alert("No tienes permisos de administrador");
-    window.location.href = "portal_test.html";
+    window.location.href = "descarga_app.html";
     return null;
   }
 
@@ -342,7 +342,7 @@ function redirectUserByRole(userData) {
   if (userData.esAdmin === true) {
     window.location.href = "admin-dashboard.html";
   } else {
-    window.location.href = "portal_test.html";
+    window.location.href = "descarga_app.html";
   }
 }
 
