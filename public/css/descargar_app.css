@@ -66,7 +66,7 @@ body {
   align-items: center;
   justify-content: center;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  background-image: url("/public/assets/img/logo_fiei.webp");
+  background-image: url("/assets/img/logo_fiei.webp");
   background-size: cover;
   background-position: center;
 }
@@ -133,7 +133,7 @@ body {
   position: relative;
   overflow: hidden;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-  background-image: url("/public/assets/img/voluntariado_unfv_2.jpg");
+  background-image: url("/assets/img/voluntariado_unfv_2.jpg");
   background-size: cover;
   background-position: -130px;
 }

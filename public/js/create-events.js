@@ -2,7 +2,6 @@
 import {
   collection,
   addDoc,
-  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 // =============================================
@@ -22,6 +21,58 @@ let isCreatingEvent = false;
 let isFormInitialized = false;
 let isProcessingFiles = false;
 let isSubmitting = false;
+
+// =============================================
+// FUNCIONES DE FORMATO DE FECHA/HORA
+// =============================================
+
+/**
+ * Formatear fecha y hora al formato ISO personalizado
+ */
+function formatDateTimeToISO(date, time = null) {
+  let dateObj;
+
+  if (typeof date === "string") {
+    // Si es una fecha en formato YYYY-MM-DD
+    dateObj = new Date(date);
+  } else if (date instanceof Date) {
+    dateObj = date;
+  } else {
+    return null;
+  }
+
+  // Verificar que la fecha sea válida
+  if (isNaN(dateObj.getTime())) {
+    return null;
+  }
+
+  if (time) {
+    // Si se proporciona hora (formato HH:MM)
+    const [hours, minutes] = time.split(":");
+    dateObj.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  } else {
+    // Si no hay hora, usar 00:00:00
+    dateObj.setHours(0, 0, 0, 0);
+  }
+
+  // Formatear al formato ISO personalizado: YYYY-MM-DDTHH:mm:ss.SSS
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const day = String(dateObj.getDate()).padStart(2, "0");
+  const hours = String(dateObj.getHours()).padStart(2, "0");
+  const minutes = String(dateObj.getMinutes()).padStart(2, "0");
+  const seconds = String(dateObj.getSeconds()).padStart(2, "0");
+  const milliseconds = String(dateObj.getMilliseconds()).padStart(3, "0");
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}`;
+}
+
+/**
+ * Obtener timestamp actual en formato ISO personalizado
+ */
+function getCurrentTimestamp() {
+  return formatDateTimeToISO(new Date());
+}
 
 // =============================================
 // FUNCIÓN PARA OBTENER FIRESTORE DB
@@ -305,12 +356,26 @@ async function createEvent(eventData) {
       throw new Error("Faltan campos requeridos (título, descripción o fecha)");
     }
 
+    // Formatear fechas y horas
+    const fechaInicioFormatted = formatDateTimeToISO(
+      eventData.fechaInicio,
+      eventData.horaInicio
+    );
+    const fechaFinFormatted = eventData.horaFin
+      ? formatDateTimeToISO(eventData.fechaInicio, eventData.horaFin)
+      : "";
+
+    if (!fechaInicioFormatted) {
+      throw new Error("Error al formatear la fecha de inicio");
+    }
+
     // Crear objeto del evento
     const newEvent = {
       titulo: eventData.titulo.trim(),
       descripcion: eventData.descripcion.trim(),
       tipo: eventData.tipo || "general",
-      fechaInicio: eventData.fechaInicio,
+      fechaInicio: fechaInicioFormatted, // String en formato ISO personalizado
+      fechaFin: fechaFinFormatted, // String en formato ISO personalizado (si existe)
       horaInicio: eventData.horaInicio || "",
       horaFin: eventData.horaFin || "",
       ubicacion: eventData.ubicacion?.trim() || "",
@@ -321,10 +386,12 @@ async function createEvent(eventData) {
       materiales: eventData.materiales?.trim() || "",
       foto: imageUrl,
       createdBy: session.correo,
-      createdAt: serverTimestamp(),
+      createdAt: getCurrentTimestamp(), // String en formato ISO personalizado
       voluntariosInscritos: [],
       estado: "activo",
     };
+
+    console.log("📅 Evento a crear:", newEvent); // Para debug
 
     // Guardar en Firestore
     const docRef = await addDoc(collection(db, "eventos"), newEvent);
@@ -657,6 +724,34 @@ function validateEventData(eventData) {
     }
   }
 
+  // Validar formato de hora si se proporciona
+  if (
+    eventData.horaInicio &&
+    !/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(eventData.horaInicio)
+  ) {
+    errors.push("El formato de hora de inicio debe ser HH:MM");
+  }
+
+  if (
+    eventData.horaFin &&
+    !/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(eventData.horaFin)
+  ) {
+    errors.push("El formato de hora de fin debe ser HH:MM");
+  }
+
+  // Validar que hora fin sea posterior a hora inicio
+  if (eventData.horaInicio && eventData.horaFin) {
+    const [startHour, startMin] = eventData.horaInicio.split(":").map(Number);
+    const [endHour, endMin] = eventData.horaFin.split(":").map(Number);
+
+    const startMinutes = startHour * 60 + startMin;
+    const endMinutes = endHour * 60 + endMin;
+
+    if (endMinutes <= startMinutes) {
+      errors.push("La hora de fin debe ser posterior a la hora de inicio");
+    }
+  }
+
   return {
     valid: errors.length === 0,
     errors: errors,
@@ -690,6 +785,8 @@ export {
   resetForm,
   removeImagePreview,
   getStoredSession,
+  formatDateTimeToISO,
+  getCurrentTimestamp,
 };
 
 // =============================================
@@ -698,6 +795,8 @@ export {
 
 window.removeImagePreview = removeImagePreview;
 window.resetForm = resetForm;
+window.formatDateTimeToISO = formatDateTimeToISO;
+window.getCurrentTimestamp = getCurrentTimestamp;
 
 // =============================================
 // INICIALIZACIÓN RETARDADA

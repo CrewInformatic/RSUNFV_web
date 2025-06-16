@@ -1,4 +1,4 @@
-// Función para resetear el formulario
+// Reset form function
 function resetForm() {
   const form = document.getElementById("createEventForm");
   if (form) {
@@ -6,14 +6,14 @@ function resetForm() {
     form.classList.remove("was-validated");
   }
 
-  // Cambiar a la pestaña de eventos futuros
+  // Switch to upcoming events tab
   const upcomingTab = document.getElementById("upcoming-tab");
   if (upcomingTab) {
     upcomingTab.click();
   }
 }
 
-// Actualizar contadores de eventos
+// Update event counters
 function updateEventCounts() {
   const upcomingEvents = document.querySelectorAll(
     "#upcomingEvents .event-card"
@@ -27,7 +27,7 @@ function updateEventCounts() {
   if (pastCount) pastCount.textContent = pastEvents.length;
 }
 
-// Configurar observer para actualizar contadores cuando cambien los eventos
+// Setup observer to update counters when events change
 function setupEventObserver() {
   const upcomingContainer = document.getElementById("upcomingEvents");
   const pastContainer = document.getElementById("pastEvents");
@@ -40,15 +40,15 @@ function setupEventObserver() {
   }
 }
 
-// Inicializar observer cuando el DOM esté listo
-document.addEventListener("DOMContentLoaded", function () {
+// Initialize observer when DOM is ready
+document.addEventListener("DOMContentLoaded", () => {
   setupEventObserver();
   updateEventCounts();
 });
 
-// Funciones de búsqueda y filtrado (implementación básica FALTA MEJORAR)
-document.addEventListener("DOMContentLoaded", function () {
-  // Búsqueda en eventos futuros
+// Search and filter functions
+document.addEventListener("DOMContentLoaded", () => {
+  // Search in upcoming events
   const searchUpcoming = document.getElementById("searchUpcoming");
   if (searchUpcoming) {
     searchUpcoming.addEventListener("input", function () {
@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Búsqueda en eventos pasados
+  // Search in past events
   const searchPast = document.getElementById("searchPast");
   if (searchPast) {
     searchPast.addEventListener("input", function () {
@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Filtros por tipo
+  // Filter by type
   const filterUpcomingType = document.getElementById("filterUpcomingType");
   if (filterUpcomingType) {
     filterUpcomingType.addEventListener("change", function () {
@@ -81,9 +81,9 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function filterEvents(type, searchTerm) {
-  const container = document.getElementById(
-    type === "upcoming" ? "upcomingEvents" : "pastEvents"
-  );
+  const containerId = type === "upcoming" ? "upcomingEvents" : "pastEvents";
+  const container = document.getElementById(containerId);
+
   if (!container) return;
 
   const eventCards = container.querySelectorAll(".event-card");
@@ -107,9 +107,9 @@ function filterEvents(type, searchTerm) {
 }
 
 function filterEventsByType(tabType, eventType) {
-  const container = document.getElementById(
-    tabType === "upcoming" ? "upcomingEvents" : "pastEvents"
-  );
+  const containerId = tabType === "upcoming" ? "upcomingEvents" : "pastEvents";
+  const container = document.getElementById(containerId);
+
   if (!container) return;
 
   const eventCards = container.querySelectorAll(".event-card");
@@ -120,7 +120,7 @@ function filterEventsByType(tabType, eventType) {
       return;
     }
 
-    // Por ahora, mostramos todos los eventos
+    // TODO: Implement type filtering logic
     card.style.display = "block";
   });
 }
