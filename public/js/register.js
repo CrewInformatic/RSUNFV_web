@@ -406,6 +406,7 @@ async function createUserProfile(uid, userData) {
       correo: userData.correo || "",
       fechaNacimiento: userData.fechaNacimiento || "",
       edad: edad,
+      celular: userData.celular || "", // ← AGREGAR ESTA LÍNEA
 
       // Información académica
       codigoUsuario: userData.codigoUsuario || "",
@@ -416,11 +417,11 @@ async function createUserProfile(uid, userData) {
 
       // Configuración de la cuenta
       esAdmin: false,
-      estadoActivo: "true",
+      estadoActivo: true,
 
       // Elementos adicionales
       medallasID: "",
-      fotoPerfilHash: userData.fotoPerfilHash || "",
+      fotoPerfil: userData.fotoPerfil || "",
 
       // Timestamps
       fechaRegistro: currentTimestamp,
@@ -577,7 +578,7 @@ function clearFormFields() {
     "facultadID",
     "escuelaID",
     "ciclo",
-    "fotoPerfilHash",
+    "fotoPerfil",
   ];
 
   formFields.forEach((fieldId) => {
@@ -614,14 +615,14 @@ window.handleRegister = async function (event) {
     password: document.getElementById("password")?.value || "",
     codigoUsuario: document.getElementById("codigoUsuario")?.value.trim() || "",
     fechaNacimiento: document.getElementById("fechaNacimiento")?.value || "",
-    celular: document.getElementById("celular")?.value.trim() || "",
+    celular: document.getElementById("celular")?.value.trim() || "", // ← YA ESTÁ AQUÍ
     poloTallaID: document.getElementById("poloTallaID")?.value || "",
     facultadID: document.getElementById("facultadID")?.value || "",
     escuelaID: document.getElementById("escuelaID")?.value || "",
     ciclo: document.getElementById("ciclo")?.value || "",
   };
 
-  const fotoPerfilFile = document.getElementById("fotoPerfilHash")?.files[0];
+  const fotoPerfilFile = document.getElementById("fotoPerfil")?.files[0];
 
   // Validar datos del formulario
   const validation = validateFormData(formData);
@@ -652,10 +653,10 @@ window.handleRegister = async function (event) {
     }
 
     // PASO 2: Subir imagen a Cloudinary si existe
-    let fotoPerfilHash = "";
+    let fotoPerfil = "";
     if (fotoPerfilFile) {
       try {
-        fotoPerfilHash = await uploadImageToCloudinary(fotoPerfilFile);
+        fotoPerfil = await uploadImageToCloudinary(fotoPerfilFile);
       } catch (uploadError) {
         showModal(
           "Error de imagen",
@@ -680,7 +681,7 @@ window.handleRegister = async function (event) {
     });
 
     // PASO 5: Crear perfil en Firestore
-    const userData = { ...formData, fotoPerfilHash };
+    const userData = { ...formData, fotoPerfil };
     const profileCreated = await createUserProfile(user.uid, userData);
 
     if (!profileCreated) {

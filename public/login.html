@@ -170,34 +170,18 @@
     <div class="form-group">
       <select class="form-input" required id="poloTallaID" onchange="updatePoloTallaDisplay()">
         <option value="">Selecciona talla del polo</option>
-        <option value="1">XS</option>
-        <option value="2">S</option>
-        <option value="3">M</option>
-        <option value="4">L</option>
-        <option value="5">XL</option>
-        <option value="6">XXL</option>
+        <option value="XS">XS</option>
+        <option value="S">S</option>
+        <option value="M">M</option>
+        <option value="L">L</option>
+        <option value="XL">XL</option>
+        <option value="XXL">XXL</option>
       </select>
     </div>
     <div class="form-group">
         <select class="form-input" required id="facultadID" onchange="filterEscuelas(); updateFacultadDisplay();">
             <option value="">Selecciona tu facultad</option>
-            <option value="1">Administración</option>
-            <option value="2">Ciencias Económicas</option>
-            <option value="3">Ciencias Financieras y Contables</option>
-            <option value="4">Ciencias Sociales</option>
-            <option value="5">Derecho y Ciencias Políticas</option>
-            <option value="6">Educación</option>
-            <option value="7">Humanidades</option>
-            <option value="8">Arquitectura y Urbanismo</option>
-            <option value="9">Ingeniería Civil</option>
-            <option value="10">Ingeniería Industrial y de Sistemas</option>
-            <option value="11">Ingeniería Geográfica, Ambiental y Ecoturismo</option>
-            <option value="12">Oceanografía, Pesquería, Ciencias Alimentarias y Acuicultura</option>
-            <option value="13">Ingeniería Electrónica e Informática</option>
-            <option value="14">Ciencias Naturales y Matemática</option>
-            <option value="15">Medicina "Hipólito Unanue" (Ciencias de la Salud)</option>
-            <option value="16">Tecnología Médica</option>
-            <option value="17">Psicología</option>
+            <option value="F001">Ingeniería Electrónica e Informática</option>
         </select>
     </div>
     
@@ -226,11 +210,11 @@
     type="file"
     class="form-input file-input"
     accept="image/*"
-    id="fotoPerfilHash"
+    id="fotoPerfil"
     title="Foto de perfil"
     onchange="handleFileSelect(this)"
   />
-  <label for="fotoPerfilHash" class="file-label">
+  <label for="fotoPerfil" class="file-label">
 
     <div class="file-text">
       <span class="file-main-text">Subir foto de perfil</span>

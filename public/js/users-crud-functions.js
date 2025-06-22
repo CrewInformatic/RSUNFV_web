@@ -1,0 +1,971 @@
+// users-management-optimized.js - Gestión CRUD de Usuarios OPTIMIZADO (Con integración de roles)
+import {
+  db,
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  limit,
+  startAfter,
+} from "./firebase_config.js";
+
+// Importar funciones del módulo de roles
+import {
+  loadRoles,
+  getRoleDisplayBadge,
+  generateRoleDisplayHTML,
+} from "./role-management.js";
+
+// =============================================
+// CONFIGURACIÓN Y ESTADO GLOBAL
+// =============================================
+const CONFIG = {
+  USERS_PER_PAGE: 10,
+  CACHE_DURATION: 10 * 60 * 1000,
+  SEARCH_DEBOUNCE: 300,
+  COLLECTIONS: {
+    USUARIOS: "usuarios",
+    ESCUELA: "escuela",
+    FACULTAD: "facultad",
+    ROLES: "roles",
+  },
+};
+
+let state = {
+  allUsers: [],
+  filteredUsers: [],
+  currentPage: 1,
+  isLoading: false,
+  cache: new Map(),
+  searchTimeout: null,
+  rolesData: [], // Cache para roles
+};
+
+// =============================================
+// UTILIDADES
+// =============================================
+const utils = {
+  showToast(title, message, type = "info") {
+    const toastElement = document.getElementById("liveToast");
+    const toastTitle = document.getElementById("toastTitle");
+    const toastBody = document.getElementById("toastBody");
+
+    if (!toastElement || !toastTitle || !toastBody) return;
+
+    const typeColors = {
+      success: "text-success",
+      error: "text-danger",
+      warning: "text-warning",
+      info: "text-primary",
+    };
+
+    toastTitle.textContent = title;
+    toastBody.textContent = message;
+
+    const iconElement = toastElement.querySelector("i");
+    if (iconElement) {
+      const icons = {
+        success: "check-circle",
+        error: "exclamation-triangle",
+        warning: "exclamation-circle",
+        info: "info-circle",
+      };
+      iconElement.className = `fas fa-${icons[type]} ${typeColors[type]} me-2`;
+    }
+
+    new bootstrap.Toast(toastElement, { delay: 4000 }).show();
+  },
+
+  handleError(error, context, showUser = true) {
+    console.error(`❌ Error en ${context}:`, error);
+    if (showUser)
+      this.showToast("Error", error.message || `Error ${context}`, "error");
+  },
+
+  validateEmail: (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
+
+  formatDate(dateString) {
+    if (!dateString) return "No disponible";
+    try {
+      return new Date(dateString).toLocaleDateString("es-PE", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return "Fecha inválida";
+    }
+  },
+
+  calculateAge(birthDate) {
+    if (!birthDate) return null;
+    try {
+      const birth = new Date(birthDate);
+      const today = new Date();
+      let age = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+
+      if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < birth.getDate())
+      ) {
+        age--;
+      }
+      return age;
+    } catch {
+      return null;
+    }
+  },
+
+  async getCachedData(key, fetchFn) {
+    const cached = state.cache.get(key);
+    if (cached && Date.now() - cached.timestamp < CONFIG.CACHE_DURATION) {
+      return cached.data;
+    }
+
+    const data = await fetchFn();
+    state.cache.set(key, { data, timestamp: Date.now() });
+    return data;
+  },
+};
+
+// =============================================
+// CARGA DE DATOS
+// =============================================
+const dataLoader = {
+  async loadSchools() {
+    return utils.getCachedData("schools", async () => {
+      const snapshot = await getDocs(
+        collection(db, CONFIG.COLLECTIONS.ESCUELA)
+      );
+      return snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: data.idEscuela,
+          name: data.nombreEscuela,
+          facultadId: data.facultadID,
+        };
+      });
+    });
+  },
+
+  async loadFaculties() {
+    return utils.getCachedData("faculties", async () => {
+      const snapshot = await getDocs(
+        collection(db, CONFIG.COLLECTIONS.FACULTAD)
+      );
+      return snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: data.idFacultad,
+          name: data.nombreFacultad,
+        };
+      });
+    });
+  },
+
+  async loadRolesData() {
+    try {
+      state.rolesData = await loadRoles();
+      console.log("🔍 Roles cargados en gestión de usuarios:", state.rolesData);
+      return state.rolesData;
+    } catch (error) {
+      console.error("❌ Error al cargar roles:", error);
+      state.rolesData = [];
+      return [];
+    }
+  },
+
+  async loadAllUsers() {
+    try {
+      const usersSnapshot = await getDocs(
+        collection(db, CONFIG.COLLECTIONS.USUARIOS)
+      );
+
+      if (usersSnapshot.empty) {
+        state.allUsers = state.filteredUsers = [];
+        ui.updateTable([]);
+        ui.updateStatistics();
+        return;
+      }
+
+      const [schools, faculties, roles] = await Promise.all([
+        this.loadSchools(),
+        this.loadFaculties(),
+        this.loadRolesData(),
+      ]);
+
+      // Crear mapas para búsqueda rápida
+      const schoolsMap = new Map(schools.map((s) => [s.id, s]));
+      const facultiesMap = new Map(faculties.map((f) => [f.id, f]));
+      const rolesMap = new Map(roles.map((r) => [r.id, r]));
+
+      const users = usersSnapshot.docs
+        .map((doc) => {
+          const userData = doc.data();
+          const school = schoolsMap.get(userData.escuelaID);
+          const faculty = facultiesMap.get(userData.facultadID);
+          const role = rolesMap.get(userData.idRol);
+
+          return {
+            id: doc.id,
+            ...userData,
+            nombreEscuela: school?.name || "No disponible",
+            nombreFacultad: faculty?.name || "No disponible",
+            nombreCompleto: `${userData.nombreUsuario || ""} ${
+              userData.apellidoUsuario || ""
+            }`.trim(),
+            edad: userData.fechaNacimiento
+              ? utils.calculateAge(userData.fechaNacimiento)
+              : userData.edad,
+            // Datos del rol
+            nombreRol: role?.name || null,
+            descripcionRol: role?.description || null,
+            permisosRol: role?.permissions || [],
+          };
+        })
+        .sort(
+          (a, b) =>
+            new Date(b.fechaRegistro || 0) - new Date(a.fechaRegistro || 0)
+        );
+
+      state.allUsers = users;
+      state.filteredUsers = [...users];
+
+      ui.updateTable(ui.getCurrentPageUsers());
+      ui.updateStatistics();
+      ui.updatePagination();
+    } catch (error) {
+      utils.handleError(error, "al cargar usuarios");
+      state.allUsers = state.filteredUsers = [];
+      ui.updateTable([]);
+      ui.updateStatistics();
+    }
+  },
+};
+
+// =============================================
+// INTERFAZ DE USUARIO
+// =============================================
+const ui = {
+  getCurrentPageUsers() {
+    const start = (state.currentPage - 1) * CONFIG.USERS_PER_PAGE;
+    const end = start + CONFIG.USERS_PER_PAGE;
+    return state.filteredUsers.slice(start, end);
+  },
+
+  getRoleDisplayBadge(user) {
+    // Usar la función del módulo de roles para mostrar badges
+    return getRoleDisplayBadge(user);
+  },
+
+  // CAMBIO 1: En la función updateTable() del objeto ui
+  // Busca esta línea (aproximadamente línea 235):
+  updateTable(users) {
+    const tableBody = document.getElementById("usersTableBody");
+    if (!tableBody) return;
+
+    if (users.length === 0) {
+      tableBody.innerHTML = `
+      <tr>
+        <td colspan="7" class="text-center py-4 text-muted">
+          <i class="fas fa-users fa-2x mb-2"></i>
+          <p class="mb-0">No se encontraron usuarios</p>
+        </td>
+      </tr>`;
+      return;
+    }
+
+    tableBody.innerHTML = users
+      .map(
+        (user) => `
+    <tr>
+      <td>
+        <div class="d-flex align-items-center">
+          <i class="fas fa-user-circle fa-2x text-secondary me-3"></i>
+          <div>
+            <div class="fw-bold">${user.nombreCompleto || "Sin nombre"}</div>
+            <small class="text-muted">${user.correo || "Sin email"}</small><br>
+            <small class="text-muted">Código: ${
+              user.codigoUsuario || "N/A"
+            }</small>
+          </div>
+        </div>
+      </td>
+      <td>
+        <span class="badge bg-light text-dark">${user.nombreEscuela}</span><br>
+        <small class="text-muted">${user.nombreFacultad}</small>
+      </td>
+      <td>${this.getRoleDisplayBadge(user)}</td>
+      <td><small>${utils.formatDate(user.fechaRegistro)}</small></td>
+      <td><span class="badge bg-info">0</span><br><small class="text-muted">Eventos</small></td>
+      <td>
+        <div class="form-check form-switch">
+          <input class="form-check-input status-toggle" type="checkbox" 
+                 ${user.estadoActivo ? "checked" : ""} 
+                 data-user-id="${user.id}"
+                 onchange="toggleUserStatus('${user.id}', this.checked)">
+          <label class="form-check-label">
+            <small class="${
+              user.estadoActivo ? "text-success" : "text-danger"
+            }">
+              ${user.estadoActivo ? "Activo" : "Inactivo"}
+            </small>
+          </label>
+        </div>
+      </td>
+      <td>
+        <div class="btn-group btn-group-sm">
+          <button class="btn btn-outline-primary" onclick="viewUserDetails('${
+            user.id
+          }')" title="Ver detalles">
+            <i class="fas fa-eye"></i>
+          </button>
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" title="Más opciones">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#" onclick="assignRole('${
+                user.id
+              }')">
+                <i class="fas fa-user-tag me-2 text-info"></i>
+                Asignar Rol
+              </a></li>
+              <li><a class="dropdown-item" href="#" onclick="toggleAdminRole('${
+                user.id
+              }', ${!user.esAdmin})">
+                <i class="fas ${
+                  user.esAdmin ? "fa-user-minus" : "fa-user-plus"
+                } me-2"></i>
+                ${user.esAdmin ? "Quitar Admin" : "Hacer Admin"}
+              </a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="#" onclick="deleteUser('${
+                user.id
+              }')">
+                <i class="fas fa-trash me-2"></i>Eliminar
+              </a></li>
+            </ul>
+          </div>
+        </div>
+      </td>
+    </tr>
+  `
+      )
+      .join("");
+  },
+
+  updateStatistics() {
+    const activeUsers = state.allUsers.filter(
+      (user) => user.estadoActivo
+    ).length;
+    const schools = new Set(
+      state.allUsers.map((user) => user.escuelaID).filter(Boolean)
+    );
+
+    const elements = {
+      totalUsersCount: state.allUsers.length,
+      activeUsersCount: activeUsers,
+      schoolsCount: schools.size,
+    };
+
+    Object.entries(elements).forEach(([id, value]) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value;
+    });
+
+    this.updateTableInfo();
+  },
+
+  updateTableInfo() {
+    const start = (state.currentPage - 1) * CONFIG.USERS_PER_PAGE + 1;
+    const end = Math.min(
+      state.currentPage * CONFIG.USERS_PER_PAGE,
+      state.filteredUsers.length
+    );
+
+    const elements = {
+      showingStart: state.filteredUsers.length > 0 ? start : 0,
+      showingEnd: end,
+      totalRecords: state.filteredUsers.length,
+    };
+
+    Object.entries(elements).forEach(([id, value]) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value;
+    });
+  },
+
+  updatePagination() {
+    const paginationList = document.getElementById("paginationList");
+    if (!paginationList) return;
+
+    const totalPages = Math.ceil(
+      state.filteredUsers.length / CONFIG.USERS_PER_PAGE
+    );
+    if (totalPages <= 1) {
+      paginationList.innerHTML = "";
+      return;
+    }
+
+    let html = `
+      <li class="page-item ${state.currentPage === 1 ? "disabled" : ""}">
+        <a class="page-link" href="#" onclick="changePage(${
+          state.currentPage - 1
+        })">
+          <i class="fas fa-chevron-left"></i>
+        </a>
+      </li>`;
+
+    const startPage = Math.max(1, state.currentPage - 2);
+    const endPage = Math.min(totalPages, state.currentPage + 2);
+
+    for (let i = startPage; i <= endPage; i++) {
+      html += `
+        <li class="page-item ${i === state.currentPage ? "active" : ""}">
+          <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+        </li>`;
+    }
+
+    html += `
+      <li class="page-item ${
+        state.currentPage === totalPages ? "disabled" : ""
+      }">
+        <a class="page-link" href="#" onclick="changePage(${
+          state.currentPage + 1
+        })">
+          <i class="fas fa-chevron-right"></i>
+        </a>
+      </li>`;
+
+    paginationList.innerHTML = html;
+  },
+};
+
+// =============================================
+// FILTROS Y BÚSQUEDA
+// =============================================
+const filters = {
+  apply() {
+    const searchTerm =
+      document.getElementById("searchUsers")?.value.toLowerCase() || "";
+    const schoolFilter = document.getElementById("filterSchool")?.value || "";
+    const statusFilter = document.getElementById("filterStatus")?.value || "";
+
+    state.filteredUsers = state.allUsers.filter((user) => {
+      const matchesSearch =
+        !searchTerm ||
+        user.nombreCompleto.toLowerCase().includes(searchTerm) ||
+        (user.correo && user.correo.toLowerCase().includes(searchTerm));
+
+      const matchesSchool = !schoolFilter || user.escuelaID === schoolFilter;
+
+      const matchesStatus =
+        !statusFilter ||
+        (statusFilter === "activo" && user.estadoActivo) ||
+        (statusFilter === "inactivo" && !user.estadoActivo);
+
+      return matchesSearch && matchesSchool && matchesStatus;
+    });
+
+    state.currentPage = 1;
+    ui.updateTable(ui.getCurrentPageUsers());
+    ui.updateTableInfo();
+    ui.updatePagination();
+  },
+
+  setupSearch() {
+    const searchInput = document.getElementById("searchUsers");
+    if (!searchInput) return;
+
+    searchInput.addEventListener("input", () => {
+      clearTimeout(state.searchTimeout);
+      state.searchTimeout = setTimeout(() => {
+        this.apply();
+      }, CONFIG.SEARCH_DEBOUNCE);
+    });
+  },
+};
+
+// =============================================
+// OPERACIONES CRUD
+// =============================================
+const crud = {
+  async saveUser() {
+    if (state.isLoading) return;
+    state.isLoading = true;
+
+    try {
+      const form = document.getElementById("addUserForm");
+      if (!form) throw new Error("Formulario no encontrado");
+
+      const formData = new FormData(form);
+      const userData = {};
+
+      for (let [key, value] of formData.entries()) {
+        if (value.trim()) userData[key] = value.trim();
+      }
+
+      // Validaciones
+      if (!userData.nombreUsuario || !userData.apellidoUsuario) {
+        throw new Error("Nombre y apellido son obligatorios");
+      }
+      if (!userData.correo || !utils.validateEmail(userData.correo)) {
+        throw new Error("Email válido es obligatorio");
+      }
+      if (!userData.escuelaID || !userData.facultadID) {
+        throw new Error("Escuela y facultad son obligatorias");
+      }
+
+      // Verificar email único
+      const existingEmailQuery = query(
+        collection(db, CONFIG.COLLECTIONS.USUARIOS),
+        where("correo", "==", userData.correo)
+      );
+      const existingEmailSnapshot = await getDocs(existingEmailQuery);
+
+      if (!existingEmailSnapshot.empty) {
+        throw new Error("Ya existe un usuario con este email");
+      }
+
+      const userToSave = {
+        nombreUsuario: userData.nombreUsuario,
+        apellidoUsuario: userData.apellidoUsuario,
+        correo: userData.correo,
+        escuelaID: userData.escuelaID,
+        facultadID: userData.facultadID,
+        fechaNacimiento: userData.fechaNacimiento || null,
+        edad: userData.fechaNacimiento
+          ? utils.calculateAge(userData.fechaNacimiento)
+          : null,
+        telefono: userData.telefono || null,
+        esAdmin: true,
+        estadoActivo: true,
+        fechaRegistro: new Date().toISOString(),
+      };
+
+      await addDoc(collection(db, CONFIG.COLLECTIONS.USUARIOS), userToSave);
+      utils.showToast("Éxito", "Administrador creado correctamente", "success");
+
+      const modal = bootstrap.Modal.getInstance(
+        document.getElementById("addUserModal")
+      );
+      if (modal) modal.hide();
+      form.reset();
+
+      await dataLoader.loadAllUsers();
+    } catch (error) {
+      utils.handleError(error, "al crear administrador");
+    } finally {
+      state.isLoading = false;
+    }
+  },
+
+  async toggleUserStatus(userId, newStatus) {
+    if (state.isLoading) return;
+
+    try {
+      const user = state.allUsers.find((u) => u.id === userId);
+      if (!user) throw new Error("Usuario no encontrado");
+
+      if (!newStatus && user.esAdmin) {
+        const confirmed = await this.showConfirmDialog(
+          "Confirmar Desactivación",
+          `¿Desactivar al administrador "${user.nombreCompleto}"?`,
+          "warning"
+        );
+        if (!confirmed) {
+          document.querySelector(`[data-user-id="${userId}"]`).checked =
+            !newStatus;
+          return;
+        }
+      }
+
+      await updateDoc(doc(db, CONFIG.COLLECTIONS.USUARIOS, userId), {
+        estadoActivo: newStatus,
+        fechaActualizacion: new Date().toISOString(),
+      });
+
+      const userIndex = state.allUsers.findIndex((u) => u.id === userId);
+      if (userIndex !== -1) {
+        state.allUsers[userIndex].estadoActivo = newStatus;
+      }
+
+      filters.apply();
+      ui.updateStatistics();
+      utils.showToast(
+        "Estado Actualizado",
+        `Usuario ${newStatus ? "activado" : "desactivado"}`,
+        "success"
+      );
+    } catch (error) {
+      utils.handleError(error, "al cambiar estado");
+    }
+  },
+
+  /**
+   * Inspecciona un usuario mostrando todos sus datos
+   */
+  async viewUserDetails(userId) {
+    try {
+      const user = state.allUsers.find((u) => u.id === userId);
+      if (!user) throw new Error("Usuario no encontrado");
+
+      const modal = document.getElementById("inspectUserModal");
+      if (!modal) throw new Error("Modal de inspección no encontrado");
+
+      // Llenar datos del usuario
+      const fields = {
+        inspectUserName: user.nombreCompleto || "Sin nombre",
+        inspectUserEmail: user.correo || "Sin email",
+        inspectUserCode: user.codigoUsuario || "N/A",
+        inspectUserPhone: user.telefono || "No especificado",
+        inspectUserBirthDate: utils.formatDate(user.fechaNacimiento),
+        inspectUserAge: user.edad ? user.edad.toString() : "No especificado",
+        inspectUserSchool: user.nombreEscuela || "No especificado",
+        inspectUserFaculty: user.nombreFacultad || "No especificado",
+        inspectUserRegistrationDate: utils.formatDate(user.fechaRegistro),
+        inspectUserLastUpdate: utils.formatDate(user.fechaActualizacion),
+      };
+
+      Object.entries(fields).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+      });
+
+      // Estado del usuario
+      const statusBadge = document.getElementById("inspectUserStatus");
+      if (statusBadge) {
+        statusBadge.innerHTML = user.estadoActivo
+          ? '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Activo</span>'
+          : '<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Inactivo</span>';
+      }
+
+      // Información del rol con ID y nombre
+      const roleInfo = document.getElementById("inspectUserRole");
+      if (roleInfo) {
+        let roleDisplay = "";
+
+        // Mostrar información del rol si existe
+        if (user.idRol) {
+          const roleName = user.nombreRol || "Rol desconocido";
+          roleDisplay = `
+        <div class="mb-2">
+          <strong></strong> ${roleName}
+        </div>
+        <div class="mb-2">
+          <strong>ID del Rol:</strong> <code>${user.idRol}</code>
+        </div>
+      `;
+
+          // Añadir descripción si existe
+          if (user.descripcionRol) {
+            roleDisplay += `
+          <div class="mb-2">
+            <strong>Descripción:</strong> ${user.descripcionRol}
+          </div>
+        `;
+          }
+
+          // Añadir permisos si existen
+          if (user.permisosRol && user.permisosRol.length > 0) {
+            roleDisplay += `
+          <div class="mb-2">
+            <strong>Permisos:</strong>
+            <div class="mt-1">
+              ${user.permisosRol
+                .map(
+                  (permiso) =>
+                    `<span class="badge bg-info me-1">${permiso}</span>`
+                )
+                .join("")}
+            </div>
+          </div>
+        `;
+          }
+        } else {
+          roleDisplay = '<div class="text-muted">Sin rol asignado</div>';
+        }
+
+        roleInfo.innerHTML = roleDisplay;
+      }
+
+      // Tipo de usuario con información de roles (CORRECCIÓN APLICADA AQUÍ)
+      const userTypeBadge = document.getElementById("inspectUserType");
+      if (userTypeBadge) {
+        let typeDisplay = "";
+
+        // CAMBIO AQUÍ: Usar ui.getRoleDisplayBadge en lugar de this.getRoleDisplayBadge
+        const roleBadge = ui.getRoleDisplayBadge(user);
+        if (roleBadge !== "-") {
+          typeDisplay += roleBadge;
+        }
+
+        userTypeBadge.innerHTML =
+          typeDisplay ||
+          '<span class="badge bg-secondary">Usuario Regular</span>';
+      }
+
+      // Información adicional de permisos
+      const permissionsInfo = document.getElementById("inspectUserPermissions");
+      if (permissionsInfo && user.permisosRol && user.permisosRol.length > 0) {
+        permissionsInfo.innerHTML = `
+      <h6>Permisos del Rol:</h6>
+      <div class="permissions-list">
+        ${user.permisosRol
+          .map(
+            (permiso) => `
+          <div class="permission-item mb-1">
+            <i class="fas fa-check-circle text-success me-2"></i>
+            <span>${permiso
+              .replace(/_/g, " ")
+              .replace(/\b\w/g, (l) => l.toUpperCase())}</span>
+          </div>
+        `
+          )
+          .join("")}
+      </div>
+    `;
+      } else if (permissionsInfo) {
+        permissionsInfo.innerHTML =
+          '<div class="text-muted">Sin permisos específicos asignados</div>';
+      }
+
+      new bootstrap.Modal(modal).show();
+    } catch (error) {
+      utils.handleError(error, "al inspeccionar usuario");
+    }
+  },
+
+  /**
+   * Elimina un usuario con validaciones
+   */
+  async deleteUser(userId) {
+    if (state.isLoading) return;
+
+    try {
+      const user = state.allUsers.find((u) => u.id === userId);
+      if (!user) throw new Error("Usuario no encontrado");
+
+      let warningMessage = `¿Eliminar permanentemente a "${user.nombreCompleto}"?`;
+
+      // Verificaciones adicionales
+      if (user.esAdmin) {
+        const activeAdmins = state.allUsers.filter(
+          (u) => u.esAdmin && u.estadoActivo
+        ).length;
+        if (activeAdmins <= 1) {
+          throw new Error(
+            "No se puede eliminar el último administrador activo"
+          );
+        }
+        warningMessage += "\n\n⚠️ Este usuario es administrador del sistema.";
+      }
+
+      if (user.estadoActivo) {
+        warningMessage += "\n\n⚠️ El usuario está actualmente activo.";
+      }
+
+      warningMessage += "\n\nEsta acción no se puede deshacer.";
+
+      const confirmed = await this.showConfirmDialog(
+        "Eliminar Usuario",
+        warningMessage,
+        "danger"
+      );
+
+      if (!confirmed) return;
+
+      state.isLoading = true;
+
+      await deleteDoc(doc(db, CONFIG.COLLECTIONS.USUARIOS, userId));
+
+      // Actualizar cache local
+      const userIndex = state.allUsers.findIndex((u) => u.id === userId);
+      if (userIndex !== -1) {
+        state.allUsers.splice(userIndex, 1);
+      }
+
+      filters.apply();
+      ui.updateStatistics();
+      utils.showToast(
+        "Usuario Eliminado",
+        "Usuario eliminado correctamente",
+        "success"
+      );
+    } catch (error) {
+      utils.handleError(error, "al eliminar usuario");
+    } finally {
+      state.isLoading = false;
+    }
+  },
+
+  showConfirmDialog(title, message, type = "info") {
+    return new Promise((resolve) => {
+      const modal = document.getElementById("confirmModal");
+      const titleElement = document.getElementById("confirmModalTitle");
+      const bodyElement = document.getElementById("confirmModalBody");
+      const confirmBtn = document.getElementById("confirmModalBtn");
+
+      if (!modal || !titleElement || !bodyElement || !confirmBtn) {
+        resolve(false);
+        return;
+      }
+
+      titleElement.textContent = title;
+      bodyElement.textContent = message;
+
+      const typeClasses = {
+        danger: "btn-danger",
+        warning: "btn-warning",
+        info: "btn-info",
+        success: "btn-success",
+      };
+      confirmBtn.className = `btn ${typeClasses[type] || "btn-primary"}`;
+
+      const handleConfirm = () => {
+        cleanup();
+        resolve(true);
+      };
+
+      const handleCancel = () => {
+        cleanup();
+        resolve(false);
+      };
+
+      const cleanup = () => {
+        confirmBtn.removeEventListener("click", handleConfirm);
+        modal.removeEventListener("hidden.bs.modal", handleCancel);
+        const bootstrapModal = bootstrap.Modal.getInstance(modal);
+        if (bootstrapModal) bootstrapModal.hide();
+      };
+
+      confirmBtn.addEventListener("click", handleConfirm);
+      modal.addEventListener("hidden.bs.modal", handleCancel, { once: true });
+
+      new bootstrap.Modal(modal).show();
+    });
+  },
+};
+
+// =============================================
+// INTEGRACIÓN CON MÓDULO DE ROLES
+// =============================================
+
+// Escuchar eventos del módulo de roles
+document.addEventListener("requestAllUsers", (event) => {
+  if (event.detail && event.detail.callback) {
+    event.detail.callback(state.allUsers);
+  }
+});
+
+document.addEventListener("reloadUsers", () => {
+  dataLoader.loadAllUsers();
+});
+
+// =============================================
+// FUNCIONES GLOBALES
+// =============================================
+window.saveUser = crud.saveUser.bind(crud);
+window.toggleUserStatus = crud.toggleUserStatus.bind(crud);
+window.viewUserDetails = crud.viewUserDetails.bind(crud);
+window.deleteUser = crud.deleteUser.bind(crud);
+
+// Funciones que utilizan el módulo de roles (ya definidas en role-management.js)
+// window.assignRole - definida en role-management.js
+// window.updateUserRole - definida en role-management.js
+// window.toggleAdminRole - definida en role-management.js
+
+window.changePage = function (page) {
+  const totalPages = Math.ceil(
+    state.filteredUsers.length / CONFIG.USERS_PER_PAGE
+  );
+  if (page < 1 || page > totalPages) return;
+
+  state.currentPage = page;
+  ui.updateTable(ui.getCurrentPageUsers());
+  ui.updateTableInfo();
+  ui.updatePagination();
+
+  document.querySelector(".table-card")?.scrollIntoView({ behavior: "smooth" });
+};
+
+// =============================================
+// INICIALIZACIÓN
+// =============================================
+async function initialize() {
+  try {
+    console.log("🚀 Inicializando gestión de usuarios con roles...");
+
+    // Configurar eventos de filtros
+    ["filterSchool", "filterStatus"].forEach((id) => {
+      const element = document.getElementById(id);
+      if (element)
+        element.addEventListener("change", filters.apply.bind(filters));
+    });
+
+    // Configurar búsqueda
+    filters.setupSearch();
+
+    // Cargar datos iniciales
+    const [schools, faculties] = await Promise.all([
+      dataLoader.loadSchools(),
+      dataLoader.loadFaculties(),
+    ]);
+
+    // Inicializar selectores
+    const filterSchool = document.getElementById("filterSchool");
+    if (filterSchool) {
+      filterSchool.innerHTML =
+        '<option value="">Todas las Escuelas</option>' +
+        schools
+          .map((s) => `<option value="${s.id}">${s.name}</option>`)
+          .join("");
+    }
+
+    const userSchool = document.getElementById("userSchool");
+    if (userSchool) {
+      userSchool.innerHTML =
+        '<option value="">Seleccionar Escuela</option>' +
+        schools
+          .map(
+            (s) =>
+              `<option value="${s.id}" data-faculty="${s.facultadId}">${s.name}</option>`
+          )
+          .join("");
+    }
+
+    const userFaculty = document.getElementById("userFaculty");
+    if (userFaculty) {
+      userFaculty.innerHTML =
+        '<option value="">Seleccionar Facultad</option>' +
+        faculties
+          .map((f) => `<option value="${f.id}">${f.name}</option>`)
+          .join("");
+    }
+
+    // Cargar usuarios (incluye roles automáticamente)
+    await dataLoader.loadAllUsers();
+
+    console.log("✅ Gestión de usuarios con roles inicializada");
+  } catch (error) {
+    console.error("❌ Error al inicializar:", error);
+    utils.showToast("Error", "Error al cargar el sistema", "error");
+  }
+}
+
+// Inicializar cuando el DOM esté listo
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initialize);
+} else {
+  initialize();
+}
+
+export { dataLoader, filters, initialize };

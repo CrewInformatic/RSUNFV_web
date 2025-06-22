@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoVoluntarios UNFV - Gestión de Usuarios</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/usuarios.css">
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+
+<body>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="#" class="sidebar-brand">
+                <i class="fas fa-leaf"></i>
+                <div class="brand-text">
+                    <div>EcoVoluntarios</div>
+                    <div class="brand-subtitle">UNFV</div>
+                </div>
+            </a>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="nav-link" onclick="navigateToPage('admin-dashboard.html')">
+                <i class="fas fa-chart-line"></i>
+                Dashboard
+            </button>
+            <button class="nav-link" onclick="navigateToPage('eventos.html')">
+                <i class="fas fa-calendar-alt"></i>
+                Gestión de Eventos
+            </button>
+            <button class="nav-link" onclick="navigateToPage('administradores.html')">
+                <i class="fas fa-users-cog"></i>
+                Administradores
+            </button>
+            <button class="nav-link active" data-section="usuarios">
+                <i class="fas fa-user-friends"></i>
+                Usuarios y Roles
+            </button>
+            <button class="nav-link" onclick="navigateToPage('configuracion.html')">
+                <i class="fas fa-cogs"></i>
+                Configuración
+            </button>
+            <button class="nav-link" onclick="navigateToPage('reportes.html')">
+                <i class="fas fa-chart-bar"></i>
+                Reportes
+            </button>
+        </nav>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Navbar -->
+        <nav class="top-navbar d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-secondary d-lg-none me-3" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title">Gestión de Usuarios</h1>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="userDisplayName">Administrador</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#" onclick="showProfile()">
+                                <i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="showSettings()">
+                                <i class="fas fa-cog me-2"></i>Configuración</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="#" onclick="handleLogout()">
+                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="content-wrapper">
+            <!-- Header Section -->
+            <div class="users-header">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h2 class="mb-2">
+                            <i class="fas fa-users me-2"></i>
+                            Gestión de Usuarios
+                        </h2>
+                        <p class="text-muted mb-0">Administra usuarios, roles y permisos por escuela</p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                            <i class="fas fa-user-plus me-2"></i>
+                            Agregar Administradores
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters and Search -->
+            <div class="filters-card">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-control" id="searchUsers"
+                                placeholder="Buscar por nombre o código...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="filterSchool">
+                            <option value="">Todas las Escuelas</option>
+                            <!-- Las opciones se cargarán dinámicamente desde el JS -->
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="filterRole">
+                            <option value="">Todos los Roles</option>
+                            <option value="admin">Administrador</option>
+                            <option value="colaborador">Colaborador</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" id="filterStatus">
+                            <option value="">Todos los Estados</option>
+                            <option value="activo">Activos</option>
+                            <option value="inactivo">Inactivos</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row g-4 mb-4">
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card primary">
+                        <div class="stat-icon">
+                            <i class="fas fa-users text-primary"></i>
+                        </div>
+                        <div class="stat-number" id="totalUsersCount">0</div>
+                        <div class="stat-label">Total Usuarios</div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card success">
+                        <div class="stat-icon">
+                            <i class="fas fa-user-check text-success"></i>
+                        </div>
+                        <div class="stat-number" id="activeUsersCount">0</div>
+                        <div class="stat-label">Usuarios Activos</div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card warning">
+                        <div class="stat-icon">
+                            <i class="fas fa-graduation-cap text-warning"></i>
+                        </div>
+                        <div class="stat-number" id="schoolsCount">0</div>
+                        <div class="stat-label">Escuelas Representadas</div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card info">
+                        <div class="stat-icon">
+                            <i class="fas fa-user-tag text-info"></i>
+                        </div>
+                        <div class="stat-number" id="rolesCount">2</div>
+                        <div class="stat-label">Roles Diferentes</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="table-card">
+                <div class="table-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Lista de Usuarios
+                    </h5>
+                    <div class="table-actions">
+                        <button class="btn btn-outline-primary btn-sm" onclick="exportUsers()">
+                            <i class="fas fa-download me-1"></i>
+                            Exportar
+                        </button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-user me-1"></i>Usuario</th>
+                                <th><i class="fas fa-graduation-cap me-1"></i>Escuela</th>
+                                <th><i class="fas fa-user-tag me-1"></i>Rol</th>
+                                <th><i class="fas fa-calendar me-1"></i>Registro</th>
+                                <th><i class="fas fa-chart-bar me-1"></i>Participaciones</th>
+                                <th><i class="fas fa-toggle-on me-1"></i>Estado</th>
+                                <th><i class="fas fa-cogs me-1"></i>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- Los usuarios se cargarán dinámicamente desde el JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-footer">
+                    <div class="table-info">
+                        Mostrando <span id="showingStart">0</span> a <span id="showingEnd">0</span> de <span
+                            id="totalRecords">0</span> registros
+                    </div>
+                    <nav id="paginationNav">
+                        <ul class="pagination pagination-sm mb-0" id="paginationList">
+                            <!-- La paginación se generará dinámicamente -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Modal Asignar Rol -->
+    <div class="modal fade" id="assignRoleModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Asignar Rol</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="assignRoleUserId">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Usuario:</label>
+                        <p id="assignRoleUserName" class="mb-2"></p>
+                        <label class="form-label">Rol actual:</label>
+                        <p id="currentRole" class="text-muted mb-3"></p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="roleSelect" class="form-label">Nuevo Rol</label>
+                        <select class="form-select" id="roleSelect" required>
+                            <option value="">Cargando roles...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="updateUserRole()">Asignar Rol</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Agregar Nuevo Administrador
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addUserForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Nombres *</label>
+                                <input type="text" class="form-control" id="userName" name="nombreUsuario" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Apellidos *</label>
+                                <input type="text" class="form-control" id="userLastName" name="apellidoUsuario"
+                                    required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="userEmail" name="correo" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Contraseña *
+                                    <i class="fas fa-info-circle text-info"
+                                        title="Se genera automáticamente: nombreUsuario + ADMIN*"></i>
+                                </label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control bg-light" id="userPassword"
+                                        name="password" readonly placeholder="Se genera automáticamente...">
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePasswordBtn">
+                                        <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">
+                                    <i class="fas fa-magic text-primary"></i>
+                                    <span>Patrón: </span>
+                                    <code>nombreUsuario + "ADMIN*"</code>
+                                </div>
+                                <!-- Campo para mostrar la contraseña generada -->
+                                <div class="mt-2" id="passwordDisplayContainer" style="display: none;">
+                                    <small class="text-success">
+                                        <i class="fas fa-key me-1"></i>
+                                        Contraseña generada: <strong id="passwordDisplay"></strong>
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Escuela *</label>
+                                <select class="form-select" id="userSchool" name="escuelaID" required>
+                                    <option value="">Seleccionar Escuela</option>
+                                    <!-- Las opciones se cargarán dinámicamente desde el JS -->
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Facultad *</label>
+                                <select class="form-select" id="userFaculty" name="facultadID" required>
+                                    <option value="">Seleccionar Facultad</option>
+                                    <!-- Las opciones se cargarán dinámicamente desde el JS -->
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Fecha de Nacimiento</label>
+                                <input type="date" class="form-control" id="userBirthDate" name="fechaNacimiento">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Teléfono</label>
+                                <input type="tel" class="form-control" id="userPhone" name="telefono" pattern="[0-9]{9}"
+                                    placeholder="Ej: 987654321">
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="isAdmin" name="esAdmin" checked>
+                                    <label class="form-check-label" for="isAdmin">
+                                        <i class="fas fa-crown text-warning me-1"></i>
+                                        Marcar como Administrador
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Nota:</strong> Se enviará un correo de verificación al email proporcionado.
+                                    El administrador deberá verificar su cuenta antes de poder acceder al sistema.
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" form="addUserForm" class="btn btn-primary">
+                        <i class="fas fa-user-plus me-2"></i>Agregar Administrador
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="saveUser()">
+            <i class="fas fa-save me-1"></i>
+            Guardar Usuario
+        </button>
+    </div>
+    </div>
+    </div>
+    </div>
+
+
+
+    <!-- User Details Modal -->
+    <div class="modal fade" id="userDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user me-2"></i>
+                        Detalles del Usuario
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="userDetailsContent">
+                    <!-- Content loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Dialog Modal -->
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmModalTitle">Confirmar Acción</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="confirmModalBody">
+                    ¿Estás seguro de que deseas realizar esta acción?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmModalBtn">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="inspectUserModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-circle me-2"></i>Detalles del Usuario
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Información Personal</h6>
+                            <div class="mb-2">
+                                <small class="text-muted">Nombre Completo:</small>
+                                <div id="inspectUserName" class="fw-bold">-</div>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Email:</small>
+                                <div id="inspectUserEmail" class="fw-bold">-</div>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Código:</small>
+                                <div id="inspectUserCode" class="fw-bold">-</div>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Teléfono:</small>
+                                <div id="inspectUserPhone" class="fw-bold">-</div>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Fecha de Nacimiento:</small>
+                                <div id="inspectUserBirthDate" class="fw-bold">-</div>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Edad:</small>
+                                <div id="inspectUserAge" class="fw-bold">-</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Información Académica</h6>
+                            <div class="mb-2">
+                                <small class="text-muted">Escuela:</small>
+                                <div id="inspectUserSchool" class="fw-bold">-</div>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Facultad:</small>
+                                <div id="inspectUserFaculty" class="fw-bold">-</div>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Rol:</small>
+                                <div id="inspectUserRole" class="fw-bold">-</div>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Estado:</small>
+                                <div id="inspectUserStatus" class="fw-bold">-</div>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Tipo:</small>
+                                <div id="inspectUserType" class="fw-bold">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">Fecha de Registro:</small>
+                            <div id="inspectUserRegistrationDate" class="fw-bold">-</div>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Última Actualización:</small>
+                            <div id="inspectUserLastUpdate" class="fw-bold">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Notification Toast -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="fas fa-info-circle text-primary me-2"></i>
+                <strong class="me-auto" id="toastTitle">Notificación</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastBody">
+                Mensaje de notificación
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Scripts -->
+    <script type="module" src="js/users-crud-functions.js" defer></script>
+    <script type="module" src="js/users-service.js" defer></script>
+</body>
+
+</html>

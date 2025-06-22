@@ -1,4 +1,4 @@
-// Importar configuración de Firebase desde archivo dedicado
+// events-main Importar configuración de Firebase desde archivo dedicado
 import {
   auth,
   db,

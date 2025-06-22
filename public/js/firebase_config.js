@@ -22,8 +22,15 @@ import {
   setDoc,
   query,
   where,
+  orderBy,
+  addDoc,
+  deleteDoc,
   getDocs,
+  limit,
+  serverTimestamp,
   updateDoc,
+  startAfter,
+  Timestamp,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 // Configuración de Firebase
@@ -62,9 +69,16 @@ export {
   checkActionCode,
   applyActionCode,
   getDoc,
+  addDoc,
+  limit,
+  orderBy,
+  serverTimestamp,
+  deleteDoc,
   setDoc,
   query,
   where,
+  startAfter,
   getDocs,
   updateDoc,
+  Timestamp,
 };
