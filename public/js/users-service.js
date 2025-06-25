@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 // users-profile-service.js - Gestión de Perfil de Usuario y Estadísticas OPTIMIZADO
 // OPTIMIZACIONES: Carga inmediata, cache mejorado, operaciones paralelas
 
@@ -10,7 +11,6 @@ import {
   getDocs,
   query,
   where,
-  orderBy,
   onAuthStateChanged,
 } from "./firebase_config.js";
 
@@ -35,7 +35,7 @@ const USER_PROFILE_CONFIG = {
  * Variables globales del módulo
  */
 let currentUserSession = null;
-let profileCache = new Map();
+const profileCache = new Map();
 let isProfileLoading = false;
 let statisticsCache = null;
 let lastStatisticsUpdate = null;
@@ -50,6 +50,9 @@ const PERSISTENT_CACHE_KEY = "ecovoluntarios_cache";
 
 /**
  * Muestra notificaciones toast (versión optimizada)
+ * @param {string} title - Título del toast
+ * @param {string} message - Mensaje del toast
+ * @param {string} type - Tipo de toast (info, error, success, warning)
  */
 function showToast(title, message, type = "info") {
   try {
@@ -69,6 +72,7 @@ function showToast(title, message, type = "info") {
     toastBody.textContent = message;
     toastElement.className = `toast show toast-${type}`;
 
+    // eslint-disable-next-line no-undef
     const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
     toast.show();
   } catch (error) {
@@ -78,6 +82,9 @@ function showToast(title, message, type = "info") {
 
 /**
  * Maneja errores de manera optimizada
+ * @param {Error} error - Error a manejar
+ * @param {string} context - Contexto donde ocurrió el error
+ * @param {boolean} showUser - Si mostrar el error al usuario
  */
 function handleError(error, context, showUser = false) {
   console.error(`❌ Error en ${context}:`, error);
@@ -95,6 +102,11 @@ function handleError(error, context, showUser = false) {
  * Cache persistente optimizado
  */
 const PersistentCache = {
+  /**
+   * Obtiene un elemento del cache
+   * @param {string} key - Clave del elemento
+   * @returns {any|null} Datos del cache o null si no existe/expiró
+   */
   get(key) {
     try {
       const cache = JSON.parse(
@@ -114,6 +126,12 @@ const PersistentCache = {
     }
   },
 
+  /**
+   * Guarda un elemento en el cache
+   * @param {string} key - Clave del elemento
+   * @param {any} data - Datos a guardar
+   * @param {number} ttl - Tiempo de vida del cache
+   */
   set(key, data, ttl = USER_PROFILE_CONFIG.CACHE_DURATION) {
     try {
       const cache = JSON.parse(
@@ -130,6 +148,10 @@ const PersistentCache = {
     }
   },
 
+  /**
+   * Elimina un elemento del cache
+   * @param {string} key - Clave del elemento a eliminar
+   */
   delete(key) {
     try {
       const cache = JSON.parse(
@@ -142,6 +164,9 @@ const PersistentCache = {
     }
   },
 
+  /**
+   * Limpia todo el cache
+   */
   clear() {
     try {
       localStorage.removeItem(PERSISTENT_CACHE_KEY);
@@ -157,6 +182,7 @@ const PersistentCache = {
 
 /**
  * Obtiene la sesión almacenada (optimizado)
+ * @returns {Object|null} Datos de sesión o null
  */
 function getStoredSession() {
   if (currentUserSession) {
@@ -182,6 +208,7 @@ function getStoredSession() {
 
 /**
  * Almacena la sesión del usuario (optimizado)
+ * @param {Object} sessionData - Datos de sesión a almacenar
  */
 function storeSession(sessionData) {
   try {
@@ -214,6 +241,7 @@ function clearSession() {
 
 /**
  * Verifica autenticación (optimizado)
+ * @returns {Object|null} Sesión válida o null
  */
 function checkAuthentication() {
   const session = getStoredSession();
@@ -224,7 +252,9 @@ function checkAuthentication() {
       "Por favor, inicia sesión nuevamente",
       "warning"
     );
-    setTimeout(() => (window.location.href = "index.html"), 1500);
+    setTimeout(() => {
+      window.location.href = "index.html";
+    }, 1500);
     return null;
   }
 
@@ -240,7 +270,9 @@ function checkAuthentication() {
 
   if (adminPages.includes(currentPage) && !session.esAdmin) {
     showToast("Acceso denegado", "Sin permisos para esta página", "error");
-    setTimeout(() => (window.location.href = "descarga_app.html"), 1500);
+    setTimeout(() => {
+      window.location.href = "descarga_app.html";
+    }, 1500);
     return null;
   }
 
@@ -253,6 +285,7 @@ function checkAuthentication() {
 
 /**
  * Actualiza inmediatamente la UI con datos de sesión
+ * @param {Object} session - Datos de sesión
  */
 function updateUIImmediate(session) {
   try {
@@ -277,8 +310,10 @@ function updateUIImmediate(session) {
     console.error("❌ Error al actualizar UI inmediata:", error);
   }
 }
+
 /**
  * Actualiza indicador de administrador
+ * @param {boolean} isAdmin - Si el usuario es administrador
  */
 function updateAdminIndicator(isAdmin) {
   try {
@@ -293,12 +328,14 @@ function updateAdminIndicator(isAdmin) {
     // Actualizar elementos según permisos
     const adminOnlyElements = document.querySelectorAll("[data-admin-only]");
     adminOnlyElements.forEach((element) => {
-      element.style.display = isAdmin ? "block" : "none";
+      const el = element;
+      el.style.display = isAdmin ? "block" : "none";
     });
 
     const nonAdminElements = document.querySelectorAll("[data-non-admin]");
     nonAdminElements.forEach((element) => {
-      element.style.display = isAdmin ? "none" : "block";
+      const el = element;
+      el.style.display = isAdmin ? "none" : "block";
     });
   } catch (error) {
     console.error("❌ Error al actualizar indicador admin:", error);
@@ -307,6 +344,8 @@ function updateAdminIndicator(isAdmin) {
 
 /**
  * Obtiene el perfil del usuario (optimizado con cache)
+ * @param {string} userId - ID del usuario
+ * @returns {Promise<Object>} Datos del perfil
  */
 async function fetchUserProfile(userId) {
   try {
@@ -363,6 +402,8 @@ async function fetchUserProfile(userId) {
 
 /**
  * Obtiene perfil desde Firestore con operaciones paralelas
+ * @param {string} userId - ID del usuario
+ * @returns {Promise<Object>} Datos del perfil enriquecidos
  */
 async function fetchProfileFromFirestore(userId) {
   const userDocRef = doc(db, "usuarios", userId);
@@ -382,6 +423,8 @@ async function fetchProfileFromFirestore(userId) {
 
 /**
  * Enriquece el perfil con operaciones paralelas - VERSIÓN CORREGIDA
+ * @param {Object} profileData - Datos básicos del perfil
+ * @returns {Promise<Object>} Datos del perfil enriquecidos
  */
 async function enrichUserProfileParallel(profileData) {
   try {
@@ -468,8 +511,10 @@ async function enrichUserProfileParallel(profileData) {
     return profileData;
   }
 }
+
 /**
  * Actualiza la interfaz con el perfil completo
+ * @param {Object} userProfile - Datos del perfil del usuario
  */
 function updateUserInterface(userProfile) {
   try {
@@ -508,6 +553,7 @@ function updateUserInterface(userProfile) {
 
 /**
  * Obtiene estadísticas con cache optimizado
+ * @returns {Promise<Object>} Estadísticas del sistema
  */
 async function fetchUserStatistics() {
   try {
@@ -550,12 +596,12 @@ async function fetchUserStatistics() {
     let usuariosActivos = 0;
     let totalUsuarios = 0;
 
-    usuariosSnapshot.forEach((doc) => {
-      const userData = doc.data();
-      totalUsuarios++;
+    usuariosSnapshot.forEach((docSnap) => {
+      const userData = docSnap.data();
+      totalUsuarios += 1;
 
       if (userData.estadoActivo) {
-        usuariosActivos++;
+        usuariosActivos += 1;
       }
 
       if (userData.escuelaID) {
@@ -600,6 +646,7 @@ async function fetchUserStatistics() {
 
 /**
  * Actualiza tarjetas de estadísticas con animación optimizada
+ * @param {Object} statistics - Estadísticas a mostrar
  */
 function updateStatisticsCards(statistics) {
   try {
@@ -624,6 +671,10 @@ function updateStatisticsCards(statistics) {
 
 /**
  * Animación de contador optimizada
+ * @param {HTMLElement} element - Elemento a animar
+ * @param {number} start - Valor inicial
+ * @param {number} end - Valor final
+ * @param {number} duration - Duración de la animación
  */
 function animateCounterFast(element, start, end, duration) {
   try {
@@ -663,8 +714,9 @@ function animateCounterFast(element, start, end, duration) {
 
 /**
  * Navega a una página específica
+ * @param {string} pageName - Nombre de la página
  */
-window.navigateToPage = function (pageName) {
+function navigateToPage(pageName) {
   const session = getStoredSession();
   if (!session) {
     window.location.href = "index.html";
@@ -689,12 +741,12 @@ window.navigateToPage = function (pageName) {
   }
 
   window.location.href = pageName;
-};
+}
 
 /**
  * Muestra el perfil del usuario (optimizado)
  */
-window.showProfile = async function () {
+async function showProfile() {
   try {
     const session = getStoredSession();
     if (!session) return;
@@ -735,26 +787,28 @@ Registrado: ${
     }
     `.trim();
 
+    // eslint-disable-next-line no-alert
     alert(profileInfo);
   } catch (error) {
     handleError(error, "al mostrar el perfil", true);
   } finally {
     isProfileLoading = false;
   }
-};
+}
 
 /**
  * Configuración placeholder
  */
-window.showSettings = function () {
+function showSettings() {
   showToast("En desarrollo", "Configuración disponible pronto", "info");
-};
+}
 
 /**
  * Maneja el cierre de sesión
  */
-window.handleLogout = function () {
+function handleLogout() {
   try {
+    // eslint-disable-next-line no-alert
     if (!confirm("¿Estás seguro de que deseas cerrar sesión?")) return;
 
     clearSession();
@@ -768,12 +822,14 @@ window.handleLogout = function () {
     }
 
     showToast("Sesión cerrada", "Has cerrado sesión exitosamente", "success");
-    setTimeout(() => (window.location.href = "index.html"), 1000);
+    setTimeout(() => {
+      window.location.href = "index.html";
+    }, 1000);
   } catch (error) {
     handleError(error, "al cerrar sesión");
     window.location.href = "index.html";
   }
-};
+}
 
 // =============================================
 // INICIALIZACIÓN OPTIMIZADA
@@ -880,6 +936,12 @@ if (document.readyState === "loading") {
   initializeUserProfile();
   setupEventListeners();
 }
+
+// Exponer funciones al window para compatibilidad
+window.navigateToPage = navigateToPage;
+window.showProfile = showProfile;
+window.showSettings = showSettings;
+window.handleLogout = handleLogout;
 
 // API pública
 window.UserProfileService = {

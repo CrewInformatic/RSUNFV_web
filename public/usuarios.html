@@ -201,6 +201,231 @@
                         </button>
                     </div>
                 </div>
+                <div class="modal fade" id="exportUsersModal" tabindex="-1" aria-labelledby="exportUsersModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="exportUsersModalLabel">
+          <i class="fas fa-file-excel me-2"></i>
+          Exportar Usuarios a Excel
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Estadísticas de usuarios -->
+        <div class="row mb-4">
+          <div class="col-12">
+            <h6 class="text-muted mb-3">
+              <i class="fas fa-chart-bar me-1"></i>
+              Estadísticas de Usuarios
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="card border-primary">
+                  <div class="card-body text-center">
+                    <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                    <h4 class="card-title text-primary mb-1" id="statsTotal">0</h4>
+                    <p class="card-text small text-muted">Total de Usuarios</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card border-info">
+                  <div class="card-body text-center">
+                    <i class="fas fa-filter fa-2x text-info mb-2"></i>
+                    <h4 class="card-title text-info mb-1" id="statsFiltered">0</h4>
+                    <p class="card-text small text-muted">Usuarios Filtrados</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card border-success">
+                  <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                    <h4 class="card-title text-success mb-1" id="statsActive">0</h4>
+                    <p class="card-text small text-muted">Usuarios Activos</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Opciones de exportación -->
+        <div class="row">
+          <div class="col-12">
+            <h6 class="text-muted mb-3">
+              <i class="fas fa-download me-1"></i>
+              Selecciona qué usuarios exportar
+            </h6>
+            
+            <div class="row g-3">
+              <!-- Usuarios Filtrados -->
+              <div class="col-md-6">
+                <div class="export-option-card" data-export-type="filtered">
+                  <div class="card h-100 border-2 border-info export-card">
+                    <div class="card-body text-center">
+                      <i class="fas fa-filter fa-3x text-info mb-3"></i>
+                      <h5 class="card-title text-info">Usuarios Filtrados</h5>
+                      <p class="card-text text-muted">
+                        Exporta solo los usuarios que aparecen en la tabla actual
+                      </p>
+                      <div class="badge bg-info fs-6 mb-2" id="badgeFiltered">0 usuarios</div>
+                      <div class="mt-3">
+                        <button class="btn btn-info w-100" onclick="executeExport('filtered')">
+                          <i class="fas fa-download me-2"></i>
+                          Exportar Filtrados
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Todos los usuarios -->
+              <div class="col-md-6">
+                <div class="export-option-card" data-export-type="all">
+                  <div class="card h-100 border-2 border-primary export-card">
+                    <div class="card-body text-center">
+                      <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                      <h5 class="card-title text-primary">Todos los Usuarios</h5>
+                      <p class="card-text text-muted">
+                        Exporta la lista completa de usuarios registrados
+                      </p>
+                      <div class="badge bg-primary fs-6 mb-2" id="badgeAll">0 usuarios</div>
+                      <div class="mt-3">
+                        <button class="btn btn-primary w-100" onclick="executeExport('all')">
+                          <i class="fas fa-download me-2"></i>
+                          Exportar Todos
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Solo usuarios activos -->
+              <div class="col-md-6">
+                <div class="export-option-card" data-export-type="active">
+                  <div class="card h-100 border-2 border-success export-card">
+                    <div class="card-body text-center">
+                      <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                      <h5 class="card-title text-success">Solo Activos</h5>
+                      <p class="card-text text-muted">
+                        Exporta únicamente los usuarios activos del sistema
+                      </p>
+                      <div class="badge bg-success fs-6 mb-2" id="badgeActive">0 usuarios</div>
+                      <div class="mt-3">
+                        <button class="btn btn-success w-100" onclick="executeExport('active')">
+                          <i class="fas fa-download me-2"></i>
+                          Exportar Activos
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Solo administradores -->
+              <div class="col-md-6">
+                <div class="export-option-card" data-export-type="admin">
+                  <div class="card h-100 border-2 border-warning export-card">
+                    <div class="card-body text-center">
+                      <i class="fas fa-user-shield fa-3x text-warning mb-3"></i>
+                      <h5 class="card-title text-warning">Solo Administradores</h5>
+                      <p class="card-text text-muted">
+                        Exporta únicamente los usuarios administradores
+                      </p>
+                      <div class="badge bg-warning fs-6 mb-2" id="badgeAdmin">0 usuarios</div>
+                      <div class="mt-3">
+                        <button class="btn btn-warning w-100" onclick="executeExport('admin')">
+                          <i class="fas fa-download me-2"></i>
+                          Exportar Admins
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Solo usuarios inactivos -->
+              <div class="col-md-6">
+                <div class="export-option-card" data-export-type="inactive">
+                  <div class="card h-100 border-2 border-danger export-card">
+                    <div class="card-body text-center">
+                      <i class="fas fa-times-circle fa-3x text-danger mb-3"></i>
+                      <h5 class="card-title text-danger">Solo Inactivos</h5>
+                      <p class="card-text text-muted">
+                        Exporta únicamente los usuarios inactivos del sistema
+                      </p>
+                      <div class="badge bg-danger fs-6 mb-2" id="badgeInactive">0 usuarios</div>
+                      <div class="mt-3">
+                        <button class="btn btn-danger w-100" onclick="executeExport('inactive')">
+                          <i class="fas fa-download me-2"></i>
+                          Exportar Inactivos
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Usuarios regulares -->
+              <div class="col-md-6">
+                <div class="export-option-card" data-export-type="regular">
+                  <div class="card h-100 border-2 border-secondary export-card">
+                    <div class="card-body text-center">
+                      <i class="fas fa-user fa-3x text-secondary mb-3"></i>
+                      <h5 class="card-title text-secondary">Solo Regulares</h5>
+                      <p class="card-text text-muted">
+                        Exporta únicamente los usuarios regulares (no administradores)
+                      </p>
+                      <div class="badge bg-secondary fs-6 mb-2" id="badgeRegular">0 usuarios</div>
+                      <div class="mt-3">
+                        <button class="btn btn-secondary w-100" onclick="executeExport('regular')">
+                          <i class="fas fa-download me-2"></i>
+                          Exportar Regulares
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="row mt-4">
+          <div class="col-12">
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              <strong>Información:</strong>
+              <ul class="mb-0 mt-2">
+                <li>El archivo Excel incluirá todos los datos de los usuarios seleccionados</li>
+                <li>Se generará una hoja adicional con estadísticas resumidas</li>
+                <li>El archivo se descargará automáticamente con fecha y hora actual</li>
+                <li>Los códigos de estudiante se ocultan para administradores por seguridad</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-2"></i>
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-success" onclick="executeExport('filtered')" id="btnQuickExport">
+          <i class="fas fa-bolt me-2"></i>
+          Exportación Rápida (Filtrados)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead>
@@ -308,13 +533,6 @@
                                     <span>Patrón: </span>
                                     <code>nombreUsuario + "ADMIN*"</code>
                                 </div>
-                                <!-- Campo para mostrar la contraseña generada -->
-                                <div class="mt-2" id="passwordDisplayContainer" style="display: none;">
-                                    <small class="text-success">
-                                        <i class="fas fa-key me-1"></i>
-                                        Contraseña generada: <strong id="passwordDisplay"></strong>
-                                    </small>
-                                </div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Escuela *</label>
@@ -369,19 +587,9 @@
             </div>
         </div>
     </div>
-    <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary" onclick="saveUser()">
-            <i class="fas fa-save me-1"></i>
-            Guardar Usuario
-        </button>
     </div>
     </div>
     </div>
-    </div>
-
-
-
     <!-- User Details Modal -->
     <div class="modal fade" id="userDetailsModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
@@ -520,6 +728,15 @@
     <!-- Scripts -->
     <script type="module" src="js/users-crud-functions.js" defer></script>
     <script type="module" src="js/users-service.js" defer></script>
+    <script>
+        window.openAddAdminModal = function() {
+  const modal = document.getElementById("addUserModal");
+  if (modal) {
+    const bootstrapModal = new bootstrap.Modal(modal);
+    bootstrapModal.show();
+  }
+};
+    </script>
 </body>
 
 </html>

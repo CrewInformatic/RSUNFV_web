@@ -105,6 +105,7 @@ window.navigateToPage = function (pageName) {
     "configuracion.html",
     "reportes.html",
   ];
+
   if (adminPages.includes(pageName) && !session.esAdmin) {
     alert("No tienes permisos para acceder a esta página");
     return;
@@ -175,7 +176,6 @@ async function loadDashboardStats() {
       totalParticipants,
     });
   } catch (error) {
-    console.error("Error al cargar estadísticas:", error);
     updateStatsUI({
       totalEvents: 0,
       totalVolunteers: 0,
@@ -270,7 +270,7 @@ async function loadRecentEvents() {
 
       if (a.fechaInicio && b.fechaInicio) {
         const dateA = new Date(a.fechaInicio);
-        const dateB = new Date(a.fechaInicio);
+        const dateB = new Date(b.fechaInicio);
         if (!isNaN(dateA.getTime()) && !isNaN(dateB.getTime())) {
           return dateB.getTime() - dateA.getTime();
         }
@@ -287,7 +287,6 @@ async function loadRecentEvents() {
     const recentEvents = sortedEvents.slice(0, 5);
     updateEventsTable(recentEvents);
   } catch (error) {
-    console.error("Error al cargar eventos:", error);
     await loadEventsSimple();
   }
 }
@@ -305,7 +304,6 @@ async function loadEventsSimple() {
     const limitedEvents = events.slice(0, 10);
     updateEventsTable(limitedEvents);
   } catch (error) {
-    console.error("Error en carga simple:", error);
     updateEventsTable([]);
   }
 }
@@ -505,7 +503,7 @@ window.debugEvents = async function () {
 
     return allEvents;
   } catch (error) {
-    console.error("Error en debug:", error);
+    return [];
   }
 };
 
@@ -525,7 +523,7 @@ window.showAllEvents = async function () {
 
     updateEventsTable(events);
   } catch (error) {
-    console.error("Error al mostrar todos los eventos:", error);
+    updateEventsTable([]);
   }
 };
 
@@ -615,14 +613,6 @@ window.addEventListener("resize", function () {
 // =============================================
 // FUNCIONES UTILITARIAS
 // =============================================
-
-window.showDebugInfo = function () {
-  const session = getStoredSession();
-  console.log("Información de sesión:", session);
-  console.log("Página actual:", window.location.pathname);
-  console.log("Usuario autenticado:", !!session);
-  console.log("Es administrador:", session?.esAdmin || false);
-};
 
 window.refreshDashboard = async function () {
   await loadDashboardStats();

@@ -1,4 +1,4 @@
-// confirm-pasword Importar Firebase (ajusta la ruta según tu estructura)
+// confirm-password - Sistema de restablecimiento de contraseña
 import {
   auth,
   confirmPasswordReset,
@@ -24,12 +24,14 @@ let verifiedEmail = null;
 let actionCodeVerified = false;
 let currentActionCode = null;
 
-// Verificar si venimos de un enlace de Firebase válido
+/**
+ * Verificar si venimos de un enlace de Firebase válido
+ * @returns {boolean} - True si el referrer es válido
+ */
 function checkFirebaseReferrer() {
   const referrer = document.referrer;
   const currentDomain = window.location.hostname;
 
-  // Verificar si venimos de Firebase o de nuestro propio dominio
   const validReferrers = [
     "firebase.google.com",
     "firebaseapp.com",
@@ -50,12 +52,14 @@ function checkFirebaseReferrer() {
   return false;
 }
 
-// Intentar obtener parámetros de diferentes fuentes
+/**
+ * Obtener parámetros de restablecimiento desde la URL
+ * @returns {Object|null} - Parámetros de restablecimiento o null
+ */
 function getResetParameters() {
-  // Método 1: Desde URL (preferido)
   const urlParams = new URLSearchParams(window.location.search);
-  let mode = urlParams.get("mode");
-  let actionCode = urlParams.get("oobCode");
+  const mode = urlParams.get("mode");
+  const actionCode = urlParams.get("oobCode");
 
   if (mode && actionCode) {
     return { mode, actionCode, source: "url" };
@@ -63,12 +67,14 @@ function getResetParameters() {
   return null;
 }
 
-// Verificar parámetros con más flexibilidad
+/**
+ * Verificar parámetros de URL con validación de seguridad
+ */
 async function checkUrlParams() {
   const params = getResetParameters();
   const isValidReferrer = checkFirebaseReferrer();
 
-  // Si no tenemos parámetros pero tenemos un referrer válido, mostrar ayuda
+  // Si no tenemos parámetros pero tenemos un referrer válido
   if (!params && isValidReferrer) {
     showMessage(
       "Parece que vienes de un enlace válido, pero faltan algunos parámetros. " +
@@ -84,7 +90,6 @@ async function checkUrlParams() {
 
   // Si no tenemos parámetros y no es un referrer válido
   if (!params) {
-    // OPCIÓN FLEXIBLE: Permitir acceso directo pero con advertencia
     if (
       confirm(
         "Esta página debe ser accedida desde el enlace de recuperación de contraseña enviado a tu correo.\n\n¿Tienes el código de recuperación y quieres continuar manualmente?"
@@ -94,7 +99,7 @@ async function checkUrlParams() {
         "Acceso directo detectado. Asegúrate de tener el código de recuperación válido.",
         false
       );
-      return; // Permitir continuar
+      return;
     } else {
       window.location.href = "request-password-reset.html";
       return;
@@ -103,7 +108,7 @@ async function checkUrlParams() {
 
   const { mode, actionCode, source } = params;
 
-  // Verificar modo
+  // Verificar modo de operación
   if (mode !== "resetPassword") {
     showMessage(
       "Modo de operación inválido. Esta página debe ser accedida desde el enlace de recuperación.",
@@ -115,17 +120,16 @@ async function checkUrlParams() {
     return;
   }
 
-  // Guardar código de acción
   currentActionCode = actionCode;
 
-  // Guardar parámetros para uso futuro (por si se recarga la página)
+  // Guardar parámetros en sessionStorage para persistencia
   try {
     sessionStorage.setItem(
       "firebaseResetParams",
       JSON.stringify({ mode, actionCode })
     );
-  } catch (e) {
-    // Error silenciado para producción
+  } catch (error) {
+    // Error silenciado - sessionStorage podría no estar disponible
   }
 
   // Verificar el código de acción
@@ -139,7 +143,10 @@ async function checkUrlParams() {
   }
 }
 
-// Función para manejar errores de verificación
+/**
+ * Manejar errores de verificación del código de acción
+ * @param {Error} error - Error de verificación
+ */
 function handleVerificationError(error) {
   let errorMsg = "Error al verificar el enlace de recuperación. ";
 
@@ -166,7 +173,10 @@ function handleVerificationError(error) {
   }, 5000);
 }
 
-// Verificar código con el parámetro almacenado
+/**
+ * Verificar código de acción y obtener email asociado
+ * @returns {Promise<string>} - Email verificado
+ */
 async function verifyActionCodeAndGetEmail() {
   if (!currentActionCode) {
     const params = getResetParameters();
@@ -185,7 +195,7 @@ async function verifyActionCodeAndGetEmail() {
     verifiedEmail = email;
     actionCodeVerified = true;
 
-    // Pre-llenar el campo de email si está disponible
+    // Pre-llenar y bloquear el campo de email
     if (confirmEmailInput && email) {
       confirmEmailInput.value = email;
       confirmEmailInput.readOnly = true;
@@ -194,11 +204,15 @@ async function verifyActionCodeAndGetEmail() {
     return email;
   } catch (error) {
     actionCodeVerified = false;
+    console.error("Error crítico al verificar código:", error.code); // Console log crítico
     throw error;
   }
 }
 
-// Reset password usando el código almacenado
+/**
+ * Resetear contraseña usando el código de verificación
+ * @param {Event} event - Evento de submit del formulario
+ */
 async function resetPassword(event) {
   event.preventDefault();
 
@@ -206,7 +220,7 @@ async function resetPassword(event) {
   const newPassword = newPasswordInput.value;
   const confirmPassword = confirmPasswordInput.value;
 
-  // Validaciones
+  // Validaciones de campos
   if (!email || !newPassword || !confirmPassword) {
     showMessage("Por favor completa todos los campos", true);
     return;
@@ -247,7 +261,7 @@ async function resetPassword(event) {
     return;
   }
 
-  // Usar el código almacenado
+  // Verificar código de acción
   if (!currentActionCode || !actionCodeVerified) {
     showMessage(
       "Código de verificación no válido. Por favor, usa el enlace del correo electrónico.",
@@ -256,7 +270,7 @@ async function resetPassword(event) {
     return;
   }
 
-  // Cambiar botón a estado de carga
+  // UI Loading state
   const originalText = resetBtn.textContent;
   resetBtn.innerHTML =
     '<span class="spinner-border spinner-border-sm me-2"></span>Cambiando contraseña...';
@@ -269,24 +283,27 @@ async function resetPassword(event) {
     try {
       sessionStorage.removeItem("firebaseResetParams");
       localStorage.removeItem("firebaseResetParams");
-    } catch (e) {
-      // Error silenciado para producción
+    } catch (error) {
+      // Error silenciado
     }
 
+    // Limpiar campos sensibles
     newPasswordInput.value = "";
     confirmPasswordInput.value = "";
 
+    // Mostrar éxito y redirigir
     resetFormSection.style.display = "none";
     successContainer.style.display = "block";
 
     setTimeout(() => {
       const loginUrl = "login.html";
-      showMessage(`Redirigiendo al login en 3 segundos...`);
+      showMessage("Redirigiendo al login en 3 segundos...");
       setTimeout(() => {
         window.location.href = loginUrl;
       }, 3000);
     }, 2000);
   } catch (error) {
+    console.error("Error crítico al resetear contraseña:", error.code); // Console log crítico
     handleResetError(error);
   } finally {
     resetBtn.textContent = originalText;
@@ -294,7 +311,10 @@ async function resetPassword(event) {
   }
 }
 
-// Función para manejar errores de reset
+/**
+ * Manejar errores específicos del reset de contraseña
+ * @param {Error} error - Error de Firebase
+ */
 function handleResetError(error) {
   let errorMessageText = "Error al cambiar la contraseña. ";
 
@@ -337,6 +357,11 @@ function handleResetError(error) {
   showMessage(errorMessageText, true);
 }
 
+/**
+ * Mostrar mensajes de éxito o error
+ * @param {string} message - Mensaje a mostrar
+ * @param {boolean} isError - Si es un mensaje de error
+ */
 function showMessage(message, isError = false) {
   if (isError) {
     errorMessage.querySelector("#error-text").textContent = message;
@@ -354,6 +379,11 @@ function showMessage(message, isError = false) {
   }, 10000);
 }
 
+/**
+ * Verificar fortaleza de la contraseña
+ * @param {string} password - Contraseña a verificar
+ * @returns {boolean} - Si la contraseña es suficientemente fuerte
+ */
 function checkPasswordStrength(password) {
   let strength = 0;
   let text = "Muy débil";
@@ -403,6 +433,10 @@ function checkPasswordStrength(password) {
   return strength >= 4;
 }
 
+/**
+ * Validar que las contraseñas coincidan
+ * @returns {boolean} - Si las contraseñas coinciden
+ */
 function validatePasswordMatch() {
   const password = newPasswordInput.value;
   const confirmPassword = confirmPasswordInput.value;
@@ -422,13 +456,18 @@ function validatePasswordMatch() {
   return true;
 }
 
+/**
+ * Validar formato de email
+ * @param {string} email - Email a validar
+ * @returns {boolean} - Si el email es válido
+ */
 function validateEmail(email) {
   const emailRegex =
     /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
   return emailRegex.test(email) && email.length <= 254;
 }
 
-// Event listeners
+// Event Listeners
 newPasswordInput.addEventListener("input", (e) => {
   checkPasswordStrength(e.target.value);
 });
@@ -444,7 +483,7 @@ resetForm.addEventListener("submit", (e) => {
   }
 });
 
-// Inicializar cuando se carga la página
+// Inicialización al cargar la página
 document.addEventListener("DOMContentLoaded", async function () {
   errorMessage.style.display = "none";
   successMessage.style.display = "none";
@@ -453,7 +492,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   await checkUrlParams();
 });
 
-// Event listeners para prevenir pérdida de datos
+// Prevenir pérdida de datos
 window.addEventListener("beforeunload", (e) => {
   if (actionCodeVerified && successContainer.style.display === "none") {
     e.preventDefault();

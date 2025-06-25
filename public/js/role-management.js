@@ -138,11 +138,11 @@ async function loadRoles() {
     rolesSnapshot.forEach((doc) => {
       const roleData = doc.data();
       roles.push({
-        // Usar los campos exactos de Firebase
-        id: roleData.idRol || doc.id, // Usar idRol del documento o el ID del documento
-        name: roleData.nombre || "Rol sin nombre", // Campo 'nombre' según Firebase
-        description: roleData.descripcion || "Sin descripción", // Campo 'descripcion' según Firebase
-        permissions: roleData.permisos || [], // Campo 'permisos' según Firebase
+        firebaseId: doc.id, // ID del documento en Firebase (ej: "43GwVcVi7R0NXJwUIrko")
+        id: roleData.idRol || doc.id, // idRol real del documento (ej: "rol_004")
+        name: roleData.nombre || "Rol sin nombre",
+        description: roleData.descripcion || "Sin descripción",
+        permissions: roleData.permisos || [],
       });
     });
 
@@ -303,8 +303,8 @@ async function assignRole(userId, allUsers) {
         roles
           .map(
             (role) =>
-              `<option value="${role.id}" ${
-                user.idRol === role.id ? "selected" : ""
+              `<option value="${role.firebaseId}" ${
+                user.idRol === role.id ? "selected" : "" // Comparar con el idRol real, no con firebaseId
               }>
               ${role.name}
             </option>`
@@ -343,7 +343,7 @@ async function updateUserRole() {
     isLoading = true;
 
     const userId = document.getElementById("assignRoleUserId").value;
-    const newRoleId = document.getElementById("roleSelect").value;
+    const selectedRoleFirebaseId = document.getElementById("roleSelect").value; // Este es el ID del documento de Firebase
 
     if (!userId) throw new Error("ID de usuario no encontrado");
 
@@ -353,8 +353,19 @@ async function updateUserRole() {
     };
 
     // Manejar correctamente el rol
-    if (newRoleId && newRoleId.trim() !== "") {
-      updateData.idRol = newRoleId; // Guardar el código del rol (ej: "rol_004")
+    if (selectedRoleFirebaseId && selectedRoleFirebaseId.trim() !== "") {
+      // AQUÍ ESTÁ EL CAMBIO IMPORTANTE:
+      // Necesitamos obtener el idRol real del documento del rol seleccionado
+      const roles = await loadRoles();
+      const selectedRole = roles.find(
+        (role) => role.firebaseId === selectedRoleFirebaseId
+      );
+
+      if (selectedRole && selectedRole.id) {
+        updateData.idRol = selectedRole.id; // Esto será "rol_004", no el ID de Firebase
+      } else {
+        throw new Error("Rol seleccionado no encontrado");
+      }
     } else {
       // Si no se selecciona rol, eliminar la propiedad idRol
       updateData.idRol = null;

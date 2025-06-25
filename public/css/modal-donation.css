@@ -1,0 +1,266 @@
+/*=== Modal Estilos ===*/ 
+.donor-type-modal .modal-content {
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.donor-type-modal .modal-header {
+    background: linear-gradient(135deg, var(--orange-primary), var(--orange-secondary));
+    color: white;
+    border-radius: 20px 20px 0 0;
+    border: none;
+}
+
+.donor-type-modal .modal-title {
+    font-weight: 600;
+}
+
+/*=== Barra de Progreso ===*/
+.donation-progress {
+    padding: 20px 0;
+    margin-bottom: 30px;
+    max-height: 200px;
+}
+
+.progress-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    max-width: 600px;
+    max-height: 200px;
+    margin: 0 auto;
+}
+
+.progress-bar::before,
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    height: 3px;
+    transform: translateY(-50%);
+}
+
+.progress-bar::before {
+    left: 0;
+    right: 0;
+    background: #e9ecef;
+    z-index: 1;
+}
+
+.progress-bar::after {
+    left: 0;
+    background: linear-gradient(135deg, var(--orange-primary), var(--orange-secondary));
+    z-index: 2;
+    transition: width 0.3s ease;
+}
+
+.progress-bar.step-1::after { width: 0%; }
+.progress-bar.step-2::after { width: 25%; }
+.progress-bar.step-3::after { width: 50%; }
+.progress-bar.step-4::after { width: 75%; }
+.progress-bar.step-5::after { width: 100%; }
+
+.progress-step {
+    display: flex;
+    flex-direction: row;
+    flex: 1 1 auto;
+    flex-wrap: wrap; 
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    padding: 10px;
+    border-radius: 50%;
+    background: white;
+    border: 3px solid #e9ecef;
+    cursor: pointer;
+    z-index: 3;
+    position: relative;
+    transition: all 0.3s ease;
+    flex-shrink: 0%;
+}
+
+.progress-step i,
+.progress-step span {
+    color: #6c757d;
+    transition: all 0.3s ease;
+}
+
+.progress-step i {
+    font-size: 1.2rem;
+    margin-bottom: 5px;
+}
+
+.progress-step span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1;
+}
+
+.progress-step.active {
+    border-color: var(--orange-primary);
+    background: linear-gradient(135deg, var(--orange-primary), var(--orange-secondary));
+    transform: scale(1.1);
+    box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
+}
+
+.progress-step.active i,
+.progress-step.active span {
+    color: white;
+}
+
+.progress-step.completed {
+    background: #28a745;
+    border-color: #28a745;
+}
+
+.progress-step.completed i,
+.progress-step.completed span {
+    color: white;
+}
+
+/*=== Selección de Tipo de Donante ===*/
+.donor-type-selection {
+    margin-top: 20px;
+}
+
+.donor-type-card {
+    background: white;
+    border: 2px solid var(--orange-light);
+    border-radius: 15px;
+    padding: 30px 20px;
+    text-align: center;
+    height: 100%;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.donor-type-card::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 107, 53, 0.05), transparent);
+    transform: rotate(45deg);
+    opacity: 0;
+    transition: all 0.6s ease;
+}
+
+.donor-type-card:hover::before {
+    opacity: 1;
+    transform: rotate(45deg) translate(50%, 50%);
+}
+
+.donor-type-card:hover {
+    border-color: var(--orange-primary);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(255, 107, 53, 0.15);
+}
+
+.donor-type-card.selected {
+    border-color: var(--orange-primary);
+    background: var(--orange-light);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(255, 107, 53, 0.15);
+}
+
+/*=== Contenido de la Tarjeta ===*/
+.card-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 20px;
+    font-size: 2rem;
+    border-radius: 50%;
+    color: white;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, var(--orange-primary), var(--orange-secondary));
+    transition: all 0.3s ease;
+}
+
+.donor-type-card:hover .card-icon {
+    transform: scale(1.1) rotate(10deg);
+    box-shadow: 0 10px 25px rgba(255, 107, 53, 0.3);
+}
+
+.donor-type-card h5 {
+    color: var(--gray-dark);
+    font-weight: 700;
+    margin-bottom: 15px;
+    position: relative;
+    z-index: 2;
+}
+
+.donor-type-card p {
+    color: var(--gray-medium);
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.benefits {
+    text-align: left;
+    position: relative;
+    z-index: 2;
+}
+
+.benefits small {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--gray-medium);
+}
+
+/*=== Resumen de Donación ===*/
+.donation-summary {
+    background: var(--orange-light);
+    border-left: 4px solid var(--orange-primary);
+    border-radius: 15px;
+    padding: 20px;
+}
+
+/*=== Responsive ===*/
+@media (max-width: 768px) {
+    .progress-step {
+        width: 60px;
+        height: 60px;
+        padding: 5px;
+    }
+
+    .progress-step i {
+        font-size: 1rem;
+        margin-bottom: 3px;
+    }
+
+    .progress-step span {
+        font-size: 0.65rem;
+    }
+
+    .donor-type-card {
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .progress-step {
+        width: 50px;
+        height: 50px;
+    }
+
+    .progress-step i {
+        font-size: 0.9rem;
+    }
+
+    .progress-step span {
+        font-size: 0.6rem;
+    }
+}

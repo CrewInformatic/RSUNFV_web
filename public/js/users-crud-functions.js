@@ -5,7 +5,6 @@ import {
   doc,
   getDocs,
   getDoc,
-  addDoc,
   updateDoc,
   deleteDoc,
   query,
@@ -21,7 +20,16 @@ import {
   getRoleDisplayBadge,
   generateRoleDisplayHTML,
 } from "./role-management.js";
-
+import "./admin-register.js";
+import {
+  exportUsers,
+  exportUsersToExcel,
+  exportFilteredUsersToExcel,
+  exportAllUsersToExcel,
+  executeExport,
+  updateExportData,
+  initializeExportSystem,
+} from "./export-users-excel.js";
 // =============================================
 // CONFIGURACIÓN Y ESTADO GLOBAL
 // =============================================
@@ -134,7 +142,37 @@ const utils = {
     return data;
   },
 };
+const exportModule = {
+  /**
+   * Función principal de exportación - integrada con el sistema completo
+   */
+  exportUsers() {
+    console.log("📊 Iniciando exportación desde CRUD...");
 
+    // Actualizar datos en el módulo de exportación
+    this.updateExportData();
+
+    // Llamar al sistema de exportación completo
+    exportUsers();
+  },
+
+  /**
+   * Actualizar datos en el módulo de exportación
+   */
+  updateExportData() {
+    const event = new CustomEvent("exportDataUpdated", {
+      detail: {
+        allUsers: state.allUsers,
+        filteredUsers: state.filteredUsers,
+      },
+    });
+    document.dispatchEvent(event);
+
+    if (window.updateExportData) {
+      window.updateExportData(state.allUsers, state.filteredUsers);
+    }
+  },
+};
 // =============================================
 // CARGA DE DATOS
 // =============================================
@@ -265,99 +303,99 @@ const ui = {
     return getRoleDisplayBadge(user);
   },
 
-  // CAMBIO 1: En la función updateTable() del objeto ui
-  // Busca esta línea (aproximadamente línea 235):
+  // Función updateTable modificada para ocultar código en administradores
   updateTable(users) {
     const tableBody = document.getElementById("usersTableBody");
     if (!tableBody) return;
 
     if (users.length === 0) {
       tableBody.innerHTML = `
-      <tr>
-        <td colspan="7" class="text-center py-4 text-muted">
-          <i class="fas fa-users fa-2x mb-2"></i>
-          <p class="mb-0">No se encontraron usuarios</p>
-        </td>
-      </tr>`;
+    <tr>
+      <td colspan="7" class="text-center py-4 text-muted">
+        <i class="fas fa-users fa-2x mb-2"></i>
+        <p class="mb-0">No se encontraron usuarios</p>
+      </td>
+    </tr>`;
       return;
     }
 
     tableBody.innerHTML = users
       .map(
         (user) => `
-    <tr>
-      <td>
-        <div class="d-flex align-items-center">
-          <i class="fas fa-user-circle fa-2x text-secondary me-3"></i>
-          <div>
-            <div class="fw-bold">${user.nombreCompleto || "Sin nombre"}</div>
-            <small class="text-muted">${user.correo || "Sin email"}</small><br>
-            <small class="text-muted">Código: ${
-              user.codigoUsuario || "N/A"
-            }</small>
-          </div>
+  <tr>
+    <td>
+      <div class="d-flex align-items-center">
+        <i class="fas fa-user-circle fa-2x text-secondary me-3"></i>
+        <div>
+          <div class="fw-bold">${user.nombreCompleto || "Sin nombre"}</div>
+          <small class="text-muted">${user.correo || "Sin email"}</small>
+          ${
+            // Solo mostrar código si NO es administrador
+            !user.esAdmin && user.codigoUsuario
+              ? `<br><small class="text-muted">Código: ${user.codigoUsuario}</small>`
+              : ""
+          }
         </div>
-      </td>
-      <td>
-        <span class="badge bg-light text-dark">${user.nombreEscuela}</span><br>
-        <small class="text-muted">${user.nombreFacultad}</small>
-      </td>
-      <td>${this.getRoleDisplayBadge(user)}</td>
-      <td><small>${utils.formatDate(user.fechaRegistro)}</small></td>
-      <td><span class="badge bg-info">0</span><br><small class="text-muted">Eventos</small></td>
-      <td>
-        <div class="form-check form-switch">
-          <input class="form-check-input status-toggle" type="checkbox" 
-                 ${user.estadoActivo ? "checked" : ""} 
-                 data-user-id="${user.id}"
-                 onchange="toggleUserStatus('${user.id}', this.checked)">
-          <label class="form-check-label">
-            <small class="${
-              user.estadoActivo ? "text-success" : "text-danger"
-            }">
-              ${user.estadoActivo ? "Activo" : "Inactivo"}
-            </small>
-          </label>
-        </div>
-      </td>
-      <td>
+      </div>
+    </td>
+    <td>
+      <span class="badge bg-light text-dark">${user.nombreEscuela}</span><br>
+      <small class="text-muted">${user.nombreFacultad}</small>
+    </td>
+    <td>${this.getRoleDisplayBadge(user)}</td>
+    <td><small>${utils.formatDate(user.fechaRegistro)}</small></td>
+    <td><span class="badge bg-info">0</span><br><small class="text-muted">Eventos</small></td>
+    <td>
+      <div class="form-check form-switch">
+        <input class="form-check-input status-toggle" type="checkbox" 
+               ${user.estadoActivo ? "checked" : ""} 
+               data-user-id="${user.id}"
+               onchange="toggleUserStatus('${user.id}', this.checked)">
+        <label class="form-check-label">
+          <small class="${user.estadoActivo ? "text-success" : "text-danger"}">
+            ${user.estadoActivo ? "Activo" : "Inactivo"}
+          </small>
+        </label>
+      </div>
+    </td>
+    <td>
+      <div class="btn-group btn-group-sm">
+        <button class="btn btn-outline-primary" onclick="viewUserDetails('${
+          user.id
+        }')" title="Ver detalles">
+          <i class="fas fa-eye"></i>
+        </button>
         <div class="btn-group btn-group-sm">
-          <button class="btn btn-outline-primary" onclick="viewUserDetails('${
-            user.id
-          }')" title="Ver detalles">
-            <i class="fas fa-eye"></i>
+          <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" title="Más opciones">
+            <i class="fas fa-ellipsis-v"></i>
           </button>
-          <div class="btn-group btn-group-sm">
-            <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" title="Más opciones">
-              <i class="fas fa-ellipsis-v"></i>
-            </button>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#" onclick="assignRole('${
-                user.id
-              }')">
-                <i class="fas fa-user-tag me-2 text-info"></i>
-                Asignar Rol
-              </a></li>
-              <li><a class="dropdown-item" href="#" onclick="toggleAdminRole('${
-                user.id
-              }', ${!user.esAdmin})">
-                <i class="fas ${
-                  user.esAdmin ? "fa-user-minus" : "fa-user-plus"
-                } me-2"></i>
-                ${user.esAdmin ? "Quitar Admin" : "Hacer Admin"}
-              </a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item text-danger" href="#" onclick="deleteUser('${
-                user.id
-              }')">
-                <i class="fas fa-trash me-2"></i>Eliminar
-              </a></li>
-            </ul>
-          </div>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" onclick="assignRole('${
+              user.id
+            }')">
+              <i class="fas fa-user-tag me-2 text-info"></i>
+              Asignar Rol
+            </a></li>
+            <li><a class="dropdown-item" href="#" onclick="toggleAdminRole('${
+              user.id
+            }', ${!user.esAdmin})">
+              <i class="fas ${
+                user.esAdmin ? "fa-user-minus" : "fa-user-plus"
+              } me-2"></i>
+              ${user.esAdmin ? "Quitar Admin" : "Hacer Admin"}
+            </a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="#" onclick="deleteUser('${
+              user.id
+            }')">
+              <i class="fas fa-trash me-2"></i>Eliminar
+            </a></li>
+          </ul>
         </div>
-      </td>
-    </tr>
-  `
+      </div>
+    </td>
+  </tr>
+`
       )
       .join("");
   },
@@ -498,76 +536,6 @@ const filters = {
 // OPERACIONES CRUD
 // =============================================
 const crud = {
-  async saveUser() {
-    if (state.isLoading) return;
-    state.isLoading = true;
-
-    try {
-      const form = document.getElementById("addUserForm");
-      if (!form) throw new Error("Formulario no encontrado");
-
-      const formData = new FormData(form);
-      const userData = {};
-
-      for (let [key, value] of formData.entries()) {
-        if (value.trim()) userData[key] = value.trim();
-      }
-
-      // Validaciones
-      if (!userData.nombreUsuario || !userData.apellidoUsuario) {
-        throw new Error("Nombre y apellido son obligatorios");
-      }
-      if (!userData.correo || !utils.validateEmail(userData.correo)) {
-        throw new Error("Email válido es obligatorio");
-      }
-      if (!userData.escuelaID || !userData.facultadID) {
-        throw new Error("Escuela y facultad son obligatorias");
-      }
-
-      // Verificar email único
-      const existingEmailQuery = query(
-        collection(db, CONFIG.COLLECTIONS.USUARIOS),
-        where("correo", "==", userData.correo)
-      );
-      const existingEmailSnapshot = await getDocs(existingEmailQuery);
-
-      if (!existingEmailSnapshot.empty) {
-        throw new Error("Ya existe un usuario con este email");
-      }
-
-      const userToSave = {
-        nombreUsuario: userData.nombreUsuario,
-        apellidoUsuario: userData.apellidoUsuario,
-        correo: userData.correo,
-        escuelaID: userData.escuelaID,
-        facultadID: userData.facultadID,
-        fechaNacimiento: userData.fechaNacimiento || null,
-        edad: userData.fechaNacimiento
-          ? utils.calculateAge(userData.fechaNacimiento)
-          : null,
-        telefono: userData.telefono || null,
-        esAdmin: true,
-        estadoActivo: true,
-        fechaRegistro: new Date().toISOString(),
-      };
-
-      await addDoc(collection(db, CONFIG.COLLECTIONS.USUARIOS), userToSave);
-      utils.showToast("Éxito", "Administrador creado correctamente", "success");
-
-      const modal = bootstrap.Modal.getInstance(
-        document.getElementById("addUserModal")
-      );
-      if (modal) modal.hide();
-      form.reset();
-
-      await dataLoader.loadAllUsers();
-    } catch (error) {
-      utils.handleError(error, "al crear administrador");
-    } finally {
-      state.isLoading = false;
-    }
-  },
-
   async toggleUserStatus(userId, newStatus) {
     if (state.isLoading) return;
 
@@ -626,7 +594,7 @@ const crud = {
         inspectUserName: user.nombreCompleto || "Sin nombre",
         inspectUserEmail: user.correo || "Sin email",
         inspectUserCode: user.codigoUsuario || "N/A",
-        inspectUserPhone: user.telefono || "No especificado",
+        inspectUserPhone: user.celular || "No especificado",
         inspectUserBirthDate: utils.formatDate(user.fechaNacimiento),
         inspectUserAge: user.edad ? user.edad.toString() : "No especificado",
         inspectUserSchool: user.nombreEscuela || "No especificado",
@@ -697,12 +665,11 @@ const crud = {
         roleInfo.innerHTML = roleDisplay;
       }
 
-      // Tipo de usuario con información de roles (CORRECCIÓN APLICADA AQUÍ)
+      // Tipo de usuario con información de roles
       const userTypeBadge = document.getElementById("inspectUserType");
       if (userTypeBadge) {
         let typeDisplay = "";
 
-        // CAMBIO AQUÍ: Usar ui.getRoleDisplayBadge en lugar de this.getRoleDisplayBadge
         const roleBadge = ui.getRoleDisplayBadge(user);
         if (roleBadge !== "-") {
           typeDisplay += roleBadge;
@@ -873,7 +840,7 @@ document.addEventListener("reloadUsers", () => {
 // =============================================
 // FUNCIONES GLOBALES
 // =============================================
-window.saveUser = crud.saveUser.bind(crud);
+window.exportUsers = exportModule.exportUsers.bind(exportModule);
 window.toggleUserStatus = crud.toggleUserStatus.bind(crud);
 window.viewUserDetails = crud.viewUserDetails.bind(crud);
 window.deleteUser = crud.deleteUser.bind(crud);
@@ -900,6 +867,55 @@ window.changePage = function (page) {
 // =============================================
 // INICIALIZACIÓN
 // =============================================
+async function populateModalSelects() {
+  try {
+    // Cargar datos frescos
+    const [schools, faculties] = await Promise.all([
+      dataLoader.loadSchools(),
+      dataLoader.loadFaculties(),
+    ]);
+
+    // Poblar select de escuelas
+    const schoolSelect = document.getElementById("userSchool");
+    if (schoolSelect) {
+      schoolSelect.innerHTML =
+        '<option value="">Seleccionar Escuela</option>' +
+        schools
+          .map((s) => `<option value="${s.id}">${s.name}</option>`)
+          .join("");
+    }
+
+    // Poblar select de facultades
+    const facultySelect = document.getElementById("userFaculty");
+    if (facultySelect) {
+      facultySelect.innerHTML =
+        '<option value="">Seleccionar Facultad</option>' +
+        faculties
+          .map((f) => `<option value="${f.id}">${f.name}</option>`)
+          .join("");
+    }
+
+    console.log("✅ Selects del modal poblados correctamente");
+  } catch (error) {
+    console.error("❌ Error al poblar selects del modal:", error);
+    utils.showToast("Error", "Error al cargar datos del formulario", "error");
+  }
+}
+function handleAdminRegistered(event) {
+  console.log("🎉 Nuevo administrador registrado:", event.detail);
+
+  // Mostrar mensaje de éxito
+  utils.showToast(
+    "Administrador Creado",
+    `El administrador ${event.detail.adminData.nombreUsuario} ${event.detail.adminData.apellidoUsuario} ha sido creado exitosamente.`,
+    "success"
+  );
+
+  // Recargar la lista de usuarios para mostrar el nuevo admin
+  setTimeout(() => {
+    dataLoader.loadAllUsers();
+  }, 1000);
+}
 async function initialize() {
   try {
     console.log("🚀 Inicializando gestión de usuarios con roles...");
@@ -913,14 +929,15 @@ async function initialize() {
 
     // Configurar búsqueda
     filters.setupSearch();
-
+    setupAddAdminButton();
+    document.addEventListener("adminRegistered", handleAdminRegistered);
     // Cargar datos iniciales
     const [schools, faculties] = await Promise.all([
       dataLoader.loadSchools(),
       dataLoader.loadFaculties(),
     ]);
 
-    // Inicializar selectores
+    // Inicializar selector de filtro de escuelas
     const filterSchool = document.getElementById("filterSchool");
     if (filterSchool) {
       filterSchool.innerHTML =
@@ -930,37 +947,48 @@ async function initialize() {
           .join("");
     }
 
-    const userSchool = document.getElementById("userSchool");
-    if (userSchool) {
-      userSchool.innerHTML =
-        '<option value="">Seleccionar Escuela</option>' +
-        schools
-          .map(
-            (s) =>
-              `<option value="${s.id}" data-faculty="${s.facultadId}">${s.name}</option>`
-          )
-          .join("");
-    }
-
-    const userFaculty = document.getElementById("userFaculty");
-    if (userFaculty) {
-      userFaculty.innerHTML =
-        '<option value="">Seleccionar Facultad</option>' +
-        faculties
-          .map((f) => `<option value="${f.id}">${f.name}</option>`)
-          .join("");
-    }
-
     // Cargar usuarios (incluye roles automáticamente)
     await dataLoader.loadAllUsers();
-
+    window.exportUsers = exportModule.exportUsers.bind(exportModule);
+    window.executeExport = executeExport;
+    window.exportAllUsersToExcel = exportAllUsersToExcel;
     console.log("✅ Gestión de usuarios con roles inicializada");
   } catch (error) {
     console.error("❌ Error al inicializar:", error);
     utils.showToast("Error", "Error al cargar el sistema", "error");
   }
 }
+function setupAddAdminButton() {
+  // Buscar el botón que abre el modal
+  const addAdminButton = document.querySelector(
+    '[data-bs-target="#addUserModal"]'
+  );
 
+  if (addAdminButton) {
+    console.log("✅ Botón de agregar administrador encontrado y configurado");
+
+    // El botón ya debería abrir el modal automáticamente por Bootstrap
+    // Solo necesitamos asegurarnos de que el modal esté configurado correctamente
+
+    const modal = document.getElementById("addUserModal");
+    if (modal) {
+      // Evento cuando se abre el modal
+      modal.addEventListener("show.bs.modal", function () {
+        console.log("📝 Modal de agregar administrador abierto");
+
+        // Asegurarse de que los selects tengan datos
+        populateModalSelects();
+      });
+
+      // Evento cuando se cierra el modal
+      modal.addEventListener("hidden.bs.modal", function () {
+        console.log("❌ Modal de agregar administrador cerrado");
+      });
+    }
+  } else {
+    console.warn("⚠️ No se encontró el botón para agregar administrador");
+  }
+}
 // Inicializar cuando el DOM esté listo
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initialize);
@@ -968,4 +996,12 @@ if (document.readyState === "loading") {
   initialize();
 }
 
-export { dataLoader, filters, initialize };
+export {
+  dataLoader,
+  filters,
+  exportModule,
+  initialize,
+  setupAddAdminButton,
+  handleAdminRegistered,
+  populateModalSelects,
+};

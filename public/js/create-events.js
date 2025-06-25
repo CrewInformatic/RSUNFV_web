@@ -82,7 +82,7 @@ function getFirestoreDB() {
     return window.firebaseDB;
   }
 
-  console.error("❌ Firebase DB no está disponible");
+  console.error("Firebase DB no está disponible");
   throw new Error("Base de datos no inicializada. Recarga la página.");
 }
 
@@ -105,7 +105,6 @@ function getStoredSession() {
     }
     return null;
   } catch (error) {
-    console.error("❌ Error al obtener sesión:", error);
     sessionStorage.removeItem("userSession");
     return null;
   }
@@ -148,7 +147,6 @@ async function uploadImageToCloudinary(file) {
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error("❌ Error response from Cloudinary:", errorData);
       throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
     }
 
@@ -165,7 +163,6 @@ async function uploadImageToCloudinary(file) {
       originalName: file.name,
     };
   } catch (error) {
-    console.error(`❌ Error uploading ${file.name} to Cloudinary:`, error);
     return {
       success: false,
       error: error.message,
@@ -222,7 +219,6 @@ async function uploadSingleImage(files, progressCallback = null) {
       };
     }
   } catch (error) {
-    console.error(`❌ Error processing file ${firstFile.name}:`, error);
     return {
       success: false,
       imageUrl: "",
@@ -346,8 +342,6 @@ async function createEvent(eventData) {
 
       if (uploadResult.success && uploadResult.imageUrl) {
         imageUrl = uploadResult.imageUrl;
-      } else if (uploadResult.error) {
-        console.warn(`⚠️ Error al subir imagen: ${uploadResult.error}`);
       }
     }
 
@@ -374,8 +368,8 @@ async function createEvent(eventData) {
       titulo: eventData.titulo.trim(),
       descripcion: eventData.descripcion.trim(),
       tipo: eventData.tipo || "general",
-      fechaInicio: fechaInicioFormatted, // String en formato ISO personalizado
-      fechaFin: fechaFinFormatted, // String en formato ISO personalizado (si existe)
+      fechaInicio: fechaInicioFormatted,
+      fechaFin: fechaFinFormatted,
       horaInicio: eventData.horaInicio || "",
       horaFin: eventData.horaFin || "",
       ubicacion: eventData.ubicacion?.trim() || "",
@@ -386,12 +380,10 @@ async function createEvent(eventData) {
       materiales: eventData.materiales?.trim() || "",
       foto: imageUrl,
       createdBy: session.correo,
-      createdAt: getCurrentTimestamp(), // String en formato ISO personalizado
+      createdAt: getCurrentTimestamp(),
       voluntariosInscritos: [],
       estado: "activo",
     };
-
-    console.log("📅 Evento a crear:", newEvent); // Para debug
 
     // Guardar en Firestore
     const docRef = await addDoc(collection(db, "eventos"), newEvent);
@@ -403,7 +395,7 @@ async function createEvent(eventData) {
       hasImage: imageUrl !== "",
     };
   } catch (error) {
-    console.error("❌ Error en creación de evento:", error);
+    console.error("Error al crear evento:", error);
     throw error;
   } finally {
     isCreatingEvent = false;
@@ -480,7 +472,6 @@ function hideUploadProgress() {
  */
 function checkFirebaseAvailable() {
   if (!window.firebaseDB) {
-    console.error("❌ Firebase no está disponible");
     alert("Sistema no inicializado. Por favor, recarga la página.");
     return false;
   }
@@ -616,7 +607,6 @@ async function handleFormSubmit(e) {
   const submitBtn = form.querySelector('button[type="submit"]');
 
   if (!submitBtn) {
-    console.error("❌ Botón de envío no encontrado");
     isSubmitting = false;
     return false;
   }
@@ -661,8 +651,6 @@ async function handleFormSubmit(e) {
       }
     }
   } catch (error) {
-    console.error("❌ Error en envío de formulario:", error);
-
     let errorMessage = "Error al crear evento";
     if (error.message) {
       errorMessage += `: ${error.message}`;

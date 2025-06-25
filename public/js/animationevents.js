@@ -120,7 +120,7 @@ function filterEventsByType(tabType, eventType) {
       return;
     }
 
-    // TODO: Implement type filtering logic
+    //TODO: Implement type filtering logic
     card.style.display = "block";
   });
 }
