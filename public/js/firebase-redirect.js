@@ -12,7 +12,6 @@ function processFirebaseAction() {
     mode,
     oobCode: oobCode ? "presente" : "ausente",
   });
-
   // Verificar que tenemos los parámetros necesarios
   if (!mode || !oobCode) {
     showError(

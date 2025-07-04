@@ -29,6 +29,7 @@
   <link rel="stylesheet" href="css/Page_Home.css">
   <link rel="stylesheet" href="css/modal-donation.css">
   <script type="module" src="js/donations.js"></script>
+  <script type="module" src="js/payment-controller.js"></script>
 </head>
 
 <body>
@@ -425,6 +426,7 @@
       </div>
     </div>
   </section>
+
   <section class="donations-section" id="donaciones">
     <div class="container">
       <div class="row align-items-center">
@@ -461,11 +463,11 @@
               <p>Elige el monto que deseas aportar</p>
             </div>
 
-            <div class="donation-amounts">
-              <button class="amount-btn" data-amount="50">S/ 50</button>
-              <button class="amount-btn" data-amount="100">S/ 100</button>
-              <button class="amount-btn" data-amount="200">S/ 200</button>
-              <button class="amount-btn" data-amount="500">S/ 500</button>
+            <div class="amount-buttons">
+              <button class="btn btn-outline-primary amount-btn" data-amount="50">S/ 50</button>
+              <button class="btn btn-outline-primary amount-btn" data-amount="100">S/ 100</button>
+              <button class="btn btn-outline-primary amount-btn" data-amount="200">S/ 200</button>
+              <button class="btn btn-outline-primary amount-btn" data-amount="500">S/ 500</button>
             </div>
 
             <div class="custom-amount">
@@ -494,33 +496,59 @@
               </div>
             </div>
 
-            <button class="btn-donate" id="startDonationBtn">
+            <button class="btn btn-danger btn-lg w-100" id="startDonationBtn" data-bs-toggle="modal"
+              data-bs-target="#donorTypeModal">
               <i class="fas fa-heart"></i>
               Donar Ahora
             </button>
 
-            <div class="security-info">
+            <div class="security-info text-center mt-3">
               <i class="fas fa-shield-alt"></i>
               <span>Transacción 100% segura</span>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Testimonios de donantes -->
-      <div class="donors-testimonials">
-        <h3>Lo que dicen nuestros donantes</h3>
+    <!-- Testimonios de donantes -->
+    <div class="donors-testimonials mt-5">
+      <div class="container">
+        <h3 class="text-center mb-4">Lo que dicen nuestros donantes</h3>
         <div class="row" id="testimonialsContainer">
-          <!-- Los testimonios se cargarán dinámicamente -->
+          <div class="col-md-4 mb-3">
+            <div class="card">
+              <div class="card-body">
+                <p>"Una experiencia increíble poder ayudar de manera tan fácil y transparente."</p>
+                <small class="text-muted">- María S.</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <div class="card">
+              <div class="card-body">
+                <p>"Me encanta saber exactamente cómo se usa mi donación."</p>
+                <small class="text-muted">- Carlos R.</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <div class="card">
+              <div class="card-body">
+                <p>"El proceso es muy sencillo y confiable."</p>
+                <small class="text-muted">- Ana L.</small>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Modal 1: Selección de Tipo de Donante -->
+  <!-- Modal 1: Tipo de Donante -->
   <div class="modal fade" id="donorTypeModal" tabindex="-1" aria-labelledby="donorTypeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
-      <div class="modal-content donor-type-modal">
+      <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="donorTypeModalLabel">
             <i class="fas fa-user-plus me-2"></i>
@@ -529,64 +557,48 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <div class="donation-progress">
-            <div class="progress-bar step-1"> <!-- Agrega la clase step-X según el paso actual -->
-              <div class="progress-step active" data-step="1">
-                <i class="fas fa-user-tag"></i>
-                <span>Tipo</span>
-              </div>
-              <div class="progress-step" data-step="2">
-                <i class="fas fa-id-card"></i>
-                <span>Datos</span>
-              </div>
-              <div class="progress-step" data-step="3">
-                <i class="fas fa-users"></i>
-                <span>Recolector</span>
-              </div>
-              <div class="progress-step" data-step="4">
-                <i class="fas fa-credit-card"></i>
-                <span>Pago</span>
-              </div>
-              <div class="progress-step" data-step="5">
-                <i class="fas fa-certificate"></i>
-                <span>Certificado</span>
-              </div>
+          <div class="mb-4">
+            <div class="progress" style="height: 10px;">
+              <div class="progress-bar bg-success" role="progressbar" style="width: 20%"></div>
+            </div>
+            <div class="d-flex justify-content-between mt-2">
+              <small class="text-success fw-bold">Tipo</small>
+              <small class="text-muted">Datos</small>
+              <small class="text-muted">Recolector</small>
+              <small class="text-muted">Pago</small>
+              <small class="text-muted">Certificado</small>
             </div>
           </div>
 
-          <div class="donation-summary mb-4">
-            <div class="alert alert-success d-flex align-items-center">
-              <i class="fas fa-heart me-2"></i>
-              <div>
-                <strong>Monto seleccionado: S/ <span id="selectedAmountDisplay">0</span></strong>
-                <br><small>¡Gracias por tu generosidad!</small>
-              </div>
+          <div class="alert alert-success d-flex align-items-center">
+            <i class="fas fa-heart me-2"></i>
+            <div>
+              <strong>Monto seleccionado: S/ <span id="selectedAmountDisplay">0</span></strong>
+              <br><small>¡Gracias por tu generosidad!</small>
             </div>
           </div>
 
-          <div class="donor-type-selection">
-            <div class="row">
-              <div class="col-md-6">
-                <div class="donor-type-card" data-type="individual">
-                  <div class="card-icon">
-                    <i class="fas fa-user"></i>
-                  </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="card h-100 donor-type-card" data-type="individual">
+                <div class="card-body text-center">
+                  <i class="fas fa-user fa-3x text-primary mb-3"></i>
                   <h5>Persona Natural</h5>
                   <p>Donación individual con certificado personalizado</p>
-                  <div class="benefits">
+                  <div class="text-start">
                     <small><i class="fas fa-check text-success"></i> Certificado digital</small><br>
                     <small><i class="fas fa-check text-success"></i> Actualizaciones del proyecto</small>
                   </div>
                 </div>
               </div>
-              <div class="col-md-6">
-                <div class="donor-type-card" data-type="company">
-                  <div class="card-icon">
-                    <i class="fas fa-building"></i>
-                  </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card h-100 donor-type-card" data-type="company">
+                <div class="card-body text-center">
+                  <i class="fas fa-building fa-3x text-primary mb-3"></i>
                   <h5>Empresa</h5>
                   <p>Donación corporativa con reconocimiento público</p>
-                  <div class="benefits">
+                  <div class="text-start">
                     <small><i class="fas fa-check text-success"></i> Certificado con logo</small><br>
                     <small><i class="fas fa-check text-success"></i> Reconocimiento en web</small>
                   </div>
@@ -605,7 +617,7 @@
   <!-- Modal 2: Datos del Donante -->
   <div class="modal fade" id="donorDataModal" tabindex="-1" aria-labelledby="donorDataModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
-      <div class="modal-content donor-modal">
+      <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="donorDataModalLabel">
             <i class="fas fa-id-card me-2"></i>
@@ -614,28 +626,16 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <div class="donation-progress">
-            <div class="progress-bar">
-              <div class="progress-step completed" data-step="1">
-                <i class="fas fa-check"></i>
-                <span>Tipo</span>
-              </div>
-              <div class="progress-step active" data-step="2">
-                <i class="fas fa-id-card"></i>
-                <span>Datos</span>
-              </div>
-              <div class="progress-step" data-step="3">
-                <i class="fas fa-users"></i>
-                <span>Recolector</span>
-              </div>
-              <div class="progress-step" data-step="4">
-                <i class="fas fa-credit-card"></i>
-                <span>Pago</span>
-              </div>
-              <div class="progress-step" data-step="5">
-                <i class="fas fa-certificate"></i>
-                <span>Certificado</span>
-              </div>
+          <div class="mb-4">
+            <div class="progress" style="height: 10px;">
+              <div class="progress-bar bg-success" role="progressbar" style="width: 40%"></div>
+            </div>
+            <div class="d-flex justify-content-between mt-2">
+              <small class="text-success fw-bold">✓ Tipo</small>
+              <small class="text-success fw-bold">Datos</small>
+              <small class="text-muted">Recolector</small>
+              <small class="text-muted">Pago</small>
+              <small class="text-muted">Certificado</small>
             </div>
           </div>
 
@@ -643,28 +643,28 @@
             <div id="individualForm" class="donor-form">
               <div class="row">
                 <div class="col-md-6">
-                  <div class="form-group">
-                    <label>Nombres *</label>
+                  <div class="mb-3">
+                    <label class="form-label">Nombres *</label>
                     <input type="text" class="form-control" name="firstName" required>
                   </div>
                 </div>
                 <div class="col-md-6">
-                  <div class="form-group">
-                    <label>Apellidos *</label>
+                  <div class="mb-3">
+                    <label class="form-label">Apellidos *</label>
                     <input type="text" class="form-control" name="lastName" required>
                   </div>
                 </div>
               </div>
               <div class="row">
                 <div class="col-md-6">
-                  <div class="form-group">
-                    <label>DNI *</label>
+                  <div class="mb-3">
+                    <label class="form-label">DNI *</label>
                     <input type="text" class="form-control" name="dni" maxlength="8" required>
                   </div>
                 </div>
                 <div class="col-md-6">
-                  <div class="form-group">
-                    <label>Teléfono *</label>
+                  <div class="mb-3">
+                    <label class="form-label">Teléfono *</label>
                     <input type="tel" class="form-control" name="phone" required>
                   </div>
                 </div>
@@ -674,54 +674,54 @@
             <div id="companyForm" class="donor-form" style="display: none;">
               <div class="row">
                 <div class="col-md-6">
-                  <div class="form-group">
-                    <label>Razón Social *</label>
+                  <div class="mb-3">
+                    <label class="form-label">Razón Social *</label>
                     <input type="text" class="form-control" name="companyName" required>
                   </div>
                 </div>
                 <div class="col-md-6">
-                  <div class="form-group">
-                    <label>RUC *</label>
+                  <div class="mb-3">
+                    <label class="form-label">RUC *</label>
                     <input type="text" class="form-control" name="ruc" maxlength="11" required>
                   </div>
                 </div>
               </div>
               <div class="row">
                 <div class="col-md-6">
-                  <div class="form-group">
-                    <label>Representante Legal *</label>
+                  <div class="mb-3">
+                    <label class="form-label">Representante Legal *</label>
                     <input type="text" class="form-control" name="representative" required>
                   </div>
                 </div>
                 <div class="col-md-6">
-                  <div class="form-group">
-                    <label>Cargo *</label>
+                  <div class="mb-3">
+                    <label class="form-label">Cargo *</label>
                     <input type="text" class="form-control" name="position" required>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="form-group">
-              <label>Email *</label>
+            <div class="mb-3">
+              <label class="form-label">Email *</label>
               <input type="email" class="form-control" name="email" required>
-              <small class="form-text text-muted">
+              <div class="form-text">
                 <i class="fas fa-info-circle"></i> Enviaremos tu certificado de donación a este correo
-              </small>
+              </div>
             </div>
 
-            <div class="form-group">
-              <label>Dirección (opcional)</label>
+            <div class="mb-3">
+              <label class="form-label">Dirección (opcional)</label>
               <textarea class="form-control" name="address" rows="2"
                 placeholder="Dirección completa para el certificado"></textarea>
             </div>
 
-            <div class="form-group">
-              <label>¿Por qué decides apoyarnos? (opcional)</label>
+            <div class="mb-3">
+              <label class="form-label">¿Por qué decides apoyarnos? (opcional)</label>
               <textarea class="form-control" name="message" rows="3" placeholder="Comparte tu motivación..."></textarea>
             </div>
 
-            <div class="form-check">
+            <div class="form-check mb-3">
               <input class="form-check-input" type="checkbox" id="termsCheck" required>
               <label class="form-check-label" for="termsCheck">
                 Acepto los <a href="#" class="text-primary">términos y condiciones</a> y autorizo el tratamiento de mis
@@ -738,7 +738,7 @@
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="goBackToType()">
+          <button type="button" class="btn btn-secondary" id="goBackToType">
             <i class="fas fa-arrow-left me-2"></i>Volver
           </button>
           <button type="button" class="btn btn-primary" id="continueToCollectors">
@@ -752,7 +752,7 @@
   <!-- Modal 3: Selección de Recolector -->
   <div class="modal fade" id="collectorsModal" tabindex="-1" aria-labelledby="collectorsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
-      <div class="modal-content collectors-modal">
+      <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="collectorsModalLabel">
             <i class="fas fa-users me-2"></i>
@@ -761,48 +761,35 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <div class="donation-progress">
-            <div class="progress-bar">
-              <div class="progress-step completed" data-step="1">
-                <i class="fas fa-check"></i>
-                <span>Tipo</span>
-              </div>
-              <div class="progress-step completed" data-step="2">
-                <i class="fas fa-check"></i>
-                <span>Datos</span>
-              </div>
-              <div class="progress-step active" data-step="3">
-                <i class="fas fa-users"></i>
-                <span>Recolector</span>
-              </div>
-              <div class="progress-step" data-step="4">
-                <i class="fas fa-credit-card"></i>
-                <span>Pago</span>
-              </div>
-              <div class="progress-step" data-step="5">
-                <i class="fas fa-certificate"></i>
-                <span>Certificado</span>
-              </div>
+          <div class="mb-4">
+            <div class="progress" style="height: 10px;">
+              <div class="progress-bar bg-success" role="progressbar" style="width: 60%"></div>
+            </div>
+            <div class="d-flex justify-content-between mt-2">
+              <small class="text-success fw-bold">✓ Tipo</small>
+              <small class="text-success fw-bold">✓ Datos</small>
+              <small class="text-success fw-bold">Recolector</small>
+              <small class="text-muted">Pago</small>
+              <small class="text-muted">Certificado</small>
             </div>
           </div>
 
-          <div class="donation-summary mb-4">
-            <div class="alert alert-info d-flex align-items-center">
-              <i class="fas fa-info-circle me-2"></i>
-              <div>
-                <strong>Hola <span id="donorNameDisplay">Donante</span>, Monto: S/ <span
-                    id="selectedAmount2">0</span></strong>
-                <br><small>Selecciona uno de nuestros recolectores certificados</small>
-              </div>
+          <div class="alert alert-info d-flex align-items-center mb-4">
+            <i class="fas fa-info-circle me-2"></i>
+            <div>
+              <strong>Hola <span id="donorNameDisplay">Donante</span>, Monto: S/ <span
+                  id="selectedAmount2">0</span></strong>
+              <br><small>Selecciona uno de nuestros recolectores certificados</small>
             </div>
           </div>
 
-          <div class="collectors-grid" id="collectorsGrid">
-            <!-- Los recolectores se cargarán dinámicamente -->
+          <div class="row" id="collectorsGrid">
+            <!-- Los recolectores se cargarán dinámicamente via JavaScript -->
           </div>
+          <!-- Sección de método de pago (se mostrará después de seleccionar recolector) -->
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="goBackToData()">
+          <button type="button" class="btn btn-secondary" id="goBackToData">
             <i class="fas fa-arrow-left me-2"></i>Volver
           </button>
           <button type="button" class="btn btn-primary" id="continueToPayment" style="display: none;">
@@ -813,438 +800,541 @@
     </div>
   </div>
 
-  <!-- Modal 4: Instrucciones de Pago -->
-  <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content payment-modal">
-        <div class="modal-header">
-          <h5 class="modal-title" id="paymentModalLabel">
-            <i class="fas fa-credit-card me-2"></i>
-            Instrucciones de Pago
-          </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Modal 4: Instrucciones de Pago Mejorado -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg">
+      <div class="modal-header bg-warning text-white">
+        <h5 class="modal-title" id="paymentModalLabel">
+          <i class="fas fa-credit-card me-2"></i> Instrucciones de Pago
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Barra de progreso -->
+        <div class="progress" style="height: 10px;">
+          <div class="progress-bar bg-success" role="progressbar" style="width: 80%"></div>
         </div>
-        <div class="modal-body">
-          <div class="donation-progress">
-            <div class="progress-bar">
-              <div class="progress-step completed" data-step="1">
-                <i class="fas fa-check"></i>
-                <span>Tipo</span>
-              </div>
-              <div class="progress-step completed" data-step="2">
-                <i class="fas fa-check"></i>
-                <span>Datos</span>
-              </div>
-              <div class="progress-step completed" data-step="3">
-                <i class="fas fa-check"></i>
-                <span>Recolector</span>
-              </div>
-              <div class="progress-step active" data-step="4">
-                <i class="fas fa-credit-card"></i>
-                <span>Pago</span>
-              </div>
-              <div class="progress-step" data-step="5">
-                <i class="fas fa-certificate"></i>
-                <span>Certificado</span>
-              </div>
+        <div class="d-flex justify-content-between mt-2 mb-4">
+          <small class="text-success fw-bold">✓ Tipo</small>
+          <small class="text-success fw-bold">✓ Datos</small>
+          <small class="text-success fw-bold">✓ Recolector</small>
+          <small class="text-success fw-bold">✓ Pago</small>
+          <small class="text-muted">Certificado</small>
+        </div>
+
+        <!-- Recolector seleccionado -->
+        <div class="alert alert-light border">
+  <div class="fw-bold mb-2">
+    <i class="fas fa-user-check text-success me-2"></i>Recolector Seleccionado
+  </div>
+  <div class="mb-2">
+    <strong>Nombre:</strong> <span id="selectedCollectorName">Nombre del Recolector</span>
+  </div>
+  <div class="mb-2">
+    <strong>Email:</strong> <span id="selectedCollectorEmail">email@ejemplo.com</span>
+  </div>
+  <div class="mb-2">
+    <strong>Teléfono:</strong> <span id="selectedCollectorPhone">999999999</span>
+  </div>
+  <div class="mb-2">
+    <strong>Facultad:</strong> <span id="selectedCollectorFaculty">Facultad</span>
+  </div>
+</div>
+
+        <!-- Selección de método de pago -->
+        <h5 class="mb-3"><i class="fas fa-credit-card me-2"></i> Selecciona el método de pago</h5>
+        <div class="text-center py-4" id="paymentMethodsContainer">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-2 text-muted">Cargando métodos de pago disponibles...</p>
+        </div>
+
+        <!-- Detalles de pago -->
+        <div class="row mb-4 d-none" id="paymentDetailsSection">
+          <div class="col-12">
+            <h5 class="mb-3"><i class="fas fa-info-circle me-2"></i> Detalles del pago</h5>
+            <div id="yapeDetails" class="payment-details d-none"></div>
+            <div id="plinDetails" class="payment-details d-none"></div>
+            <div id="bankDetails" class="payment-details d-none"></div>
+            <div id="cciDetails" class="payment-details d-none"></div>
+          </div>
+        </div>
+
+        <!-- Subida de comprobante -->
+        <div class="row mb-4 d-none" id="uploadSection">
+          <div class="col-12">
+            <h5 class="mb-3"><i class="fas fa-cloud-upload-alt me-2"></i> Sube tu comprobante de pago</h5>
+            <div class="border border-2 border-dashed rounded p-4 text-center file-drop-zone" id="fileDropZone" style="cursor: pointer;">
+              <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+              <h6>Arrastra tu imagen aquí o haz clic para seleccionar</h6>
+              <p class="text-muted mb-0">Formatos permitidos: JPG, PNG, WebP (máximo 5MB)</p>
+              <input type="file" id="paymentProofInput" accept="image/*" style="display: none;">
+            </div>
+            <div id="filePreview" class="mt-3"></div>
+            <div class="alert alert-info mt-3">
+              <small><i class="fas fa-info-circle me-1"></i>
+              <strong>Importante:</strong> Asegúrate de que el comprobante sea legible y contenga el monto exacto de tu donación (S/ <span id="paymentAmount">0</span>).</small>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div class="payment-instructions" id="paymentInstructions">
-            <!-- Las instrucciones se cargarán dinámicamente -->
+      <!-- Botones de acción -->
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-outline-secondary" id="goBackToCollectors">
+          <i class="fas fa-arrow-left me-2"></i>Volver
+        </button>
+        <button type="button" class="btn btn-success disabled" id="confirmPaymentBtn" disabled>
+          <i class="fas fa-check me-2"></i>Confirmar Pago Realizado
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal 5: Confirmación y Certificado -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="confirmationModalLabel">
+          <i class="fas fa-certificate me-2"></i>
+          ¡Donación Completada!
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <div class="mb-4">
+          <div class="progress" style="height: 10px;">
+            <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
           </div>
+          <div class="d-flex justify-content-between mt-2">
+            <small class="text-success fw-bold">✓ Tipo</small>
+            <small class="text-success fw-bold">✓ Datos</small>
+            <small class="text-success fw-bold">✓ Recolector</small>
+            <small class="text-success fw-bold">✓ Pago</small>
+            <small class="text-success fw-bold">✓ Certificado</small>
+          </div>
+        </div>
 
-          <div class="payment-confirmation mt-4">
-            <div class="alert alert-warning">
-              <i class="fas fa-exclamation-triangle me-2"></i>
-              <strong>Importante:</strong> Una vez realizado el pago, haz clic en "Confirmar Pago" para recibir tu
-              certificado.
+        <div class="mb-4">
+          <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+        </div>
+
+        <h4 class="text-success mb-3">¡Gracias por tu Generosidad!</h4>
+        <p class="lead">Tu donación ha sido registrada exitosamente</p>
+
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <strong>Donante:</strong>
+            <p id="finalDonorName">-</p>
+          </div>
+          <div class="col-md-6">
+            <strong>Monto:</strong>
+            <p>S/ <span id="finalAmount">0</span></p>
+          </div>
+          <div class="col-md-6">
+            <strong>Recolector:</strong>
+            <p id="finalCollector">-</p>
+          </div>
+          <div class="col-md-6">
+            <strong>Fecha:</strong>
+            <p id="finalDate">-</p>
+          </div>
+        </div>
+
+        <div class="alert alert-success">
+          <i class="fas fa-envelope me-2"></i>
+          <strong>¡Certificado Enviado!</strong><br>
+          Hemos enviado tu certificado de donación al correo: <span id="finalEmail">-</span>
+        </div>
+
+        <button class="btn btn-success btn-lg mb-3" id="downloadCertificate">
+          <i class="fas fa-download me-2"></i>
+          Descargar Certificado PDF
+        </button>
+
+        <div class="mt-4">
+          <h6>¿Qué sigue ahora?</h6>
+          <div class="row">
+            <div class="col-md-6">
+              <i class="fas fa-envelope text-primary"></i>
+              <small class="ms-2">Recibirás actualizaciones sobre el impacto de tu donación</small>
+            </div>
+            <div class="col-md-6">
+              <i class="fas fa-users text-primary"></i>
+              <small class="ms-2">Únete a nuestra comunidad de donantes</small>
             </div>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="goBackToCollectors()">
-            <i class="fas fa-arrow-left me-2"></i>Volver
-          </button>
-          <button type="button" class="btn btn-success" id="confirmPaymentBtn">
-            <i class="fas fa-check me-2"></i>Confirmar Pago Realizado
-          </button>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary" id="shareOnSocial">
+          <i class="fas fa-share me-2"></i>Compartir
+        </button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="resetDonationFlow">
+          <i class="fas fa-home me-2"></i>Volver al Inicio
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Template para Toast de notificaciones -->
+<template id="toast-template">
+  <div class="toast align-items-center text-white border-0" role="alert">
+    <div class="d-flex">
+      <div class="toast-body">
+        <i class="fas me-2"></i>
+        <span class="toast-message"></span>
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</template>
+
+<!-- Template para tarjeta de recolector -->
+<template id="collector-card-template">
+  <div class="col-md-6 col-lg-4 mb-3">
+    <div class="card collector-card h-100 shadow-sm">
+      <div class="card-body text-center p-3">
+        <div class="position-relative mb-3">
+          <img class="collector-photo rounded-circle border border-2 border-light shadow-sm" width="80" height="80"
+            alt="Foto del recolector">
+          <div class="position-absolute bottom-0 end-0">
+            <span class="badge bg-success rounded-pill">
+              <i class="fas fa-check fa-xs"></i>
+            </span>
+          </div>
+        </div>
+
+        <h6 class="card-title mb-2 fw-bold collector-name"></h6>
+
+        <div class="row g-1 mb-3">
+          <div class="col-6">
+            <small class="text-warning d-block">
+              <i class="fas fa-star"></i>
+              <span class="collector-rating"></span>
+            </small>
+          </div>
+          <div class="col-6">
+            <small class="text-danger d-block">
+              <i class="fas fa-heart"></i>
+              <span class="collector-donations"></span>
+            </small>
+          </div>
+        </div>
+
+        <div class="mb-2">
+          <small class="text-muted d-block">
+            <i class="fas fa-clock me-1"></i>
+            <span class="collector-experience"></span>
+          </small>
+        </div>
+
+        <div class="mb-3">
+          <small class="text-muted d-block">
+            <i class="fas fa-map-marker-alt me-1"></i>
+            <span class="collector-location"></span>
+          </small>
+        </div>
+
+        <div class="collector-selection-indicator d-none">
+          <i class="fas fa-check-circle text-primary fa-2x"></i>
+          <small class="d-block text-primary fw-bold mt-1">Seleccionado</small>
         </div>
       </div>
     </div>
   </div>
+</template>
 
-  <!-- Modal 5: Confirmación y Certificado -->
-  <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content confirmation-modal">
-        <div class="modal-header bg-success text-white">
-          <h5 class="modal-title" id="confirmationModalLabel">
-            <i class="fas fa-certificate me-2"></i>
-            ¡Donación Completada!
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body text-center">
-          <div class="donation-progress">
-            <div class="progress-bar">
-              <div class="progress-step completed" data-step="1">
-                <i class="fas fa-check"></i>
-                <span>Tipo</span>
-              </div>
-              <div class="progress-step completed" data-step="2">
-                <i class="fas fa-check"></i>
-                <span>Datos</span>
-              </div>
-              <div class="progress-step completed" data-step="3">
-                <i class="fas fa-check"></i>
-                <span>Recolector</span>
-              </div>
-              <div class="progress-step completed" data-step="4">
-                <i class="fas fa-check"></i>
-                <span>Pago</span>
-              </div>
-              <div class="progress-step completed active" data-step="5">
-                <i class="fas fa-certificate"></i>
-                <span>Certificado</span>
-              </div>
-            </div>
-          </div>
+<!-- Template para estado de carga de recolectores -->
+<template id="collectors-loading-template">
+  <div class="col-12 text-center py-4">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando recolectores...</span>
+    </div>
+    <p class="mt-2 text-muted">Buscando recolectores disponibles...</p>
+  </div>
+</template>
 
-          <div class="confirmation-animation mb-4">
-            <div class="success-checkmark">
-              <div class="check-icon">
-                <span class="icon-line line-tip"></span>
-                <span class="icon-line line-long"></span>
-                <div class="icon-circle"></div>
-                <div class="icon-fix"></div>
-              </div>
-            </div>
-          </div>
+<!-- Template para mensaje sin recolectores -->
+<template id="no-collectors-template">
+  <div class="col-12 text-center py-4">
+    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+    <h5>No hay recolectores disponibles</h5>
+    <p class="text-muted">
+      No se encontraron recolectores en este momento.
+      Por favor intenta más tarde o contacta al administrador.
+    </p>
+    <button class="btn btn-outline-primary retry-btn">
+      <i class="fas fa-refresh me-2"></i>Reintentar
+    </button>
+  </div>
+</template>
 
-          <h4 class="text-success mb-3">¡Gracias por tu Generosidad!</h4>
-          <p class="lead">Tu donación ha sido registrada exitosamente</p>
+<!-- Contenedor para toasts -->
+<div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+</div>
 
-          <div class="donation-details mb-4">
-            <div class="row">
-              <div class="col-md-6">
-                <strong>Donante:</strong>
-                <p id="finalDonorName">-</p>
-              </div>
-              <div class="col-md-6">
-                <strong>Monto:</strong>
-                <p>S/ <span id="finalAmount">0</span></p>
-              </div>
-              <div class="col-md-6">
-                <strong>Recolector:</strong>
-                <p id="finalCollector">-</p>
-              </div>
-              <div class="col-md-6">
-                <strong>Fecha:</strong>
-                <p id="finalDate">-</p>
-              </div>
-            </div>
-          </div>
+<!-- Sección de testimonios o comentarios de usuarios -->
+<section style="padding: 100px 0; background: var(--gray-dark);">
+  <div class="container">
+    <h2 class="section-title" style="color: white;">Testimonios de nuestra comunidad</h2>
+    <p class="section-subtitle" style="color: rgba(255,255,255,0.8);">Conoce las experiencias de estudiantes que han
+      sido parte del cambio</p>
 
-          <div class="certificate-section">
-            <div class="alert alert-success">
-              <i class="fas fa-envelope me-2"></i>
-              <strong>¡Certificado Enviado!</strong><br>
-              Hemos enviado tu certificado de donación al correo: <span id="finalEmail">-</span>
-            </div>
-
-            <button class="btn btn-success btn-lg mb-3" id="downloadCertificate">
-              <i class="fas fa-download me-2"></i>
-              Descargar Certificado PDF
-            </button>
-          </div>
-
-          <div class="next-steps">
-            <h6>¿Qué sigue ahora?</h6>
-            <div class="row text-start">
-              <div class="col-md-6">
-                <div class="step-item">
-                  <i class="fas fa-envelope text-primary"></i>
-                  <span>Recibirás actualizaciones sobre el impacto de tu donación</span>
-                </div>
+    <div class="swiper" id="testimonialsSwiper">
+      <div class="swiper-wrapper">
+        <div class="swiper-slide">
+          <div class="testimonial-card">
+            <p style="font-style: italic; margin-bottom: 20px;">"Participar en RSU FIEI cambió mi perspectiva sobre el
+              rol de los estudiantes en la sociedad. Ahora sé que puedo hacer la diferencia."</p>
+            <div class="d-flex align-items-center">
+              <div
+                style="width: 50px; height: 50px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                <i class="fas fa-user" style="color: white;"></i>
               </div>
-              <div class="col-md-6">
-                <div class="step-item">
-                  <i class="fas fa-users text-primary"></i>
-                  <span>Únete a nuestra comunidad de donantes</span>
-                </div>
+              <div>
+                <h6 style="margin: 0; font-weight: 600;">María González</h6>
+                <small style="color: var(--gray-medium);">Estudiante de Ingeniería</small>
               </div>
             </div>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-primary" onclick="shareOnSocial()">
-            <i class="fas fa-share me-2"></i>Compartir
-          </button>
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="resetDonationFlow()">
-            <i class="fas fa-home me-2"></i>Volver al Inicio
-          </button>
+        <div class="swiper-slide">
+          <div class="testimonial-card">
+            <p style="font-style: italic; margin-bottom: 20px;">"Los proyectos de RSU me han dado habilidades de
+              liderazgo y trabajo en equipo que uso en mi vida profesional."</p>
+            <div class="d-flex align-items-center">
+              <div
+                style="width: 50px; height: 50px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                <i class="fas fa-user" style="color: white;"></i>
+              </div>
+              <div>
+                <h6 style="margin: 0; font-weight: 600;">Carlos Rodríguez</h6>
+                <small style="color: var(--gray-medium);">Egresado FIEI</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="swiper-slide">
+          <div class="testimonial-card">
+            <p style="font-style: italic; margin-bottom: 20px;">"Gracias a RSU FIEI encontré mi pasión por el trabajo
+              social y decidí enfocar mi carrera hacia la sostenibilidad."</p>
+            <div class="d-flex align-items-center">
+              <div
+                style="width: 50px; height: 50px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                <i class="fas fa-user" style="color: white;"></i>
+              </div>
+              <div>
+                <h6 style="margin: 0; font-weight: 600;">Ana Martínez</h6>
+                <small style="color: var(--gray-medium);">Estudiante de 4to año</small>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
     </div>
   </div>
-  <!-- Sección de testimonios o comentarios de usuarios -->
-  <section style="padding: 100px 0; background: var(--gray-dark);">
-    <div class="container">
-      <h2 class="section-title" style="color: white;">Testimonios de nuestra comunidad</h2>
-      <p class="section-subtitle" style="color: rgba(255,255,255,0.8);">Conoce las experiencias de estudiantes que han
-        sido parte del cambio</p>
+</section>
 
-      <div class="swiper" id="testimonialsSwiper">
-        <div class="swiper-wrapper">
-          <div class="swiper-slide">
-            <div class="testimonial-card">
-              <p style="font-style: italic; margin-bottom: 20px;">"Participar en RSU FIEI cambió mi perspectiva sobre el
-                rol de los estudiantes en la sociedad. Ahora sé que puedo hacer la diferencia."</p>
-              <div class="d-flex align-items-center">
-                <div
-                  style="width: 50px; height: 50px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-                  <i class="fas fa-user" style="color: white;"></i>
-                </div>
-                <div>
-                  <h6 style="margin: 0; font-weight: 600;">María González</h6>
-                  <small style="color: var(--gray-medium);">Estudiante de Ingeniería</small>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="swiper-slide">
-            <div class="testimonial-card">
-              <p style="font-style: italic; margin-bottom: 20px;">"Los proyectos de RSU me han dado habilidades de
-                liderazgo y trabajo en equipo que uso en mi vida profesional."</p>
-              <div class="d-flex align-items-center">
-                <div
-                  style="width: 50px; height: 50px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-                  <i class="fas fa-user" style="color: white;"></i>
-                </div>
-                <div>
-                  <h6 style="margin: 0; font-weight: 600;">Carlos Rodríguez</h6>
-                  <small style="color: var(--gray-medium);">Egresado FIEI</small>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="swiper-slide">
-            <div class="testimonial-card">
-              <p style="font-style: italic; margin-bottom: 20px;">"Gracias a RSU FIEI encontré mi pasión por el trabajo
-                social y decidí enfocar mi carrera hacia la sostenibilidad."</p>
-              <div class="d-flex align-items-center">
-                <div
-                  style="width: 50px; height: 50px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-                  <i class="fas fa-user" style="color: white;"></i>
-                </div>
-                <div>
-                  <h6 style="margin: 0; font-weight: 600;">Ana Martínez</h6>
-                  <small style="color: var(--gray-medium);">Estudiante de 4to año</small>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="swiper-button-next"></div>
-        <div class="swiper-button-prev"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Sección de proyectos -->
-  <section style="padding: 100px 0;" id="proyectos">
-    <div class="container">
-      <div
-        style="background: var(--orange-light); padding: 60px 40px; border-radius: 30px; text-align: center; margin-bottom: 50px;">
-        <h2 style="font-size: 2.5rem; margin-bottom: 20px; color: var(--gray-dark);">¿Tienes preguntas sobre nuestros
-          proyectos?</h2>
-        <div class="row mt-5">
-          <div class="col-md-6">
-            <div class="accordion" id="projectsAccordion">
-              <div class="accordion-item" style="border: none; margin-bottom: 10px;">
-                <h2 class="accordion-header">
-                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#collapseOne" style="border-radius: 15px;">
-                    ¿Cómo puedo unirme a RSU FIEI?
-                  </button>
-                </h2>
-                <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#projectsAccordion">
-                  <div class="accordion-body">
-                    Puedes registrarte en nuestra plataforma online o acercarte a nuestras oficinas en FIEI. Ofrecemos
-                    orientación personalizada para encontrar el proyecto que mejor se adapte a tus intereses.
-                  </div>
-                </div>
-              </div>
-              <div class="accordion-item" style="border: none; margin-bottom: 10px;">
-                <h2 class="accordion-header">
-                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#collapseTwo" style="border-radius: 15px;">
-                    ¿Qué tiempo debo dedicar?
-                  </button>
-                </h2>
-                <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#projectsAccordion">
-                  <div class="accordion-body">
-                    El compromiso es flexible. Tenemos proyectos que requieren desde 2 horas semanales hasta programas
-                    intensivos de fin de semana. Tú decides tu nivel de participación.
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div style="background: white; padding: 30px; border-radius: 20px; height: 100%;">
-              <i class="fas fa-question-circle"
-                style="font-size: 3rem; color: var(--orange-primary); margin-bottom: 20px;"></i>
-              <h4>¿Necesitas más información?</h4>
-              <p>Contáctanos y resolveremos todas tus dudas</p>
-              <button class="btn btn-orange">Contactar ahora</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Sección del blog -->
-  <section style="padding: 100px 0; background: var(--gray-light);" id="blog">
-    <div class="container">
-      <h2 class="section-title">Nuestro Blog</h2>
-      <p class="section-subtitle">Mantente informado sobre nuestras actividades, logros y reflexiones sobre
-        responsabilidad social</p>
-      <div class="row g-4">
-        <div class="col-md-4">
-          <div class="blog-card">
-            <div
-              style="height: 220px; background: linear-gradient(135deg, var(--orange-primary), var(--orange-secondary)); display: flex; align-items: center; justify-content: center;">
-              <i class="fas fa-seedling" style="font-size: 4rem; color: white;"></i>
-            </div>
-            <div class="p-4">
-              <div class="d-flex align-items-center gap-2 mb-3">
-                <span class="badge" style="background: var(--orange-primary); color: white;">Sostenibilidad</span>
-                <small style="color: var(--gray-medium);">15 Mayo, 2024</small>
-              </div>
-              <h5>Proyecto de Reciclaje en el Campus: Resultados del primer semestre</h5>
-              <p style="color: var(--gray-medium); margin-bottom: 20px;">Conoce cómo hemos logrado reducir un 40% los
-                desechos no reciclables en nuestra facultad.</p>
-              <div class="d-flex align-items-center gap-3">
-                <div
-                  style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
-                  <i class="fas fa-user" style="color: white; font-size: 0.8rem;"></i>
-                </div>
-                <div>
-                  <small style="font-weight: 600; color: var(--gray-dark);">Equipo RSU</small>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Sección de llamada a la acción (CTA - Call to Action) -->
-  <section class="cta-section" id="contacto">
-    <div class="container">
-      <div class="row justify-content-center">
-        <div class="col-lg-8 text-center" style="position: relative; z-index: 2;">
-          <h2 style="font-size: 3rem; margin-bottom: 20px; font-weight: 700;">¿Listo para ser parte del cambio?</h2>
-          <p style="font-size: 1.2rem; margin-bottom: 40px; opacity: 0.9;">Únete a nuestra comunidad de estudiantes
-            comprometidos con la responsabilidad social</p>
-          <div class="row justify-content-center">
-            <div class="col-md-8">
-              <div class="d-flex flex-column flex-md-row gap-3">
-                <input class="form-control" type="email" placeholder="Tu correo electrónico"
-                  style="border-radius: 50px; padding: 15px 25px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 1.1rem;" />
-                <button class="btn"
-                  style="background: white; color: var(--orange-primary); padding: 15px 30px; border-radius: 50px; font-weight: 600; white-space: nowrap;">Únete
-                  ahora</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-  </main>
-
-  <!-- Pie de página (Footer) -->
-  <footer class="footer">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-4 col-md-6 mb-4">
-          <div class="d-flex align-items-center mb-4">
-            <div
-              style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--orange-primary), var(--orange-secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-              <i class="fas fa-graduation-cap" style="color: white; font-size: 1.5rem;"></i>
-            </div>
-            <span style="font-weight: 700; font-size: 1.5rem; color: white;">RSU FIEI</span>
-          </div>
-          <p style="color: rgba(255,255,255,0.8); line-height: 1.8;">Promovemos la responsabilidad social universitaria
-            a través de proyectos innovadores que generan impacto positivo en nuestra comunidad y sociedad.</p>
-          <div class="d-flex gap-3 mt-3">
-            <a href="#"
-              style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
-              <i class="fab fa-facebook-f"></i>
-            </a>
-            <a href="#"
-              style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
-              <i class="fab fa-instagram"></i>
-            </a>
-            <a href="#"
-              style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
-              <i class="fab fa-linkedin-in"></i>
-            </a>
-          </div>
-        </div>
-        <div class="col-lg-2 col-md-6 mb-4">
-          <h5>Navegación</h5>
-          <ul class="list-unstyled">
-            <li class="mb-2"><a href="#inicio">Inicio</a></li>
-            <li class="mb-2"><a href="#nosotros">Nosotros</a></li>
-            <li class="mb-2"><a href="#proyectos">Proyectos</a></li>
-            <li class="mb-2"><a href="#blog">Blog</a></li>
-          </ul>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-4">
-          <h5>Proyectos</h5>
-          <ul class="list-unstyled">
-            <li class="mb-2"><a href="#">Sostenibilidad Ambiental</a></li>
-            <li class="mb-2"><a href="#">Educación Inclusiva</a></li>
-            <li class="mb-2"><a href="#">Bienestar Social</a></li>
-            <li class="mb-2"><a href="#">Voluntariado <span
-                  style="background: var(--orange-primary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; margin-left: 5px;">¡Únete!</span></a>
-            </li>
-          </ul>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-4">
-          <h5>Contacto</h5>
-          <ul class="list-unstyled">
-            <li class="mb-2">
-              <i class="fas fa-map-marker-alt" style="color: var(--orange-primary); margin-right: 10px;"></i>
-              <span>FIEI - Universidad Nacional</span>
-            </li>
-            <li class="mb-2">
-              <i class="fas fa-envelope" style="color: var(--orange-primary); margin-right: 10px;"></i>
-              <span>rsu@fiei.edu.pe</span>
-            </li>
-            <li class="mb-2">
-              <i class="fas fa-phone" style="color: var(--orange-primary); margin-right: 10px;"></i>
-              <span>+51 999 888 777</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <hr style="border-color: rgba(255,255,255,0.2); margin: 40px 0 20px;">
-      <div class="row align-items-center">
+<!-- Sección de proyectos -->
+<section style="padding: 100px 0;" id="proyectos">
+  <div class="container">
+    <div
+      style="background: var(--orange-light); padding: 60px 40px; border-radius: 30px; text-align: center; margin-bottom: 50px;">
+      <h2 style="font-size: 2.5rem; margin-bottom: 20px; color: var(--gray-dark);">¿Tienes preguntas sobre nuestros
+        proyectos?</h2>
+      <div class="row mt-5">
         <div class="col-md-6">
-          <p style="color: rgba(255,255,255,0.6); margin: 0;">&copy; 2024 RSU FIEI. Todos los derechos reservados.</p>
+          <div class="accordion" id="projectsAccordion">
+            <div class="accordion-item" style="border: none; margin-bottom: 10px;">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#collapseOne" style="border-radius: 15px;">
+                  ¿Cómo puedo unirme a RSU FIEI?
+                </button>
+              </h2>
+              <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#projectsAccordion">
+                <div class="accordion-body">
+                  Puedes registrarte en nuestra plataforma online o acercarte a nuestras oficinas en FIEI. Ofrecemos
+                  orientación personalizada para encontrar el proyecto que mejor se adapte a tus intereses.
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item" style="border: none; margin-bottom: 10px;">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#collapseTwo" style="border-radius: 15px;">
+                  ¿Qué tiempo debo dedicar?
+                </button>
+              </h2>
+              <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#projectsAccordion">
+                <div class="accordion-body">
+                  El compromiso es flexible. Tenemos proyectos que requieren desde 2 horas semanales hasta programas
+                  intensivos de fin de semana. Tú decides tu nivel de participación.
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="col-md-6 text-md-end">
-          <p style="color: rgba(255,255,255,0.6); margin: 0;">Hecho con <i class="fas fa-heart"
-              style="color: var(--orange-primary);"></i> para nuestra comunidad</p>
+        <div class="col-md-6">
+          <div style="background: white; padding: 30px; border-radius: 20px; height: 100%;">
+            <i class="fas fa-question-circle"
+              style="font-size: 3rem; color: var(--orange-primary); margin-bottom: 20px;"></i>
+            <h4>¿Necesitas más información?</h4>
+            <p>Contáctanos y resolveremos todas tus dudas</p>
+            <button class="btn btn-orange">Contactar ahora</button>
+          </div>
         </div>
       </div>
     </div>
-  </footer>
+  </div>
+</section>
+
+<!-- Sección del blog -->
+<section style="padding: 100px 0; background: var(--gray-light);" id="blog">
+  <div class="container">
+    <h2 class="section-title">Nuestro Blog</h2>
+    <p class="section-subtitle">Mantente informado sobre nuestras actividades, logros y reflexiones sobre
+      responsabilidad social</p>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="blog-card">
+          <div
+            style="height: 220px; background: linear-gradient(135deg, var(--orange-primary), var(--orange-secondary)); display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-seedling" style="font-size: 4rem; color: white;"></i>
+          </div>
+          <div class="p-4">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="badge" style="background: var(--orange-primary); color: white;">Sostenibilidad</span>
+              <small style="color: var(--gray-medium);">15 Mayo, 2024</small>
+            </div>
+            <h5>Proyecto de Reciclaje en el Campus: Resultados del primer semestre</h5>
+            <p style="color: var(--gray-medium); margin-bottom: 20px;">Conoce cómo hemos logrado reducir un 40% los
+              desechos no reciclables en nuestra facultad.</p>
+            <div class="d-flex align-items-center gap-3">
+              <div
+                style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+                <i class="fas fa-user" style="color: white; font-size: 0.8rem;"></i>
+              </div>
+              <div>
+                <small style="font-weight: 600; color: var(--gray-dark);">Equipo RSU</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Sección de llamada a la acción (CTA - Call to Action) -->
+<section class="cta-section" id="contacto">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 text-center" style="position: relative; z-index: 2;">
+        <h2 style="font-size: 3rem; margin-bottom: 20px; font-weight: 700;">¿Listo para ser parte del cambio?</h2>
+        <p style="font-size: 1.2rem; margin-bottom: 40px; opacity: 0.9;">Únete a nuestra comunidad de estudiantes
+          comprometidos con la responsabilidad social</p>
+        <div class="row justify-content-center">
+          <div class="col-md-8">
+            <div class="d-flex flex-column flex-md-row gap-3">
+              <input class="form-control" type="email" placeholder="Tu correo electrónico"
+                style="border-radius: 50px; padding: 15px 25px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 1.1rem;" />
+              <button class="btn"
+                style="background: white; color: var(--orange-primary); padding: 15px 30px; border-radius: 50px; font-weight: 600; white-space: nowrap;">Únete
+                ahora</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- Pie de página (Footer) -->
+<footer class="footer">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="d-flex align-items-center mb-4">
+          <div
+            style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--orange-primary), var(--orange-secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+            <i class="fas fa-graduation-cap" style="color: white; font-size: 1.5rem;"></i>
+          </div>
+          <span style="font-weight: 700; font-size: 1.5rem; color: white;">RSU FIEI</span>
+        </div>
+        <p style="color: rgba(255,255,255,0.8); line-height: 1.8;">Promovemos la responsabilidad social universitaria
+          a través de proyectos innovadores que generan impacto positivo en nuestra comunidad y sociedad.</p>
+        <div class="d-flex gap-3 mt-3">
+          <a href="#"
+            style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+          <a href="#"
+            style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a href="#"
+            style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+            <i class="fab fa-linkedin-in"></i>
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-2 col-md-6 mb-4">
+        <h5>Navegación</h5>
+        <ul class="list-unstyled">
+          <li class="mb-2"><a href="#inicio">Inicio</a></li>
+          <li class="mb-2"><a href="#nosotros">Nosotros</a></li>
+          <li class="mb-2"><a href="#proyectos">Proyectos</a></li>
+          <li class="mb-2"><a href="#blog">Blog</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-3 col-md-6 mb-4">
+        <h5>Proyectos</h5>
+        <ul class="list-unstyled">
+          <li class="mb-2"><a href="#">Sostenibilidad Ambiental</a></li>
+          <li class="mb-2"><a href="#">Educación Inclusiva</a></li>
+          <li class="mb-2"><a href="#">Bienestar Social</a></li>
+          <li class="mb-2"><a href="#">Voluntariado <span
+                style="background: var(--orange-primary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; margin-left: 5px;">¡Únete!</span></a>
+          </li>
+        </ul>
+      </div>
+      <div class="col-lg-3 col-md-6 mb-4">
+        <h5>Contacto</h5>
+        <ul class="list-unstyled">
+          <li class="mb-2">
+            <i class="fas fa-map-marker-alt" style="color: var(--orange-primary); margin-right: 10px;"></i>
+            <span>FIEI - Universidad Nacional</span>
+          </li>
+          <li class="mb-2">
+            <i class="fas fa-envelope" style="color: var(--orange-primary); margin-right: 10px;"></i>
+            <span>rsu@fiei.edu.pe</span>
+          </li>
+          <li class="mb-2">
+            <i class="fas fa-phone" style="color: var(--orange-primary); margin-right: 10px;"></i>
+            <span>+51 999 888 777</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <hr style="border-color: rgba(255,255,255,0.2); margin: 40px 0 20px;">
+    <div class="row align-items-center">
+      <div class="col-md-6">
+        <p style="color: rgba(255,255,255,0.6); margin: 0;">&copy; 2024 RSU FIEI. Todos los derechos reservados.</p>
+      </div>
+      <div class="col-md-6 text-md-end">
+        <p style="color: rgba(255,255,255,0.6); margin: 0;">Hecho con <i class="fas fa-heart"
+            style="color: var(--orange-primary);"></i> para nuestra comunidad</p>
+      </div>
+    </div>
+  </div>
+</footer>
