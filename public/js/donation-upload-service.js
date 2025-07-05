@@ -1,358 +1,275 @@
 // donation-upload-service.js
 import {
-  db,
+  doc,
+  setDoc,
   collection,
   addDoc,
   serverTimestamp,
-  storage,
-  ref,
-  uploadBytes,
-  getDownloadURL,
-} from "./firebase_config.js";
+  getFirestore,
+} from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL, getStorage } from "firebase/storage";
+import { app } from "./firebase_config.js"; // Asume que tienes configuración de Firebase
 
-/**
- * Servicio especializado para subir datos de donaciones a Firebase
- * Se encarga exclusivamente de la persistencia de datos y archivos
- */
-class DonationUploadService {
-  constructor() {
-    this.isUploading = false;
-    this.uploadCallbacks = {
-      onStart: null,
-      onProgress: null,
-      onSuccess: null,
-      onError: null,
-    };
-  }
+export class DonationUploadService {
+  static db = getFirestore(app);
+  static storage = getStorage(app);
 
   /**
-   * Configurar callbacks para el proceso de subida
-   * @param {Object} callbacks - Funciones callback para diferentes eventos
-   */
-  setCallbacks(callbacks) {
-    this.uploadCallbacks = { ...this.uploadCallbacks, ...callbacks };
-  }
-
-  /**
-   * Método principal para subir una donación completa
+   * Sube una donación completa a Firebase
    * @param {Object} donationData - Datos de la donación
-   * @param {File} paymentProofFile - Archivo de comprobante de pago
-   * @returns {Promise<string>} - ID de la donación creada
+   * @returns {Promise<Object>} - Resultado de la subida
    */
-  async uploadDonation(donationData, paymentProofFile = null) {
-    if (this.isUploading) {
-      throw new Error("Ya hay una subida en progreso");
-    }
-
-    this.isUploading = true;
-
+  static async uploadDonation(donationData) {
     try {
-      // Notificar inicio
-      this._triggerCallback("onStart");
+      console.log("Iniciando subida a Firebase...", donationData);
 
-      // Paso 1: Subir comprobante de pago si existe
-      let paymentProofUrl = null;
-      if (paymentProofFile) {
-        this._triggerCallback("onProgress", {
-          step: "uploading_proof",
-          progress: 25,
-        });
-        paymentProofUrl = await this._uploadPaymentProof(
-          paymentProofFile,
-          donationData.IDValidacion
-        );
-      }
-
-      // Paso 2: Preparar datos finales
-      this._triggerCallback("onProgress", {
-        step: "preparing_data",
-        progress: 50,
-      });
-      const finalDonationData = this._prepareFinalData(
-        donationData,
-        paymentProofUrl
+      // 1. Subir archivo de comprobante
+      const fileURL = await this.uploadPaymentProof(
+        donationData.payment.proofFile
       );
 
-      // Paso 3: Subir a Firestore
-      this._triggerCallback("onProgress", {
-        step: "saving_to_database",
-        progress: 75,
-      });
-      const donationId = await this._saveDonationToFirestore(finalDonationData);
+      // 2. Preparar datos para Firestore
+      const firestoreData = this.prepareFirestoreData(donationData, fileURL);
 
-      // Paso 4: Completar
-      this._triggerCallback("onProgress", { step: "completed", progress: 100 });
-      this._triggerCallback("onSuccess", {
-        donationId,
-        paymentProofUrl,
-        message: "Donación subida exitosamente",
-      });
+      // 3. Subir a Firestore
+      const docRef = await addDoc(
+        collection(this.db, "donaciones"),
+        firestoreData
+      );
 
-      return donationId;
+      console.log("Donación subida exitosamente con ID:", docRef.id);
+
+      return {
+        id: docRef.id,
+        fileURL: fileURL,
+        timestamp: new Date().toISOString(),
+        success: true,
+      };
     } catch (error) {
-      console.error("Error en uploadDonation:", error);
-      this._triggerCallback("onError", {
-        error,
-        message: this._getErrorMessage(error),
-      });
-      throw error;
-    } finally {
-      this.isUploading = false;
+      console.error("Error al subir donación a Firebase:", error);
+      throw new Error(`Error de Firebase: ${error.message}`);
     }
   }
 
   /**
-   * Subir solo el comprobante de pago
+   * Sube el comprobante de pago a Firebase Storage
    * @param {File} file - Archivo del comprobante
-   * @param {string} validationId - ID de validación para el nombre del archivo
    * @returns {Promise<string>} - URL del archivo subido
    */
-  async _uploadPaymentProof(file, validationId) {
+  static async uploadPaymentProof(file) {
+    if (!file) {
+      throw new Error("No se proporcionó archivo de comprobante");
+    }
+
     try {
       // Generar nombre único para el archivo
       const timestamp = Date.now();
-      const fileExtension = this._getFileExtension(file.name);
-      const fileName = `comprobantes/${validationId}_${timestamp}.${fileExtension}`;
+      const fileName = `payment-proofs/${timestamp}-${file.name}`;
 
       // Crear referencia en Storage
-      const storageRef = ref(storage, fileName);
-
-      // Configurar metadata
-      const metadata = {
-        contentType: file.type,
-        customMetadata: {
-          validationId: validationId,
-          originalName: file.name,
-          uploadDate: new Date().toISOString(),
-        },
-      };
+      const storageRef = ref(this.storage, fileName);
 
       // Subir archivo
-      const snapshot = await uploadBytes(storageRef, file, metadata);
+      const snapshot = await uploadBytes(storageRef, file);
+      console.log("Archivo subido a Storage:", snapshot.ref.fullPath);
 
       // Obtener URL de descarga
       const downloadURL = await getDownloadURL(snapshot.ref);
+      console.log("URL de descarga obtenida:", downloadURL);
 
-      console.log("Comprobante subido exitosamente:", downloadURL);
       return downloadURL;
     } catch (error) {
-      console.error("Error subiendo comprobante:", error);
-      throw new Error(`Error subiendo comprobante: ${error.message}`);
+      console.error("Error al subir archivo a Storage:", error);
+      throw new Error(`Error al subir comprobante: ${error.message}`);
     }
   }
 
   /**
-   * Guardar datos de donación en Firestore
-   * @param {Object} donationData - Datos preparados de la donación
-   * @returns {Promise<string>} - ID del documento creado
+   * Prepara los datos para Firestore
+   * @param {Object} donationData - Datos originales
+   * @param {string} fileURL - URL del archivo subido
+   * @returns {Object} - Datos preparados para Firestore
    */
-  async _saveDonationToFirestore(donationData) {
-    try {
-      const docRef = await addDoc(collection(db, "donaciones"), {
-        ...donationData,
-        fechaCreacion: serverTimestamp(),
-        fechaUltimaModificacion: serverTimestamp(),
-      });
+  static prepareFirestoreData(donationData, fileURL) {
+    return {
+      // Información del donante
+      donor: {
+        type: donationData.donor.type,
+        firstName: donationData.donor.firstName || "",
+        lastName: donationData.donor.lastName || "",
+        companyName: donationData.donor.companyName || "",
+        dni: donationData.donor.dni || "",
+        ruc: donationData.donor.ruc || "",
+        email: donationData.donor.email,
+        phone: donationData.donor.phone || "",
+        address: donationData.donor.address || "",
+        representative: donationData.donor.representative || "",
+        position: donationData.donor.position || "",
+        message: donationData.donor.message || "",
+        newsletter: donationData.donor.newsletter || false,
+        fullName: donationData.donor.fullName,
+      },
 
-      console.log("Donación guardada en Firestore con ID:", docRef.id);
-      return docRef.id;
-    } catch (error) {
-      console.error("Error guardando en Firestore:", error);
-      throw new Error(`Error guardando donación: ${error.message}`);
-    }
-  }
+      // Información del recolector
+      collector: {
+        id: donationData.collector.id,
+        name: donationData.collector.name,
+        email: donationData.collector.email,
+        phone: donationData.collector.phone,
+        faculty: donationData.collector.faculty,
+      },
 
-  /**
-   * Preparar datos finales antes de subir
-   * @param {Object} originalData - Datos originales
-   * @param {string} paymentProofUrl - URL del comprobante subido
-   * @returns {Object} - Datos preparados
-   */
-  _prepareFinalData(originalData, paymentProofUrl) {
-    const finalData = {
-      ...originalData,
-      fechadonacion: serverTimestamp(),
-      fechaCreacion: serverTimestamp(),
-      fechaUltimaModificacion: serverTimestamp(),
-      estadoSubida: "completado",
-      versionDatos: "1.0",
+      // Información del pago
+      payment: {
+        amount: donationData.payment.amount,
+        method: donationData.payment.method,
+        methodDetails: donationData.payment.methodDetails,
+        proofFileURL: fileURL,
+        status: donationData.payment.status,
+        verificationStatus: "pending",
+        verifiedAt: null,
+        verifiedBy: null,
+      },
+
+      // Metadatos y timestamps
+      metadata: {
+        ...donationData.metadata,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        version: "1.0",
+      },
+
+      // Estados de seguimiento
+      status: {
+        current: "submitted",
+        history: [
+          {
+            status: "submitted",
+            timestamp: serverTimestamp(),
+            note: "Donación enviada por el usuario",
+          },
+        ],
+      },
     };
-
-    // Agregar información del comprobante si existe
-    if (paymentProofUrl) {
-      finalData.comprobanteURL = paymentProofUrl;
-      finalData.comprobanteSubido = true;
-      finalData.fechaSubidaComprobante = serverTimestamp();
-    } else {
-      finalData.comprobanteSubido = false;
-    }
-
-    // Limpiar campos undefined
-    Object.keys(finalData).forEach((key) => {
-      if (finalData[key] === undefined) {
-        delete finalData[key];
-      }
-    });
-
-    return finalData;
   }
 
   /**
-   * Obtener extensión de archivo
-   * @param {string} filename - Nombre del archivo
-   * @returns {string} - Extensión del archivo
+   * Actualiza el estado de una donación
+   * @param {string} donationId - ID de la donación
+   * @param {string} newStatus - Nuevo estado
+   * @param {string} note - Nota opcional
+   * @returns {Promise<void>}
    */
-  _getFileExtension(filename) {
-    return filename.split(".").pop().toLowerCase();
-  }
-
-  /**
-   * Obtener mensaje de error amigable
-   * @param {Error} error - Error original
-   * @returns {string} - Mensaje amigable
-   */
-  _getErrorMessage(error) {
-    if (error.code) {
-      switch (error.code) {
-        case "storage/unauthorized":
-          return "No tienes permisos para subir archivos";
-        case "storage/canceled":
-          return "Subida cancelada";
-        case "storage/quota-exceeded":
-          return "Espacio de almacenamiento agotado";
-        case "storage/invalid-format":
-          return "Formato de archivo no válido";
-        case "storage/object-not-found":
-          return "Archivo no encontrado";
-        case "permission-denied":
-          return "Permisos insuficientes para guardar datos";
-        case "unavailable":
-          return "Servicio temporalmente no disponible";
-        default:
-          return `Error del sistema: ${error.code}`;
-      }
-    }
-
-    if (error.message.includes("network")) {
-      return "Error de conexión. Verifica tu internet";
-    }
-
-    return error.message || "Error desconocido";
-  }
-
-  /**
-   * Disparar callback si existe
-   * @param {string} callbackName - Nombre del callback
-   * @param {*} data - Datos a pasar al callback
-   */
-  _triggerCallback(callbackName, data = null) {
-    if (
-      this.uploadCallbacks[callbackName] &&
-      typeof this.uploadCallbacks[callbackName] === "function"
-    ) {
-      try {
-        this.uploadCallbacks[callbackName](data);
-      } catch (error) {
-        console.error(`Error en callback ${callbackName}:`, error);
-      }
-    }
-  }
-
-  /**
-   * Verificar si una donación ya existe
-   * @param {string} validationId - ID de validación
-   * @returns {Promise<boolean>} - True si existe
-   */
-  async checkDonationExists(validationId) {
+  static async updateDonationStatus(donationId, newStatus, note = "") {
     try {
-      const q = query(
-        collection(db, "donaciones"),
-        where("IDValidacion", "==", validationId)
+      const donationRef = doc(this.db, "donations", donationId);
+
+      await setDoc(
+        donationRef,
+        {
+          "status.current": newStatus,
+          "status.history": arrayUnion({
+            status: newStatus,
+            timestamp: serverTimestamp(),
+            note: note,
+          }),
+          "metadata.updatedAt": serverTimestamp(),
+        },
+        { merge: true }
       );
-      const querySnapshot = await getDocs(q);
-      return !querySnapshot.empty;
+
+      console.log(
+        `Estado actualizado para donación ${donationId}: ${newStatus}`
+      );
     } catch (error) {
-      console.error("Error verificando donación existente:", error);
-      return false;
+      console.error("Error al actualizar estado:", error);
+      throw error;
     }
   }
 
   /**
-   * Obtener estado de la subida
-   * @returns {boolean} - True si está subiendo
+   * Obtiene una donación por ID
+   * @param {string} donationId - ID de la donación
+   * @returns {Promise<Object>} - Datos de la donación
    */
-  getUploadStatus() {
-    return this.isUploading;
+  static async getDonation(donationId) {
+    try {
+      const donationRef = doc(this.db, "donations", donationId);
+      const donationSnap = await getDoc(donationRef);
+
+      if (donationSnap.exists()) {
+        return {
+          id: donationSnap.id,
+          ...donationSnap.data(),
+        };
+      } else {
+        throw new Error("Donación no encontrada");
+      }
+    } catch (error) {
+      console.error("Error al obtener donación:", error);
+      throw error;
+    }
   }
 
   /**
-   * Cancelar subida en progreso (solo Storage)
+   * Valida los datos antes de subir
+   * @param {Object} donationData - Datos a validar
+   * @returns {Object} - Resultado de la validación
    */
-  cancelUpload() {
-    // Nota: Firebase no permite cancelar uploads de Storage una vez iniciados
-    // Solo podemos marcar como cancelado en nuestro estado
-    this.isUploading = false;
-    this._triggerCallback("onError", {
-      error: new Error("Upload cancelado por el usuario"),
-      message: "Subida cancelada",
-    });
+  static validateDonationData(donationData) {
+    const errors = [];
+
+    // Validar donante
+    if (!donationData.donor) {
+      errors.push("Datos del donante son requeridos");
+    } else {
+      if (!donationData.donor.email) {
+        errors.push("Email del donante es requerido");
+      }
+      if (!donationData.donor.fullName) {
+        errors.push("Nombre completo del donante es requerido");
+      }
+    }
+
+    // Validar recolector
+    if (!donationData.collector) {
+      errors.push("Datos del recolector son requeridos");
+    } else {
+      if (!donationData.collector.id) {
+        errors.push("ID del recolector es requerido");
+      }
+    }
+
+    // Validar pago
+    if (!donationData.payment) {
+      errors.push("Datos del pago son requeridos");
+    } else {
+      if (!donationData.payment.amount || donationData.payment.amount <= 0) {
+        errors.push("Monto del pago debe ser mayor a 0");
+      }
+      if (!donationData.payment.method) {
+        errors.push("Método de pago es requerido");
+      }
+      if (!donationData.payment.proofFile) {
+        errors.push("Comprobante de pago es requerido");
+      }
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors: errors,
+    };
+  }
+
+  /**
+   * Método de utilidad para logs
+   * @param {string} message - Mensaje a loggear
+   * @param {Object} data - Datos adicionales
+   */
+  static log(message, data = {}) {
+    console.log(`[DonationUploadService] ${message}`, data);
   }
 }
 
-/**
- * Instancia singleton del servicio de subida
- */
-const donationUploadService = new DonationUploadService();
-
-/**
- * Función helper para uso fácil desde otros módulos
- * @param {Object} donationData - Datos de la donación
- * @param {File} paymentProofFile - Archivo de comprobante
- * @param {Object} callbacks - Callbacks opcionales
- * @returns {Promise<string>} - ID de la donación
- */
-export async function uploadDonationData(
-  donationData,
-  paymentProofFile = null,
-  callbacks = {}
-) {
-  // Configurar callbacks si se proporcionan
-  if (Object.keys(callbacks).length > 0) {
-    donationUploadService.setCallbacks(callbacks);
-  }
-
-  return await donationUploadService.uploadDonation(
-    donationData,
-    paymentProofFile
-  );
-}
-
-/**
- * Función para verificar si una donación existe
- * @param {string} validationId - ID de validación
- * @returns {Promise<boolean>}
- */
-export async function checkIfDonationExists(validationId) {
-  return await donationUploadService.checkDonationExists(validationId);
-}
-
-/**
- * Función para obtener el estado de subida
- * @returns {boolean}
- */
-export function getUploadStatus() {
-  return donationUploadService.getUploadStatus();
-}
-
-/**
- * Función para cancelar subida
- */
-export function cancelCurrentUpload() {
-  donationUploadService.cancelUpload();
-}
-
-// Exportar también la clase para uso avanzado
-export { DonationUploadService };
-
-// Exportar por defecto la función principal
-export default uploadDonationData;
+// Exportar también como default
+export default DonationUploadService;

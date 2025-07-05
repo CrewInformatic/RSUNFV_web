@@ -49,6 +49,7 @@ class CollectorModel {
 
     // CAMPOS DE PAGO - USANDO LOS NOMBRES EXACTOS DE FIREBASE
     this.yape = userData.Yape || "";
+    this.banco = userData.banco || "";
     this.cuentaBancaria = userData.cuentaBancaria || "";
     this.apellidoUsuario = userData.apellidoUsuario || "";
 

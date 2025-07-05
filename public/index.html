@@ -800,131 +800,122 @@
     </div>
   </div>
 
-<!-- Modal 4: Instrucciones de Pago Mejorado -->
-<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content shadow-lg">
-      <div class="modal-header bg-warning text-white">
-        <h5 class="modal-title" id="paymentModalLabel">
-          <i class="fas fa-credit-card me-2"></i> Instrucciones de Pago
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-
-      <div class="modal-body">
-        <!-- Barra de progreso -->
-        <div class="progress" style="height: 10px;">
-          <div class="progress-bar bg-success" role="progressbar" style="width: 80%"></div>
-        </div>
-        <div class="d-flex justify-content-between mt-2 mb-4">
-          <small class="text-success fw-bold">✓ Tipo</small>
-          <small class="text-success fw-bold">✓ Datos</small>
-          <small class="text-success fw-bold">✓ Recolector</small>
-          <small class="text-success fw-bold">✓ Pago</small>
-          <small class="text-muted">Certificado</small>
+  <!-- Modal 4: Instrucciones de Pago Mejorado -->
+  <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content shadow-lg">
+        <div class="modal-header bg-warning text-white">
+          <h5 class="modal-title" id="paymentModalLabel">
+            <i class="fas fa-credit-card me-2"></i> Instrucciones de Pago
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
 
-        <!-- Recolector seleccionado -->
-        <div class="alert alert-light border">
-  <div class="fw-bold mb-2">
-    <i class="fas fa-user-check text-success me-2"></i>Recolector Seleccionado
-  </div>
-  <div class="mb-2">
-    <strong>Nombre:</strong> <span id="selectedCollectorName">Nombre del Recolector</span>
-  </div>
-  <div class="mb-2">
-    <strong>Email:</strong> <span id="selectedCollectorEmail">email@ejemplo.com</span>
-  </div>
-  <div class="mb-2">
-    <strong>Teléfono:</strong> <span id="selectedCollectorPhone">999999999</span>
-  </div>
-  <div class="mb-2">
-    <strong>Facultad:</strong> <span id="selectedCollectorFaculty">Facultad</span>
-  </div>
-</div>
-
-        <!-- Selección de método de pago -->
-        <h5 class="mb-3"><i class="fas fa-credit-card me-2"></i> Selecciona el método de pago</h5>
-        <div class="text-center py-4" id="paymentMethodsContainer">
-          <div class="spinner-border text-primary" role="status"></div>
-          <p class="mt-2 text-muted">Cargando métodos de pago disponibles...</p>
-        </div>
-
-        <!-- Detalles de pago -->
-        <div class="row mb-4 d-none" id="paymentDetailsSection">
-          <div class="col-12">
-            <h5 class="mb-3"><i class="fas fa-info-circle me-2"></i> Detalles del pago</h5>
-            <div id="yapeDetails" class="payment-details d-none"></div>
-            <div id="plinDetails" class="payment-details d-none"></div>
-            <div id="bankDetails" class="payment-details d-none"></div>
-            <div id="cciDetails" class="payment-details d-none"></div>
+        <div class="modal-body">
+          <!-- Barra de progreso -->
+          <div class="progress" style="height: 10px;">
+            <div class="progress-bar bg-success" role="progressbar" style="width: 80%"></div>
           </div>
-        </div>
+          <div class="d-flex justify-content-between mt-2 mb-4">
+            <small class="text-success fw-bold">✓ Tipo</small>
+            <small class="text-success fw-bold">✓ Datos</small>
+            <small class="text-success fw-bold">✓ Recolector</small>
+            <small class="text-success fw-bold">✓ Pago</small>
+            <small class="text-muted">Certificado</small>
+          </div>
 
-        <!-- Subida de comprobante -->
-        <div class="row mb-4 d-none" id="uploadSection">
-          <div class="col-12">
-            <h5 class="mb-3"><i class="fas fa-cloud-upload-alt me-2"></i> Sube tu comprobante de pago</h5>
-            <div class="border border-2 border-dashed rounded p-4 text-center file-drop-zone" id="fileDropZone" style="cursor: pointer;">
-              <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-              <h6>Arrastra tu imagen aquí o haz clic para seleccionar</h6>
-              <p class="text-muted mb-0">Formatos permitidos: JPG, PNG, WebP (máximo 5MB)</p>
-              <input type="file" id="paymentProofInput" accept="image/*" style="display: none;">
+          <!-- Recolector seleccionado -->
+          <div class="alert alert-light border">
+            <div class="fw-bold mb-2">
+              <i class="fas fa-user-check text-success me-2"></i>Recolector Seleccionado
             </div>
-            <div id="filePreview" class="mt-3"></div>
-            <div class="alert alert-info mt-3">
-              <small><i class="fas fa-info-circle me-1"></i>
-              <strong>Importante:</strong> Asegúrate de que el comprobante sea legible y contenga el monto exacto de tu donación (S/ <span id="paymentAmount">0</span>).</small>
+            <div class="mb-2">
+              <strong>Nombre:</strong> <span id="selectedCollectorName">Cargando...</span>
+            </div>
+            <div class="mb-2">
+              <strong>Email:</strong> <span id="selectedCollectorEmail">Cargando...</span>
+            </div>
+            <div class="mb-2">
+              <strong>Teléfono:</strong> <span id="selectedCollectorPhone">Cargando...</span>
+            </div>
+            <div class="mb-2">
+              <strong>Facultad:</strong> <span id="selectedCollectorFaculty">Cargando...</span>
+            </div>
+          </div>
+
+          <!-- Selección de método de pago -->
+          <h5 class="mb-3"><i class="fas fa-credit-card me-2"></i> Selecciona el método de pago</h5>
+          <div class="text-center py-4" id="paymentMethodsContainer">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Cargando métodos de pago disponibles...</p>
+          </div>
+
+          <!-- Subida de comprobante -->
+          <div class="row mb-4 d-none" id="uploadSection">
+            <div class="col-12">
+              <h5 class="mb-3"><i class="fas fa-cloud-upload-alt me-2"></i> Sube tu comprobante de pago</h5>
+              <div class="border border-2 border-dashed rounded p-4 text-center file-drop-zone" id="fileDropZone"
+                style="cursor: pointer;">
+                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                <h6>Arrastra tu imagen aquí o haz clic para seleccionar</h6>
+                <p class="text-muted mb-0">Formatos permitidos: JPG, PNG, WebP (máximo 5MB)</p>
+                <input type="file" id="paymentProofInput" accept="image/*" style="display: none;">
+              </div>
+              <div id="filePreview" class="mt-3"></div>
+              <div class="alert alert-info mt-3">
+                <small><i class="fas fa-info-circle me-1"></i>
+                  <strong>Importante:</strong> Asegúrate de que el comprobante sea legible y contenga el monto exacto de
+                  tu donación</small>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Botones de acción -->
-      <div class="modal-footer bg-light">
-        <button type="button" class="btn btn-outline-secondary" id="goBackToCollectors">
-          <i class="fas fa-arrow-left me-2"></i>Volver
-        </button>
-        <button type="button" class="btn btn-success disabled" id="confirmPaymentBtn" disabled>
-          <i class="fas fa-check me-2"></i>Confirmar Pago Realizado
-        </button>
+        <!-- Botones de acción -->
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-outline-secondary" id="goBackToCollectors">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+          </button>
+          <button type="button" class="btn btn-success disabled" id="confirmPaymentBtn" disabled>
+            <i class="fas fa-check me-2"></i>Confirmar Pago Realizado
+          </button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
 
-<!-- Modal 5: Confirmación y Certificado -->
+  <!-- Modal 5: Confirmación y Certificado -->
 <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel"
   aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <div class="modal-header bg-success text-white">
+      <div class="modal-header bg-warning text-dark">
         <h5 class="modal-title" id="confirmationModalLabel">
-          <i class="fas fa-certificate me-2"></i>
-          ¡Donación Completada!
+          <i class="fas fa-clock me-2"></i>
+          Donación Registrada - Verificación Pendiente
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body text-center">
         <div class="mb-4">
           <div class="progress" style="height: 10px;">
-            <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+            <div class="progress-bar bg-warning" role="progressbar" style="width: 80%"></div>
           </div>
           <div class="d-flex justify-content-between mt-2">
             <small class="text-success fw-bold">✓ Tipo</small>
             <small class="text-success fw-bold">✓ Datos</small>
             <small class="text-success fw-bold">✓ Recolector</small>
-            <small class="text-success fw-bold">✓ Pago</small>
-            <small class="text-success fw-bold">✓ Certificado</small>
+            <small class="text-warning fw-bold">⏳ Verificación</small>
+            <small class="text-muted">○ Certificado</small>
           </div>
         </div>
 
         <div class="mb-4">
-          <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+          <i class="fas fa-hourglass-half text-warning animate-spin" style="font-size: 4rem;"></i>
         </div>
 
-        <h4 class="text-success mb-3">¡Gracias por tu Generosidad!</h4>
+        <h4 class="text-warning mb-3">¡Gracias por tu Generosidad!</h4>
         <p class="lead">Tu donación ha sido registrada exitosamente</p>
 
         <div class="row mb-4">
@@ -946,27 +937,57 @@
           </div>
         </div>
 
-        <div class="alert alert-success">
-          <i class="fas fa-envelope me-2"></i>
-          <strong>¡Certificado Enviado!</strong><br>
-          Hemos enviado tu certificado de donación al correo: <span id="finalEmail">-</span>
+        <!-- Alerta principal sobre el certificado -->
+        <div class="alert alert-warning border-warning">
+          <div class="d-flex align-items-center mb-2">
+            <i class="fas fa-certificate me-2 text-warning"></i>
+            <strong>Certificado en Proceso</strong>
+          </div>
+          <p class="mb-2">
+            Tu certificado de donación será enviado a <strong><span id="finalEmail">-</span></strong> 
+            una vez que se haya verificado el pago correspondiente.
+          </p>
+          <hr class="my-2">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-user-tie me-2 text-info"></i>
+            <small class="text-muted">
+              <strong>Importante:</strong> Tu recolector asignado se comunicará contigo si hubiera algún problema durante el proceso.
+            </small>
+          </div>
         </div>
 
-        <button class="btn btn-success btn-lg mb-3" id="downloadCertificate">
-          <i class="fas fa-download me-2"></i>
-          Descargar Certificado PDF
-        </button>
-
-        <div class="mt-4">
-          <h6>¿Qué sigue ahora?</h6>
-          <div class="row">
-            <div class="col-md-6">
-              <i class="fas fa-envelope text-primary"></i>
-              <small class="ms-2">Recibirás actualizaciones sobre el impacto de tu donación</small>
-            </div>
-            <div class="col-md-6">
-              <i class="fas fa-users text-primary"></i>
-              <small class="ms-2">Únete a nuestra comunidad de donantes</small>
+        <!-- Información adicional -->
+        <div class="card bg-light border-0 mt-4">
+          <div class="card-body">
+            <h6 class="card-title mb-3">
+              <i class="fas fa-info-circle me-2 text-primary"></i>
+              ¿Qué sigue ahora?
+            </h6>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-check-circle text-success me-2"></i>
+                  <small>Verificación del pago</small>
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-envelope text-primary me-2"></i>
+                  <small>Envío del certificado</small>
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-bell text-info me-2"></i>
+                  <small>Actualizaciones por email</small>
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-phone text-success me-2"></i>
+                  <small>Contacto del recolector</small>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -982,359 +1003,359 @@
     </div>
   </div>
 </div>
-<!-- Template para Toast de notificaciones -->
-<template id="toast-template">
-  <div class="toast align-items-center text-white border-0" role="alert">
-    <div class="d-flex">
-      <div class="toast-body">
-        <i class="fas me-2"></i>
-        <span class="toast-message"></span>
-      </div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-    </div>
-  </div>
-</template>
-
-<!-- Template para tarjeta de recolector -->
-<template id="collector-card-template">
-  <div class="col-md-6 col-lg-4 mb-3">
-    <div class="card collector-card h-100 shadow-sm">
-      <div class="card-body text-center p-3">
-        <div class="position-relative mb-3">
-          <img class="collector-photo rounded-circle border border-2 border-light shadow-sm" width="80" height="80"
-            alt="Foto del recolector">
-          <div class="position-absolute bottom-0 end-0">
-            <span class="badge bg-success rounded-pill">
-              <i class="fas fa-check fa-xs"></i>
-            </span>
-          </div>
+  <!-- Template para Toast de notificaciones -->
+  <template id="toast-template">
+    <div class="toast align-items-center text-white border-0" role="alert">
+      <div class="d-flex">
+        <div class="toast-body">
+          <i class="fas me-2"></i>
+          <span class="toast-message"></span>
         </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  </template>
 
-        <h6 class="card-title mb-2 fw-bold collector-name"></h6>
+  <!-- Template para tarjeta de recolector -->
+  <template id="collector-card-template">
+    <div class="col-md-6 col-lg-4 mb-3">
+      <div class="card collector-card h-100 shadow-sm">
+        <div class="card-body text-center p-3">
+          <div class="position-relative mb-3">
+            <img class="collector-photo rounded-circle border border-2 border-light shadow-sm" width="80" height="80"
+              alt="Foto del recolector">
+            <div class="position-absolute bottom-0 end-0">
+              <span class="badge bg-success rounded-pill">
+                <i class="fas fa-check fa-xs"></i>
+              </span>
+            </div>
+          </div>
 
-        <div class="row g-1 mb-3">
-          <div class="col-6">
-            <small class="text-warning d-block">
-              <i class="fas fa-star"></i>
-              <span class="collector-rating"></span>
+          <h6 class="card-title mb-2 fw-bold collector-name"></h6>
+
+          <div class="row g-1 mb-3">
+            <div class="col-6">
+              <small class="text-warning d-block">
+                <i class="fas fa-star"></i>
+                <span class="collector-rating"></span>
+              </small>
+            </div>
+            <div class="col-6">
+              <small class="text-danger d-block">
+                <i class="fas fa-heart"></i>
+                <span class="collector-donations"></span>
+              </small>
+            </div>
+          </div>
+
+          <div class="mb-2">
+            <small class="text-muted d-block">
+              <i class="fas fa-clock me-1"></i>
+              <span class="collector-experience"></span>
             </small>
           </div>
-          <div class="col-6">
-            <small class="text-danger d-block">
-              <i class="fas fa-heart"></i>
-              <span class="collector-donations"></span>
+
+          <div class="mb-3">
+            <small class="text-muted d-block">
+              <i class="fas fa-map-marker-alt me-1"></i>
+              <span class="collector-location"></span>
             </small>
           </div>
-        </div>
 
-        <div class="mb-2">
-          <small class="text-muted d-block">
-            <i class="fas fa-clock me-1"></i>
-            <span class="collector-experience"></span>
-          </small>
-        </div>
-
-        <div class="mb-3">
-          <small class="text-muted d-block">
-            <i class="fas fa-map-marker-alt me-1"></i>
-            <span class="collector-location"></span>
-          </small>
-        </div>
-
-        <div class="collector-selection-indicator d-none">
-          <i class="fas fa-check-circle text-primary fa-2x"></i>
-          <small class="d-block text-primary fw-bold mt-1">Seleccionado</small>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<!-- Template para estado de carga de recolectores -->
-<template id="collectors-loading-template">
-  <div class="col-12 text-center py-4">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Cargando recolectores...</span>
-    </div>
-    <p class="mt-2 text-muted">Buscando recolectores disponibles...</p>
-  </div>
-</template>
-
-<!-- Template para mensaje sin recolectores -->
-<template id="no-collectors-template">
-  <div class="col-12 text-center py-4">
-    <i class="fas fa-users fa-3x text-muted mb-3"></i>
-    <h5>No hay recolectores disponibles</h5>
-    <p class="text-muted">
-      No se encontraron recolectores en este momento.
-      Por favor intenta más tarde o contacta al administrador.
-    </p>
-    <button class="btn btn-outline-primary retry-btn">
-      <i class="fas fa-refresh me-2"></i>Reintentar
-    </button>
-  </div>
-</template>
-
-<!-- Contenedor para toasts -->
-<div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
-</div>
-
-<!-- Sección de testimonios o comentarios de usuarios -->
-<section style="padding: 100px 0; background: var(--gray-dark);">
-  <div class="container">
-    <h2 class="section-title" style="color: white;">Testimonios de nuestra comunidad</h2>
-    <p class="section-subtitle" style="color: rgba(255,255,255,0.8);">Conoce las experiencias de estudiantes que han
-      sido parte del cambio</p>
-
-    <div class="swiper" id="testimonialsSwiper">
-      <div class="swiper-wrapper">
-        <div class="swiper-slide">
-          <div class="testimonial-card">
-            <p style="font-style: italic; margin-bottom: 20px;">"Participar en RSU FIEI cambió mi perspectiva sobre el
-              rol de los estudiantes en la sociedad. Ahora sé que puedo hacer la diferencia."</p>
-            <div class="d-flex align-items-center">
-              <div
-                style="width: 50px; height: 50px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-                <i class="fas fa-user" style="color: white;"></i>
-              </div>
-              <div>
-                <h6 style="margin: 0; font-weight: 600;">María González</h6>
-                <small style="color: var(--gray-medium);">Estudiante de Ingeniería</small>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="swiper-slide">
-          <div class="testimonial-card">
-            <p style="font-style: italic; margin-bottom: 20px;">"Los proyectos de RSU me han dado habilidades de
-              liderazgo y trabajo en equipo que uso en mi vida profesional."</p>
-            <div class="d-flex align-items-center">
-              <div
-                style="width: 50px; height: 50px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-                <i class="fas fa-user" style="color: white;"></i>
-              </div>
-              <div>
-                <h6 style="margin: 0; font-weight: 600;">Carlos Rodríguez</h6>
-                <small style="color: var(--gray-medium);">Egresado FIEI</small>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="swiper-slide">
-          <div class="testimonial-card">
-            <p style="font-style: italic; margin-bottom: 20px;">"Gracias a RSU FIEI encontré mi pasión por el trabajo
-              social y decidí enfocar mi carrera hacia la sostenibilidad."</p>
-            <div class="d-flex align-items-center">
-              <div
-                style="width: 50px; height: 50px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-                <i class="fas fa-user" style="color: white;"></i>
-              </div>
-              <div>
-                <h6 style="margin: 0; font-weight: 600;">Ana Martínez</h6>
-                <small style="color: var(--gray-medium);">Estudiante de 4to año</small>
-              </div>
-            </div>
+          <div class="collector-selection-indicator d-none">
+            <i class="fas fa-check-circle text-primary fa-2x"></i>
+            <small class="d-block text-primary fw-bold mt-1">Seleccionado</small>
           </div>
         </div>
       </div>
-      <div class="swiper-button-next"></div>
-      <div class="swiper-button-prev"></div>
     </div>
-  </div>
-</section>
+  </template>
 
-<!-- Sección de proyectos -->
-<section style="padding: 100px 0;" id="proyectos">
-  <div class="container">
-    <div
-      style="background: var(--orange-light); padding: 60px 40px; border-radius: 30px; text-align: center; margin-bottom: 50px;">
-      <h2 style="font-size: 2.5rem; margin-bottom: 20px; color: var(--gray-dark);">¿Tienes preguntas sobre nuestros
-        proyectos?</h2>
-      <div class="row mt-5">
-        <div class="col-md-6">
-          <div class="accordion" id="projectsAccordion">
-            <div class="accordion-item" style="border: none; margin-bottom: 10px;">
-              <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                  data-bs-target="#collapseOne" style="border-radius: 15px;">
-                  ¿Cómo puedo unirme a RSU FIEI?
-                </button>
-              </h2>
-              <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#projectsAccordion">
-                <div class="accordion-body">
-                  Puedes registrarte en nuestra plataforma online o acercarte a nuestras oficinas en FIEI. Ofrecemos
-                  orientación personalizada para encontrar el proyecto que mejor se adapte a tus intereses.
+  <!-- Template para estado de carga de recolectores -->
+  <template id="collectors-loading-template">
+    <div class="col-12 text-center py-4">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando recolectores...</span>
+      </div>
+      <p class="mt-2 text-muted">Buscando recolectores disponibles...</p>
+    </div>
+  </template>
+
+  <!-- Template para mensaje sin recolectores -->
+  <template id="no-collectors-template">
+    <div class="col-12 text-center py-4">
+      <i class="fas fa-users fa-3x text-muted mb-3"></i>
+      <h5>No hay recolectores disponibles</h5>
+      <p class="text-muted">
+        No se encontraron recolectores en este momento.
+        Por favor intenta más tarde o contacta al administrador.
+      </p>
+      <button class="btn btn-outline-primary retry-btn">
+        <i class="fas fa-refresh me-2"></i>Reintentar
+      </button>
+    </div>
+  </template>
+
+  <!-- Contenedor para toasts -->
+  <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+  </div>
+
+  <!-- Sección de testimonios o comentarios de usuarios -->
+  <section style="padding: 100px 0; background: var(--gray-dark);">
+    <div class="container">
+      <h2 class="section-title" style="color: white;">Testimonios de nuestra comunidad</h2>
+      <p class="section-subtitle" style="color: rgba(255,255,255,0.8);">Conoce las experiencias de estudiantes que han
+        sido parte del cambio</p>
+
+      <div class="swiper" id="testimonialsSwiper">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide">
+            <div class="testimonial-card">
+              <p style="font-style: italic; margin-bottom: 20px;">"Participar en RSU FIEI cambió mi perspectiva sobre el
+                rol de los estudiantes en la sociedad. Ahora sé que puedo hacer la diferencia."</p>
+              <div class="d-flex align-items-center">
+                <div
+                  style="width: 50px; height: 50px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                  <i class="fas fa-user" style="color: white;"></i>
+                </div>
+                <div>
+                  <h6 style="margin: 0; font-weight: 600;">María González</h6>
+                  <small style="color: var(--gray-medium);">Estudiante de Ingeniería</small>
                 </div>
               </div>
             </div>
-            <div class="accordion-item" style="border: none; margin-bottom: 10px;">
-              <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                  data-bs-target="#collapseTwo" style="border-radius: 15px;">
-                  ¿Qué tiempo debo dedicar?
-                </button>
-              </h2>
-              <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#projectsAccordion">
-                <div class="accordion-body">
-                  El compromiso es flexible. Tenemos proyectos que requieren desde 2 horas semanales hasta programas
-                  intensivos de fin de semana. Tú decides tu nivel de participación.
+          </div>
+          <div class="swiper-slide">
+            <div class="testimonial-card">
+              <p style="font-style: italic; margin-bottom: 20px;">"Los proyectos de RSU me han dado habilidades de
+                liderazgo y trabajo en equipo que uso en mi vida profesional."</p>
+              <div class="d-flex align-items-center">
+                <div
+                  style="width: 50px; height: 50px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                  <i class="fas fa-user" style="color: white;"></i>
+                </div>
+                <div>
+                  <h6 style="margin: 0; font-weight: 600;">Carlos Rodríguez</h6>
+                  <small style="color: var(--gray-medium);">Egresado FIEI</small>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="swiper-slide">
+            <div class="testimonial-card">
+              <p style="font-style: italic; margin-bottom: 20px;">"Gracias a RSU FIEI encontré mi pasión por el trabajo
+                social y decidí enfocar mi carrera hacia la sostenibilidad."</p>
+              <div class="d-flex align-items-center">
+                <div
+                  style="width: 50px; height: 50px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                  <i class="fas fa-user" style="color: white;"></i>
+                </div>
+                <div>
+                  <h6 style="margin: 0; font-weight: 600;">Ana Martínez</h6>
+                  <small style="color: var(--gray-medium);">Estudiante de 4to año</small>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección de proyectos -->
+  <section style="padding: 100px 0;" id="proyectos">
+    <div class="container">
+      <div
+        style="background: var(--orange-light); padding: 60px 40px; border-radius: 30px; text-align: center; margin-bottom: 50px;">
+        <h2 style="font-size: 2.5rem; margin-bottom: 20px; color: var(--gray-dark);">¿Tienes preguntas sobre nuestros
+          proyectos?</h2>
+        <div class="row mt-5">
+          <div class="col-md-6">
+            <div class="accordion" id="projectsAccordion">
+              <div class="accordion-item" style="border: none; margin-bottom: 10px;">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapseOne" style="border-radius: 15px;">
+                    ¿Cómo puedo unirme a RSU FIEI?
+                  </button>
+                </h2>
+                <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#projectsAccordion">
+                  <div class="accordion-body">
+                    Puedes registrarte en nuestra plataforma online o acercarte a nuestras oficinas en FIEI. Ofrecemos
+                    orientación personalizada para encontrar el proyecto que mejor se adapte a tus intereses.
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item" style="border: none; margin-bottom: 10px;">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapseTwo" style="border-radius: 15px;">
+                    ¿Qué tiempo debo dedicar?
+                  </button>
+                </h2>
+                <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#projectsAccordion">
+                  <div class="accordion-body">
+                    El compromiso es flexible. Tenemos proyectos que requieren desde 2 horas semanales hasta programas
+                    intensivos de fin de semana. Tú decides tu nivel de participación.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div style="background: white; padding: 30px; border-radius: 20px; height: 100%;">
+              <i class="fas fa-question-circle"
+                style="font-size: 3rem; color: var(--orange-primary); margin-bottom: 20px;"></i>
+              <h4>¿Necesitas más información?</h4>
+              <p>Contáctanos y resolveremos todas tus dudas</p>
+              <button class="btn btn-orange">Contactar ahora</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección del blog -->
+  <section style="padding: 100px 0; background: var(--gray-light);" id="blog">
+    <div class="container">
+      <h2 class="section-title">Nuestro Blog</h2>
+      <p class="section-subtitle">Mantente informado sobre nuestras actividades, logros y reflexiones sobre
+        responsabilidad social</p>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="blog-card">
+            <div
+              style="height: 220px; background: linear-gradient(135deg, var(--orange-primary), var(--orange-secondary)); display: flex; align-items: center; justify-content: center;">
+              <i class="fas fa-seedling" style="font-size: 4rem; color: white;"></i>
+            </div>
+            <div class="p-4">
+              <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="badge" style="background: var(--orange-primary); color: white;">Sostenibilidad</span>
+                <small style="color: var(--gray-medium);">15 Mayo, 2024</small>
+              </div>
+              <h5>Proyecto de Reciclaje en el Campus: Resultados del primer semestre</h5>
+              <p style="color: var(--gray-medium); margin-bottom: 20px;">Conoce cómo hemos logrado reducir un 40% los
+                desechos no reciclables en nuestra facultad.</p>
+              <div class="d-flex align-items-center gap-3">
+                <div
+                  style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+                  <i class="fas fa-user" style="color: white; font-size: 0.8rem;"></i>
+                </div>
+                <div>
+                  <small style="font-weight: 600; color: var(--gray-dark);">Equipo RSU</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección de llamada a la acción (CTA - Call to Action) -->
+  <section class="cta-section" id="contacto">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-8 text-center" style="position: relative; z-index: 2;">
+          <h2 style="font-size: 3rem; margin-bottom: 20px; font-weight: 700;">¿Listo para ser parte del cambio?</h2>
+          <p style="font-size: 1.2rem; margin-bottom: 40px; opacity: 0.9;">Únete a nuestra comunidad de estudiantes
+            comprometidos con la responsabilidad social</p>
+          <div class="row justify-content-center">
+            <div class="col-md-8">
+              <div class="d-flex flex-column flex-md-row gap-3">
+                <input class="form-control" type="email" placeholder="Tu correo electrónico"
+                  style="border-radius: 50px; padding: 15px 25px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 1.1rem;" />
+                <button class="btn"
+                  style="background: white; color: var(--orange-primary); padding: 15px 30px; border-radius: 50px; font-weight: 600; white-space: nowrap;">Únete
+                  ahora</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  </main>
+
+  <!-- Pie de página (Footer) -->
+  <footer class="footer">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-4 col-md-6 mb-4">
+          <div class="d-flex align-items-center mb-4">
+            <div
+              style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--orange-primary), var(--orange-secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+              <i class="fas fa-graduation-cap" style="color: white; font-size: 1.5rem;"></i>
+            </div>
+            <span style="font-weight: 700; font-size: 1.5rem; color: white;">RSU FIEI</span>
+          </div>
+          <p style="color: rgba(255,255,255,0.8); line-height: 1.8;">Promovemos la responsabilidad social universitaria
+            a través de proyectos innovadores que generan impacto positivo en nuestra comunidad y sociedad.</p>
+          <div class="d-flex gap-3 mt-3">
+            <a href="#"
+              style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+              <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="#"
+              style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a href="#"
+              style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+              <i class="fab fa-linkedin-in"></i>
+            </a>
+          </div>
+        </div>
+        <div class="col-lg-2 col-md-6 mb-4">
+          <h5>Navegación</h5>
+          <ul class="list-unstyled">
+            <li class="mb-2"><a href="#inicio">Inicio</a></li>
+            <li class="mb-2"><a href="#nosotros">Nosotros</a></li>
+            <li class="mb-2"><a href="#proyectos">Proyectos</a></li>
+            <li class="mb-2"><a href="#blog">Blog</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+          <h5>Proyectos</h5>
+          <ul class="list-unstyled">
+            <li class="mb-2"><a href="#">Sostenibilidad Ambiental</a></li>
+            <li class="mb-2"><a href="#">Educación Inclusiva</a></li>
+            <li class="mb-2"><a href="#">Bienestar Social</a></li>
+            <li class="mb-2"><a href="#">Voluntariado <span
+                  style="background: var(--orange-primary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; margin-left: 5px;">¡Únete!</span></a>
+            </li>
+          </ul>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+          <h5>Contacto</h5>
+          <ul class="list-unstyled">
+            <li class="mb-2">
+              <i class="fas fa-map-marker-alt" style="color: var(--orange-primary); margin-right: 10px;"></i>
+              <span>FIEI - Universidad Nacional</span>
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-envelope" style="color: var(--orange-primary); margin-right: 10px;"></i>
+              <span>rsu@fiei.edu.pe</span>
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-phone" style="color: var(--orange-primary); margin-right: 10px;"></i>
+              <span>+51 999 888 777</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <hr style="border-color: rgba(255,255,255,0.2); margin: 40px 0 20px;">
+      <div class="row align-items-center">
         <div class="col-md-6">
-          <div style="background: white; padding: 30px; border-radius: 20px; height: 100%;">
-            <i class="fas fa-question-circle"
-              style="font-size: 3rem; color: var(--orange-primary); margin-bottom: 20px;"></i>
-            <h4>¿Necesitas más información?</h4>
-            <p>Contáctanos y resolveremos todas tus dudas</p>
-            <button class="btn btn-orange">Contactar ahora</button>
-          </div>
+          <p style="color: rgba(255,255,255,0.6); margin: 0;">&copy; 2024 RSU FIEI. Todos los derechos reservados.</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <p style="color: rgba(255,255,255,0.6); margin: 0;">Hecho con <i class="fas fa-heart"
+              style="color: var(--orange-primary);"></i> para nuestra comunidad</p>
         </div>
       </div>
     </div>
-  </div>
-</section>
-
-<!-- Sección del blog -->
-<section style="padding: 100px 0; background: var(--gray-light);" id="blog">
-  <div class="container">
-    <h2 class="section-title">Nuestro Blog</h2>
-    <p class="section-subtitle">Mantente informado sobre nuestras actividades, logros y reflexiones sobre
-      responsabilidad social</p>
-    <div class="row g-4">
-      <div class="col-md-4">
-        <div class="blog-card">
-          <div
-            style="height: 220px; background: linear-gradient(135deg, var(--orange-primary), var(--orange-secondary)); display: flex; align-items: center; justify-content: center;">
-            <i class="fas fa-seedling" style="font-size: 4rem; color: white;"></i>
-          </div>
-          <div class="p-4">
-            <div class="d-flex align-items-center gap-2 mb-3">
-              <span class="badge" style="background: var(--orange-primary); color: white;">Sostenibilidad</span>
-              <small style="color: var(--gray-medium);">15 Mayo, 2024</small>
-            </div>
-            <h5>Proyecto de Reciclaje en el Campus: Resultados del primer semestre</h5>
-            <p style="color: var(--gray-medium); margin-bottom: 20px;">Conoce cómo hemos logrado reducir un 40% los
-              desechos no reciclables en nuestra facultad.</p>
-            <div class="d-flex align-items-center gap-3">
-              <div
-                style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
-                <i class="fas fa-user" style="color: white; font-size: 0.8rem;"></i>
-              </div>
-              <div>
-                <small style="font-weight: 600; color: var(--gray-dark);">Equipo RSU</small>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Sección de llamada a la acción (CTA - Call to Action) -->
-<section class="cta-section" id="contacto">
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-lg-8 text-center" style="position: relative; z-index: 2;">
-        <h2 style="font-size: 3rem; margin-bottom: 20px; font-weight: 700;">¿Listo para ser parte del cambio?</h2>
-        <p style="font-size: 1.2rem; margin-bottom: 40px; opacity: 0.9;">Únete a nuestra comunidad de estudiantes
-          comprometidos con la responsabilidad social</p>
-        <div class="row justify-content-center">
-          <div class="col-md-8">
-            <div class="d-flex flex-column flex-md-row gap-3">
-              <input class="form-control" type="email" placeholder="Tu correo electrónico"
-                style="border-radius: 50px; padding: 15px 25px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 1.1rem;" />
-              <button class="btn"
-                style="background: white; color: var(--orange-primary); padding: 15px 30px; border-radius: 50px; font-weight: 600; white-space: nowrap;">Únete
-                ahora</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-</main>
-
-<!-- Pie de página (Footer) -->
-<footer class="footer">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-4 col-md-6 mb-4">
-        <div class="d-flex align-items-center mb-4">
-          <div
-            style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--orange-primary), var(--orange-secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-            <i class="fas fa-graduation-cap" style="color: white; font-size: 1.5rem;"></i>
-          </div>
-          <span style="font-weight: 700; font-size: 1.5rem; color: white;">RSU FIEI</span>
-        </div>
-        <p style="color: rgba(255,255,255,0.8); line-height: 1.8;">Promovemos la responsabilidad social universitaria
-          a través de proyectos innovadores que generan impacto positivo en nuestra comunidad y sociedad.</p>
-        <div class="d-flex gap-3 mt-3">
-          <a href="#"
-            style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
-            <i class="fab fa-facebook-f"></i>
-          </a>
-          <a href="#"
-            style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
-            <i class="fab fa-instagram"></i>
-          </a>
-          <a href="#"
-            style="width: 40px; height: 40px; background: var(--orange-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
-            <i class="fab fa-linkedin-in"></i>
-          </a>
-        </div>
-      </div>
-      <div class="col-lg-2 col-md-6 mb-4">
-        <h5>Navegación</h5>
-        <ul class="list-unstyled">
-          <li class="mb-2"><a href="#inicio">Inicio</a></li>
-          <li class="mb-2"><a href="#nosotros">Nosotros</a></li>
-          <li class="mb-2"><a href="#proyectos">Proyectos</a></li>
-          <li class="mb-2"><a href="#blog">Blog</a></li>
-        </ul>
-      </div>
-      <div class="col-lg-3 col-md-6 mb-4">
-        <h5>Proyectos</h5>
-        <ul class="list-unstyled">
-          <li class="mb-2"><a href="#">Sostenibilidad Ambiental</a></li>
-          <li class="mb-2"><a href="#">Educación Inclusiva</a></li>
-          <li class="mb-2"><a href="#">Bienestar Social</a></li>
-          <li class="mb-2"><a href="#">Voluntariado <span
-                style="background: var(--orange-primary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; margin-left: 5px;">¡Únete!</span></a>
-          </li>
-        </ul>
-      </div>
-      <div class="col-lg-3 col-md-6 mb-4">
-        <h5>Contacto</h5>
-        <ul class="list-unstyled">
-          <li class="mb-2">
-            <i class="fas fa-map-marker-alt" style="color: var(--orange-primary); margin-right: 10px;"></i>
-            <span>FIEI - Universidad Nacional</span>
-          </li>
-          <li class="mb-2">
-            <i class="fas fa-envelope" style="color: var(--orange-primary); margin-right: 10px;"></i>
-            <span>rsu@fiei.edu.pe</span>
-          </li>
-          <li class="mb-2">
-            <i class="fas fa-phone" style="color: var(--orange-primary); margin-right: 10px;"></i>
-            <span>+51 999 888 777</span>
-          </li>
-        </ul>
-      </div>
-    </div>
-    <hr style="border-color: rgba(255,255,255,0.2); margin: 40px 0 20px;">
-    <div class="row align-items-center">
-      <div class="col-md-6">
-        <p style="color: rgba(255,255,255,0.6); margin: 0;">&copy; 2024 RSU FIEI. Todos los derechos reservados.</p>
-      </div>
-      <div class="col-md-6 text-md-end">
-        <p style="color: rgba(255,255,255,0.6); margin: 0;">Hecho con <i class="fas fa-heart"
-            style="color: var(--orange-primary);"></i> para nuestra comunidad</p>
-      </div>
-    </div>
-  </div>
-</footer>
+  </footer>

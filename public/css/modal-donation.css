@@ -962,3 +962,33 @@
 .fade-in {
   animation: fadeIn 0.5s ease-out;
 }
+.animate-spin {
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Estilos adicionales para mejor presentación */
+.modal-content {
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.alert {
+  border-radius: 10px;
+}
+
+.card {
+  border-radius: 10px;
+}
+
+.progress {
+  border-radius: 10px;
+}
+
+.progress-bar {
+  border-radius: 10px;
+}

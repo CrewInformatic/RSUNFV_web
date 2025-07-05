@@ -6,20 +6,19 @@ class DonationFlowController {
       donorData: {},
       selectedCollector: null,
       collectorsData: [],
+      selectedPaymentMethod: null,
+      paymentMethods: [],
+      uploadedFile: null,
+      isLoading: false,
+      isPaymentConfirmed: false,
     };
-
     this.modals = {};
     this.elements = {};
-
     this.init();
   }
 
-  // Constants
   static get DONOR_TYPES() {
-    return {
-      INDIVIDUAL: "individual",
-      COMPANY: "company",
-    };
+    return { INDIVIDUAL: "individual", COMPANY: "company" };
   }
 
   static get VALIDATION_RULES() {
@@ -50,224 +49,271 @@ class DonationFlowController {
     };
   }
 
-  /**
-   * Initialize the donation flow controller
-   */
   init() {
     this.cacheElements();
     this.initializeModals();
     this.setupEventListeners();
   }
 
-  /**
-   * Cache DOM elements for better performance
-   */
   cacheElements() {
-    this.elements = {
-      // Amount selection
-      amountButtons: document.querySelectorAll(".amount-btn"),
-      customAmountInput: document.getElementById("customAmountInput"),
-      startDonationBtn: document.getElementById("startDonationBtn"),
-
-      // Donor type
-      donorTypeCards: document.querySelectorAll(".donor-type-card"),
-
-      // Forms
-      donorForm: document.getElementById("donorForm"),
-      individualForm: document.getElementById("individualForm"),
-      companyForm: document.getElementById("companyForm"),
-
-      // Navigation
-      goBackToType: document.getElementById("goBackToType"),
-      continueToCollectors: document.getElementById("continueToCollectors"),
-      goBackToData: document.getElementById("goBackToData"),
-      continueToPayment: document.getElementById("continueToPayment"),
-
+    const selectors = {
+      // Botones y inputs principales
+      amountButtons: ".amount-btn",
+      customAmountInput: "#customAmountInput",
+      startDonationBtn: "#startDonationBtn",
+      donorTypeCards: ".donor-type-card",
+      // Formularios
+      donorForm: "#donorForm",
+      individualForm: "#individualForm",
+      companyForm: "#companyForm",
+      // Navegación
+      goBackToType: "#goBackToType",
+      continueToCollectors: "#continueToCollectors",
+      goBackToData: "#goBackToData",
+      goBackToCollectors: "#goBackToCollectors",
       // Displays
-      selectedAmountDisplay: document.getElementById("selectedAmountDisplay"),
-      selectedAmount2: document.getElementById("selectedAmount2"),
-      donorNameDisplay: document.getElementById("donorNameDisplay"),
-      donorDataModalLabel: document.getElementById("donorDataModalLabel"),
-
-      // Collectors
-      collectorsGrid: document.getElementById("collectorsGrid"),
-
-      // Templates
-      collectorCardTemplate: document.getElementById("collector-card-template"),
-      toastTemplate: document.getElementById("toast-template"),
-      toastContainer: document.getElementById("toast-container"),
-      // Elementos del modal de pago (AGREGAR ESTOS)
-      paymentModal: document.getElementById("paymentModal"),
-      paymentAmount: document.getElementById("paymentAmount"),
-      goBackToCollectors: document.getElementById("goBackToCollectors"),
-      confirmPaymentBtn: document.getElementById("confirmPaymentBtn"),
-
-      // Elementos para mostrar datos del recolector seleccionado
-      selectedCollectorName: document.getElementById("selectedCollectorName"),
-      selectedCollectorEmail: document.getElementById("selectedCollectorEmail"),
-      selectedCollectorPhone: document.getElementById("selectedCollectorPhone"),
-      selectedCollectorFaculty: document.getElementById(
-        "selectedCollectorFaculty"
-      ),
+      selectedAmountDisplay: "#selectedAmountDisplay",
+      selectedAmount2: "#selectedAmount2",
+      donorNameDisplay: "#donorNameDisplay",
+      paymentAmount: "#paymentAmount",
+      // Recolectores
+      collectorsGrid: "#collectorsGrid",
+      selectedCollectorName: "#selectedCollectorName",
+      selectedCollectorEmail: "#selectedCollectorEmail",
+      selectedCollectorPhone: "#selectedCollectorPhone",
+      selectedCollectorFaculty: "#selectedCollectorFaculty",
+      // Pago
+      paymentMethodsContainer: "#paymentMethodsContainer",
+      uploadSection: "#uploadSection",
+      fileDropZone: "#fileDropZone",
+      paymentProofInput: "#paymentProofInput",
+      filePreview: "#filePreview",
+      confirmPaymentBtn: "#confirmPaymentBtn",
+      // Toast
+      toastContainer: "#toast-container",
+      toastTemplate: "#toast-template",
     };
+
+    this.elements = Object.fromEntries(
+      Object.entries(selectors).map(([key, selector]) => [
+        key,
+        selector.startsWith(".")
+          ? document.querySelectorAll(selector)
+          : document.getElementById(selector.substring(1)),
+      ])
+    );
   }
 
-  /**
-   * Initialize Bootstrap modals
-   */
   initializeModals() {
-    const modalIds = [
+    [
       "donorTypeModal",
       "donorDataModal",
       "collectorsModal",
       "paymentModal",
-    ];
-
-    modalIds.forEach((modalId) => {
+      "confirmationModal",
+    ].forEach((modalId) => {
       const modalElement = document.getElementById(modalId);
       if (modalElement) {
         this.modals[modalId] = new bootstrap.Modal(modalElement);
-        modalElement.addEventListener("hidden.bs.modal", () =>
-          this.resetFlow()
-        );
+
+        // CAMBIO: Solo resetear cuando se cierra con X o click fuera
+        modalElement.addEventListener("hidden.bs.modal", (e) => {
+          // Solo resetear si se cerró manualmente (no por navegación programática)
+          if (!modalElement.dataset.programmaticClose) {
+            this.resetFlow();
+          }
+          // Limpiar el flag después del evento
+          delete modalElement.dataset.programmaticClose;
+        });
+      }
+    });
+  }
+  resetFlow() {
+    console.log("Resetting donation flow...");
+
+    // Resetear estado
+    this.state = {
+      selectedAmount: 0,
+      donorType: null,
+      donorData: {},
+      selectedCollector: null,
+      collectorsData: [],
+      selectedPaymentMethod: null,
+      paymentMethods: [],
+      uploadedFile: null,
+      isLoading: false,
+      isPaymentConfirmed: false,
+    };
+
+    // Limpiar UI de montos
+    this.clearAmountButtonsUI();
+    this.clearCustomAmountInput();
+
+    // Limpiar formularios
+    this.clearForm();
+    this.clearDonorTypeCards();
+
+    // Limpiar selección de recolectores
+    this.clearCollectorSelection();
+
+    // Limpiar archivos subidos
+    this.clearFileUpload();
+
+    // Limpiar información de pago
+    this.clearPaymentInfo();
+
+    // Resetear displays
+    this.resetDisplays();
+
+    console.log("Flow reset complete");
+  }
+
+  hideModalProgrammatically(modalId) {
+    const modalElement = document.getElementById(modalId);
+    if (modalElement) {
+      modalElement.dataset.programmaticClose = "true";
+      this.modals[modalId].hide();
+    }
+  }
+
+  clearPaymentInfo() {
+    // Limpiar selección de método de pago
+    document.querySelectorAll(".payment-method-card").forEach((card) => {
+      card.classList.remove("selected", "border-primary", "bg-light");
+      card.style.transform = "translateY(0)";
+      card.style.boxShadow = "";
+    });
+
+    // Limpiar información básica de pago
+    const basicPaymentInfo = document.getElementById("basicPaymentInfo");
+    if (basicPaymentInfo) {
+      basicPaymentInfo.remove();
+    }
+
+    // Ocultar sección de subida
+    if (this.elements.uploadSection) {
+      this.elements.uploadSection.classList.add("d-none");
+    }
+
+    // Deshabilitar botón de confirmación
+    this.disableConfirmButton();
+  }
+
+  // 11. AGREGAR MÉTODO resetDisplays()
+  resetDisplays() {
+    // Resetear displays de monto
+    [
+      this.elements.selectedAmountDisplay,
+      this.elements.selectedAmount2,
+      this.elements.paymentAmount,
+    ].forEach((display) => {
+      if (display) display.textContent = "0";
+    });
+
+    // Resetear display de nombre
+    if (this.elements.donorNameDisplay) {
+      this.elements.donorNameDisplay.textContent = "";
+    }
+
+    // Resetear información del recolector
+    if (this.elements.selectedCollectorName) {
+      this.elements.selectedCollectorName.textContent = "";
+    }
+    if (this.elements.selectedCollectorEmail) {
+      this.elements.selectedCollectorEmail.textContent = "";
+    }
+    if (this.elements.selectedCollectorPhone) {
+      this.elements.selectedCollectorPhone.textContent = "";
+    }
+    if (this.elements.selectedCollectorFaculty) {
+      this.elements.selectedCollectorFaculty.textContent = "";
+    }
+  }
+
+  showModalSafely(modalId) {
+    setTimeout(() => {
+      this.modals[modalId].show();
+    }, 300);
+  }
+  setupEventListeners() {
+    // Amount selection
+    this.elements.amountButtons?.forEach((button) => {
+      button.addEventListener("click", (e) => {
+        e.preventDefault();
+        const amount = parseInt(button.dataset.amount, 10);
+        this.setSelectedAmount(amount);
+        this.updateAmountButtonsUI(button);
+        this.clearCustomAmountInput();
+      });
+    });
+
+    this.elements.customAmountInput?.addEventListener("input", (e) => {
+      const amount = parseInt(e.target.value, 10) || 0;
+      if (amount > 0) {
+        this.setSelectedAmount(amount);
+        this.clearAmountButtonsUI();
+      } else {
+        this.state.selectedAmount = 0;
       }
     });
 
-    this.hidePaymentButton();
-  }
-
-  /**
-   * Setup all event listeners
-   */
-  setupEventListeners() {
-    this.setupAmountSelection();
-    this.setupDonorTypeSelection();
-    this.setupFormNavigation();
-    this.setupFormValidation();
-    this.setupCollectorSelection();
-    this.setupPaymentFlow();
-  }
-  setupPaymentFlow() {
-    // Botón para volver a recolectores desde pago
-    this.elements.goBackToCollectors?.addEventListener("click", () => {
-      this.goBackToCollectors();
-    });
-
-    // Botón para confirmar pago
-    this.elements.confirmPaymentBtn?.addEventListener("click", () => {
-      this.handlePaymentConfirmation();
-    });
-  }
-  /**
-   * Setup amount selection functionality
-   */
-  setupAmountSelection() {
-    // Preset amount buttons
-    this.elements.amountButtons.forEach((button) => {
-      button.addEventListener("click", (e) => {
-        e.preventDefault();
-        this.handleAmountSelection(button);
-      });
-    });
-
-    // Custom amount input
-    this.elements.customAmountInput?.addEventListener("input", (e) => {
-      this.handleCustomAmount(e.target.value);
-    });
-
-    // Start donation button
     this.elements.startDonationBtn?.addEventListener("click", () => {
-      this.handleStartDonation();
+      if (this.state.selectedAmount === 0) {
+        this.showToast("Por favor selecciona un monto para donar", "warning");
+        return;
+      }
+      this.updateAmountDisplay();
+      this.modals.donorTypeModal.show();
     });
-  }
 
-  handleAmountSelection(button) {
-    const amount = parseInt(button.dataset.amount, 10);
-    this.setSelectedAmount(amount);
-    this.updateAmountButtonsUI(button);
-    this.clearCustomAmountInput();
-  }
-
-  handleCustomAmount(value) {
-    const amount = parseInt(value, 10) || 0;
-    if (amount > 0) {
-      this.setSelectedAmount(amount);
-      this.clearAmountButtonsUI();
-    } else {
-      this.state.selectedAmount = 0;
-    }
-  }
-
-  handleStartDonation() {
-    if (this.state.selectedAmount === 0) {
-      this.showToast("Por favor selecciona un monto para donar", "warning");
-      return;
-    }
-    this.updateAmountDisplay();
-    this.modals.donorTypeModal.show();
-  }
-
-  setupDonorTypeSelection() {
-    this.elements.donorTypeCards.forEach((card) => {
+    // Donor type selection
+    this.elements.donorTypeCards?.forEach((card) => {
       card.addEventListener("click", () => {
-        this.handleDonorTypeSelection(card);
+        const type = card.dataset.type;
+        this.setDonorType(type);
+        this.updateDonorTypeCardsUI(card);
+        setTimeout(() => this.proceedToDataCollection(), 500);
       });
     });
-  }
 
-  handleDonorTypeSelection(card) {
-    const type = card.dataset.type;
-    this.setDonorType(type);
-    this.updateDonorTypeCardsUI(card);
-
-    setTimeout(() => {
-      this.proceedToDataCollection();
-    }, 500);
-  }
-
-  setupFormNavigation() {
-    const navigationHandlers = {
+    // Form navigation
+    const navHandlers = {
       goBackToType: () => this.goBackToTypeSelection(),
       continueToCollectors: () => this.handleContinueToCollectors(),
       goBackToData: () => this.goBackToDataForm(),
-      continueToPayment: () => this.handleContinueToPayment(),
+      goBackToCollectors: () => this.goBackToCollectors(),
+      confirmPaymentBtn: () => this.handlePaymentConfirmation(),
     };
 
-    Object.entries(navigationHandlers).forEach(([elementKey, handler]) => {
-      this.elements[elementKey]?.addEventListener("click", handler);
+    Object.entries(navHandlers).forEach(([key, handler]) => {
+      this.elements[key]?.addEventListener("click", handler);
     });
-  }
 
-  handleContinueToCollectors() {
-    if (this.validateDonorForm()) {
-      this.collectDonorData();
-      this.proceedToCollectorSelection();
-    }
+    // Form validation
+    this.setupFormValidation();
+    this.setupCollectorSelection();
+    this.setupFileUpload();
   }
-
-  handleContinueToPayment() {
-    if (this.state.selectedCollector) {
-      this.proceedToPayment();
-    } else {
-      this.showToast("Por favor selecciona un recolector", "warning");
-    }
+  goBackToDataForm() {
+    this.hideModalProgrammatically("collectorsModal");
+    this.showModalSafely("donorDataModal");
   }
-
+  goBackToTypeSelection() {
+    this.hideModalProgrammatically("donorDataModal");
+    this.clearDonorTypeCards();
+    this.clearForm();
+    this.showModalSafely("donorTypeModal");
+  }
   setupFormValidation() {
     const form = this.elements.donorForm;
     if (!form) return;
 
-    const inputs = form.querySelectorAll("input[required]");
-
-    inputs.forEach((input) => {
+    form.querySelectorAll("input[required]").forEach((input) => {
       input.addEventListener("blur", () => this.validateField(input));
       input.addEventListener("input", () => this.clearFieldError(input));
     });
 
-    this.setupFieldFormatting();
-  }
-
-  setupFieldFormatting() {
+    // Field formatting
     const formatters = {
       dni: (value) => value.replace(/\D/g, "").substring(0, 8),
       ruc: (value) => value.replace(/\D/g, "").substring(0, 11),
@@ -275,9 +321,7 @@ class DonationFlowController {
     };
 
     Object.entries(formatters).forEach(([name, formatter]) => {
-      const input = this.elements.donorForm?.querySelector(
-        `input[name="${name}"]`
-      );
+      const input = form.querySelector(`input[name="${name}"]`);
       if (input) {
         input.addEventListener("input", (e) => {
           e.target.value = formatter(e.target.value);
@@ -294,6 +338,34 @@ class DonationFlowController {
     });
   }
 
+  setupFileUpload() {
+    const dropZone = this.elements.fileDropZone;
+    const fileInput = this.elements.paymentProofInput;
+    if (!dropZone || !fileInput) return;
+
+    dropZone.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) this.handleFileSelection(file);
+    });
+
+    ["dragover", "dragleave", "drop"].forEach((event) => {
+      dropZone.addEventListener(event, (e) => {
+        e.preventDefault();
+        if (event === "dragover") {
+          dropZone.classList.add("border-primary", "bg-light");
+        } else if (event === "dragleave") {
+          dropZone.classList.remove("border-primary", "bg-light");
+        } else if (event === "drop") {
+          dropZone.classList.remove("border-primary", "bg-light");
+          const file = e.dataTransfer.files[0];
+          if (file) this.handleFileSelection(file);
+        }
+      });
+    });
+  }
+
+  // State Management
   setSelectedAmount(amount) {
     this.state.selectedAmount = amount;
     console.log(`Amount selected: S/ ${amount}`);
@@ -304,15 +376,16 @@ class DonationFlowController {
     console.log(`Donor type selected: ${type}`);
   }
 
+  // UI Updates
   updateAmountButtonsUI(selectedButton) {
     this.clearAmountButtonsUI();
     selectedButton.classList.add("active");
   }
 
   clearAmountButtonsUI() {
-    this.elements.amountButtons.forEach((btn) => {
-      btn.classList.remove("active");
-    });
+    this.elements.amountButtons?.forEach((btn) =>
+      btn.classList.remove("active")
+    );
   }
 
   clearCustomAmountInput() {
@@ -322,33 +395,27 @@ class DonationFlowController {
   }
 
   updateAmountDisplay() {
-    const displays = [
+    [
       this.elements.selectedAmountDisplay,
       this.elements.selectedAmount2,
-    ];
-
-    displays.forEach((display) => {
-      if (display) {
-        display.textContent = this.state.selectedAmount;
-      }
+    ].forEach((display) => {
+      if (display) display.textContent = this.state.selectedAmount;
     });
   }
 
   updateDonorTypeCardsUI(selectedCard) {
-    this.elements.donorTypeCards.forEach((card) => {
+    this.elements.donorTypeCards?.forEach((card) => {
       card.classList.remove("border-primary", "bg-light");
     });
     selectedCard.classList.add("border-primary", "bg-light");
   }
 
+  // Flow Navigation
   proceedToDataCollection() {
-    this.modals.donorTypeModal.hide();
+    this.hideModalProgrammatically("donorTypeModal");
     this.toggleDonorForms();
     this.updateModalTitle();
-
-    setTimeout(() => {
-      this.modals.donorDataModal.show();
-    }, 300);
+    this.showModalSafely("donorDataModal");
   }
 
   toggleDonorForms() {
@@ -360,7 +427,6 @@ class DonationFlowController {
         ? "block"
         : "none";
     }
-
     if (this.elements.companyForm) {
       this.elements.companyForm.style.display = isIndividual ? "none" : "block";
     }
@@ -383,26 +449,28 @@ class DonationFlowController {
     const form = this.elements.donorForm;
     if (!form) return;
 
-    // Clear all required attributes
-    form.querySelectorAll("input").forEach((input) => {
-      input.removeAttribute("required");
-    });
+    form
+      .querySelectorAll("input")
+      .forEach((input) => input.removeAttribute("required"));
 
     const requiredFields = DonationFlowController.REQUIRED_FIELDS[type] || [];
-
     requiredFields.forEach((fieldName) => {
       const field = form.querySelector(`input[name="${fieldName}"]`);
-      if (field) {
-        field.setAttribute("required", "required");
-      }
+      if (field) field.setAttribute("required", "required");
     });
 
     const termsCheck = document.getElementById("termsCheck");
-    if (termsCheck) {
-      termsCheck.setAttribute("required", "required");
+    if (termsCheck) termsCheck.setAttribute("required", "required");
+  }
+
+  handleContinueToCollectors() {
+    if (this.validateDonorForm()) {
+      this.collectDonorData();
+      this.proceedToCollectorSelection();
     }
   }
 
+  // Form Validation
   validateDonorForm() {
     const form = this.elements.donorForm;
     if (!form) return false;
@@ -433,14 +501,11 @@ class DonationFlowController {
   }
 
   getFieldValidation(input, value) {
-    // Required field validation
     if (input.hasAttribute("required") && !value) {
       return { isValid: false, message: "Este campo es obligatorio" };
     }
 
-    if (!value) {
-      return { isValid: true, message: "" };
-    }
+    if (!value) return { isValid: true, message: "" };
 
     const rules = DonationFlowController.VALIDATION_RULES;
     const fieldName = input.name;
@@ -462,7 +527,6 @@ class DonationFlowController {
   showFieldError(input, message) {
     this.clearFieldError(input);
     input.classList.add("is-invalid");
-
     const errorDiv = document.createElement("div");
     errorDiv.className = "invalid-feedback";
     errorDiv.textContent = message;
@@ -472,17 +536,15 @@ class DonationFlowController {
   clearFieldError(input) {
     input.classList.remove("is-invalid");
     const errorDiv = input.parentNode.querySelector(".invalid-feedback");
-    if (errorDiv) {
-      errorDiv.remove();
-    }
+    if (errorDiv) errorDiv.remove();
   }
 
+  // Data Collection
   collectDonorData() {
     const form = this.elements.donorForm;
     if (!form) return;
 
     const formData = new FormData(form);
-
     this.state.donorData = {
       type: this.state.donorType,
       amount: this.state.selectedAmount,
@@ -499,7 +561,6 @@ class DonationFlowController {
     ) {
       const firstName = formData.get("firstName");
       const lastName = formData.get("lastName");
-
       return {
         firstName,
         lastName,
@@ -528,10 +589,10 @@ class DonationFlowController {
     };
   }
 
+  // Collector Selection
   proceedToCollectorSelection() {
-    this.modals.donorDataModal.hide();
+    this.hideModalProgrammatically("donorDataModal");
     this.updateDonorNameDisplay();
-
     setTimeout(() => {
       this.modals.collectorsModal.show();
       this.loadCollectors();
@@ -551,7 +612,6 @@ class DonationFlowController {
 
     try {
       this.showLoadingState(collectorsGrid);
-
       const { CollectorsService } = await import("./collectors-service.js");
       this.state.collectorsData =
         await CollectorsService.getCollectorsWithFallback();
@@ -571,18 +631,7 @@ class DonationFlowController {
   }
 
   showLoadingState(container) {
-    const template = document.getElementById("collectors-loading-template");
-
-    if (template) {
-      container.innerHTML = "";
-      container.appendChild(template.content.cloneNode(true));
-    } else {
-      container.innerHTML = this.getLoadingHTML();
-    }
-  }
-
-  getLoadingHTML() {
-    return `
+    container.innerHTML = `
       <div class="col-12 text-center py-4">
         <div class="spinner-border text-primary" role="status">
           <span class="visually-hidden">Cargando recolectores...</span>
@@ -593,25 +642,11 @@ class DonationFlowController {
   }
 
   showNoCollectorsState(container) {
-    const template = document.getElementById("no-collectors-template");
-
-    if (template) {
-      container.innerHTML = "";
-      container.appendChild(template.content.cloneNode(true));
-    } else {
-      container.innerHTML = this.getNoCollectorsHTML();
-    }
-  }
-
-  getNoCollectorsHTML() {
-    return `
+    container.innerHTML = `
       <div class="col-12 text-center py-4">
         <i class="fas fa-users fa-3x text-muted mb-3"></i>
         <h5>No hay recolectores disponibles</h5>
-        <p class="text-muted">
-          No se encontraron recolectores en este momento.
-          Por favor intenta más tarde.
-        </p>
+        <p class="text-muted">No se encontraron recolectores en este momento. Por favor intenta más tarde.</p>
         <button class="btn btn-outline-primary retry-btn">
           <i class="fas fa-refresh me-2"></i>Reintentar
         </button>
@@ -624,10 +659,7 @@ class DonationFlowController {
       <div class="col-12 text-center py-4">
         <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
         <h5>Error al cargar recolectores</h5>
-        <p class="text-muted">
-          Hubo un problema al cargar los recolectores.
-          Por favor intenta nuevamente.
-        </p>
+        <p class="text-muted">Hubo un problema al cargar los recolectores. Por favor intenta nuevamente.</p>
         <button class="btn btn-outline-primary retry-btn">
           <i class="fas fa-refresh me-2"></i>Reintentar
         </button>
@@ -644,66 +676,51 @@ class DonationFlowController {
   }
 
   createCollectorCard(collector) {
-    const template = this.elements.collectorCardTemplate;
-    let cardElement;
-
-    if (template) {
-      cardElement = template.content.cloneNode(true);
-    } else {
-      cardElement = this.createCollectorCardFallback();
-    }
-
-    this.populateCollectorCard(cardElement, collector);
-    this.addCollectorClickHandler(cardElement, collector);
-
-    return cardElement;
-  }
-
-  createCollectorCardFallback() {
     const cardElement = document.createElement("div");
-    cardElement.innerHTML = this.getCollectorCardHTML();
-    return cardElement.firstElementChild;
-  }
-
-  getCollectorCardHTML() {
-    return `
+    cardElement.innerHTML = `
       <div class="col-md-6 col-lg-4 mb-3">
-        <div class="card collector-card h-100 shadow-sm">
+        <div class="card collector-card h-100 shadow-sm" data-collector-id="${
+          collector.idUsuario || collector.id
+        }">
           <div class="card-body text-center p-3">
             <div class="position-relative mb-3">
               <img class="collector-photo rounded-circle border border-2 border-light shadow-sm" 
-                   width="80" height="80" alt="Foto del recolector">
+                   width="80" height="80" 
+                   src="${collector.fotoPerfil || collector.photo}"
+                   alt="Foto de ${collector.nombreUsuario || collector.name}">
               <div class="position-absolute bottom-0 end-0">
                 <span class="badge bg-success rounded-pill">
                   <i class="fas fa-check fa-xs"></i>
                 </span>
               </div>
             </div>
-            <h6 class="card-title mb-2 fw-bold collector-name"></h6>
+            <h6 class="card-title mb-2 fw-bold">${
+              collector.nombreUsuario || collector.name
+            }</h6>
             <div class="row g-1 mb-3">
               <div class="col-6">
                 <small class="text-warning d-block">
-                  <i class="fas fa-star"></i>
-                  <span class="collector-rating"></span>
+                  <i class="fas fa-star"></i> ${collector.rating || "5.0"}
                 </small>
               </div>
               <div class="col-6">
                 <small class="text-danger d-block">
-                  <i class="fas fa-heart"></i>
-                  <span class="collector-donations"></span>
+                  <i class="fas fa-heart"></i> ${collector.donations || "0"}
                 </small>
               </div>
             </div>
             <div class="mb-2">
               <small class="text-muted d-block">
-                <i class="fas fa-clock me-1"></i>
-                <span class="collector-experience"></span>
+                <i class="fas fa-clock me-1"></i> ${
+                  collector.experience || "Nuevo"
+                }
               </small>
             </div>
             <div class="mb-3">
               <small class="text-muted d-block">
-                <i class="fas fa-map-marker-alt me-1"></i>
-                <span class="collector-location"></span>
+                <i class="fas fa-map-marker-alt me-1"></i> ${
+                  collector.facultadID || collector.location
+                }
               </small>
             </div>
             <div class="collector-selection-indicator d-none">
@@ -714,72 +731,30 @@ class DonationFlowController {
         </div>
       </div>
     `;
-  }
 
-  populateCollectorCard(cardElement, collector) {
-    const elements = {
-      photo: cardElement.querySelector(".collector-photo"),
-      name: cardElement.querySelector(".collector-name"),
-      rating: cardElement.querySelector(".collector-rating"),
-      donations: cardElement.querySelector(".collector-donations"),
-      experience: cardElement.querySelector(".collector-experience"),
-      location: cardElement.querySelector(".collector-location"),
-      card: cardElement.querySelector(".collector-card"),
-    };
-
-    if (elements.photo) {
-      elements.photo.src = collector.fotoPerfil || collector.photo; // CAMBIAR ESTA LÍNEA
-      elements.photo.alt = `Foto de ${
-        collector.nombreUsuario || collector.name
-      }`; // CAMBIAR ESTA LÍNEA
-    }
-
-    if (elements.name)
-      elements.name.textContent = collector.nombreUsuario || collector.name; // CAMBIAR ESTA LÍNEA
-    if (elements.rating) elements.rating.textContent = collector.rating;
-    if (elements.donations)
-      elements.donations.textContent = collector.donations;
-    if (elements.experience)
-      elements.experience.textContent = collector.experience;
-    if (elements.location)
-      elements.location.textContent =
-        collector.facultadID || collector.location; // CAMBIAR ESTA LÍNEA
-
-    if (elements.card) {
-      elements.card.dataset.collectorId = collector.idUsuario || collector.id; // CAMBIAR ESTA LÍNEA
-    }
-  }
-
-  addCollectorClickHandler(cardElement, collector) {
     const card = cardElement.querySelector(".collector-card");
-    if (card) {
-      card.addEventListener("click", () => {
-        this.selectCollector(collector, card);
-      });
-    }
+    card.addEventListener("click", () => this.selectCollector(collector, card));
+
+    return cardElement.firstElementChild;
   }
 
   selectCollector(collector, cardElement) {
     this.clearCollectorSelection();
     this.markCollectorAsSelected(cardElement);
-    this.state.selectedCollector = collector; // ESTO YA GUARDA TODOS LOS DATOS
-    this.showPaymentButton();
+    this.state.selectedCollector = collector;
 
-    // VERIFICAR QUE LOS DATOS SE ESTÁN GUARDANDO CORRECTAMENTE
-    console.log("Recolector seleccionado con todos los datos:", {
+    console.log("Recolector seleccionado:", {
       id: collector.idUsuario || collector.id,
       name: collector.nombreUsuario || collector.name,
       email: collector.correo || collector.email,
       phone: collector.celular || collector.cellPhone,
-      yape: collector.Yape,
-      bankAccount: collector.cuentaBancaria,
-      allData: collector, // MOSTRAR TODOS LOS DATOS
     });
 
     this.showToast(
       `Recolector ${collector.nombreUsuario || collector.name} seleccionado`,
       "success"
     );
+    setTimeout(() => this.proceedToPayment(), 1000);
   }
 
   clearCollectorSelection() {
@@ -798,192 +773,650 @@ class DonationFlowController {
     if (indicator) indicator.classList.remove("d-none");
   }
 
-  showPaymentButton() {
-    const continueBtn = this.elements.continueToPayment;
-    if (continueBtn) {
-      continueBtn.style.display = "block";
-      continueBtn.disabled = false;
-    }
-  }
-
-  hidePaymentButton() {
-    const continueBtn = this.elements.continueToPayment;
-    if (continueBtn) {
-      continueBtn.style.display = "none";
-      continueBtn.disabled = true;
-    }
-  }
-
+  // Payment Flow
   proceedToPayment() {
-    this.modals.collectorsModal.hide();
-    this.updatePaymentModalWithData(); // CAMBIAR NOMBRE DEL MÉTODO
-
+    this.hideModalProgrammatically("collectorsModal");
     setTimeout(() => {
-      this.modals.paymentModal.show(); // MOSTRAR EL MODAL DE PAGO
-      // Inicializar el controlador de pago
-      this.initializePaymentController();
+      this.modals.paymentModal.show();
+      this.initializePaymentFlow();
     }, 300);
   }
-  async initializePaymentController() {
-    try {
-      const { PaymentController } = await import("./payment-controller.js");
 
-      this.paymentController = new PaymentController({
-        donationData: this.getDonationData(),
-        collectorData: this.state.selectedCollector, // AGREGAR ESTA LÍNEA
-        onPaymentComplete: (paymentData) =>
-          this.handlePaymentComplete(paymentData),
-        onGoBack: () => this.goBackToCollectors(),
-      });
-
-      await this.paymentController.initialize();
-    } catch (error) {
-      console.error("Error initializing payment controller:", error);
-      this.showToast("Error al cargar métodos de pago", "error");
-    }
+  async initializePaymentFlow() {
+    await this.loadPaymentMethods();
+    await this.updateCollectorInfo();
+    this.updatePaymentAmount();
   }
-  updatePaymentModalWithCollector() {
-    if (!this.state.selectedCollector) return;
 
-    const elements = {
-      name: document.getElementById("selectedCollectorName"),
-      email: document.getElementById("selectedCollectorEmail"),
-      phone: document.getElementById("selectedCollectorPhone"),
-      faculty: document.getElementById("selectedCollectorFaculty"),
-    };
-
+  async updateCollectorInfo() {
     const collector = this.state.selectedCollector;
+    if (!collector) return;
 
-    if (elements.name) elements.name.textContent = collector.name;
-    if (elements.email) elements.email.textContent = collector.email;
-    if (elements.phone) elements.phone.textContent = collector.cellPhone;
-    if (elements.faculty) elements.faculty.textContent = collector.location;
-  }
-  updatePaymentModalWithData() {
-    if (!this.state.selectedCollector) return;
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
-    const collector = this.state.selectedCollector;
-    const amount = this.state.selectedAmount;
-
+    // Actualizar información del recolector en la sección de datos
     if (this.elements.selectedCollectorName) {
       this.elements.selectedCollectorName.textContent =
-        collector.nombreUsuario || collector.name; // CAMBIAR ESTA LÍNEA
+        collector.nombreUsuario || collector.name || "No especificado";
     }
+
     if (this.elements.selectedCollectorEmail) {
       this.elements.selectedCollectorEmail.textContent =
-        collector.correo || collector.email; // CAMBIAR ESTA LÍNEA
+        collector.correo || collector.email || "No especificado";
     }
+
     if (this.elements.selectedCollectorPhone) {
       this.elements.selectedCollectorPhone.textContent =
-        collector.celular || collector.cellPhone; // CAMBIAR ESTA LÍNEA
+        collector.celular ||
+        collector.phone ||
+        collector.cellPhone ||
+        "No especificado";
     }
+
     if (this.elements.selectedCollectorFaculty) {
       this.elements.selectedCollectorFaculty.textContent =
-        collector.facultadID || collector.location; // CAMBIAR ESTA LÍNEA
+        collector.facultadID ||
+        collector.faculty ||
+        collector.location ||
+        "No especificado";
     }
 
-    if (this.elements.paymentAmount) {
-      this.elements.paymentAmount.textContent = amount;
-    }
-  }
-  goBackToCollectors() {
-    this.modals.paymentModal.hide();
-    setTimeout(() => {
-      this.modals.collectorsModal.show();
-    }, 300);
-  }
-  handlePaymentComplete(paymentData) {
-    // Guardar datos del pago
-    this.state.paymentData = paymentData;
-
-    // Cerrar modal de pago
-    this.modals.paymentModal.hide();
-
-    // Mostrar modal de confirmación
-    setTimeout(() => {
-      this.showConfirmationModal();
-    }, 300);
-  }
-
-  handlePaymentConfirmation() {
-    if (this.paymentController) {
-      this.paymentController.confirmPayment();
+    // Actualizar título del modal
+    const modalTitle = document.querySelector("#paymentModal .modal-title");
+    if (modalTitle) {
+      modalTitle.innerHTML = `<i class="fas fa-credit-card me-2"></i>Pago a ${
+        collector.nombreUsuario || collector.name || "Recolector"
+      }`;
     }
   }
 
-  showConfirmationModal() {
-    this.updateConfirmationModal();
+  findElement(selectors) {
+    for (const selector of selectors) {
+      const element = document.querySelector(selector);
+      if (element) return element;
+    }
+    return null;
+  }
 
-    const confirmationModal = new bootstrap.Modal(
-      document.getElementById("confirmationModal")
+  async loadPaymentMethods() {
+    try {
+      this.showLoadingPaymentMethods();
+      const methods = this.buildPaymentMethodsFromCollector();
+
+      if (methods.length === 0) {
+        this.showNoPaymentMethodsAvailable();
+        return;
+      }
+
+      this.state.paymentMethods = methods;
+      this.renderPaymentMethods(methods);
+    } catch (error) {
+      console.error("Error loading payment methods:", error);
+      this.showPaymentMethodsError();
+    }
+  }
+
+  buildPaymentMethodsFromCollector() {
+    const methods = [];
+    const collector = this.state.selectedCollector;
+    if (!collector) return methods;
+
+    const name =
+      `${collector.nombreUsuario || ""} ${
+        collector.apellidoUsuario || ""
+      }`.trim() || "Recolector";
+
+    if (collector.Yape) {
+      methods.push({
+        id: "yape",
+        name: "Yape",
+        icon: "fas fa-mobile-alt",
+        color: "text-purple",
+        details: {
+          phone: collector.Yape,
+          name: collector.name,
+          instructions:
+            "Realiza la transferencia por el monto exacto y sube el comprobante",
+        },
+      });
+    }
+
+    if (collector.cuentaBancaria) {
+      methods.push({
+        id: "bank",
+        name: "Transferencia Bancaria",
+        icon: "fas fa-university",
+        color: "text-primary",
+        details: {
+          bank: collector.banco || "Banco no especificado",
+          accountNumber: collector.cuentaBancaria || collector.name,
+          accountType: collector.tipoCuenta || "Cuenta Corriente",
+          holder: collector.name,
+          instructions:
+            "Realiza la transferencia por el monto exacto y sube el comprobante",
+        },
+      });
+    }
+
+    return methods;
+  }
+
+  showLoadingPaymentMethods() {
+    if (this.elements.paymentMethodsContainer) {
+      this.elements.paymentMethodsContainer.innerHTML = `
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-2 text-muted">Cargando métodos de pago del recolector...</p>
+        </div>
+      `;
+    }
+  }
+
+  showNoPaymentMethodsAvailable() {
+    if (this.elements.paymentMethodsContainer) {
+      this.elements.paymentMethodsContainer.innerHTML = `
+        <div class="text-center py-4">
+          <i class="fas fa-info-circle fa-2x text-info mb-3"></i>
+          <h6>No hay métodos de pago disponibles</h6>
+          <p class="text-muted mb-3">
+            El recolector <strong>${
+              this.state.selectedCollector.nombreUsuario || "seleccionado"
+            }</strong> 
+            no tiene métodos de pago configurados.
+          </p>
+          <p class="text-muted">
+            <small>Por favor contacta al recolector para coordinar el pago de otra manera.</small>
+          </p>
+        </div>
+      `;
+    }
+  }
+
+  showPaymentMethodsError() {
+    if (this.elements.paymentMethodsContainer) {
+      this.elements.paymentMethodsContainer.innerHTML = `
+        <div class="text-center py-4">
+          <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+          <h6>Error al cargar métodos de pago</h6>
+          <p class="text-muted mb-3">No se pudieron cargar los métodos de pago del recolector.</p>
+          <button class="btn btn-outline-primary" onclick="location.reload()">
+            <i class="fas fa-refresh me-2"></i>Reintentar
+          </button>
+        </div>
+      `;
+    }
+  }
+
+  renderPaymentMethods(methods) {
+    if (!this.elements.paymentMethodsContainer) return;
+
+    const methodsHTML = methods
+      .map(
+        (method) => `
+      <div class="col-md-6 mb-3">
+        <div class="card payment-method-card h-100 shadow-sm" 
+             data-method-id="${method.id}" 
+             style="cursor: pointer; transition: all 0.3s ease;">
+          <div class="card-body text-center p-4">
+            <div class="mb-3">
+              <i class="${method.icon} fa-2x ${method.color}"></i>
+            </div>
+            <h6 class="card-title fw-bold">${method.name}</h6>
+            <small class="text-muted">Disponible las 24 horas</small>
+            <div class="mt-2">
+              <small class="badge bg-light text-dark">
+                ${this.getMethodIdentifier(method)}
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+      )
+      .join("");
+
+    this.elements.paymentMethodsContainer.innerHTML = `<div class="row">${methodsHTML}</div>`;
+    this.setupPaymentMethodSelection();
+  }
+
+  getMethodIdentifier(method) {
+    return method.id === "yape"
+      ? method.details.phone
+      : method.details.accountNumber;
+  }
+
+  setupPaymentMethodSelection() {
+    document.querySelectorAll(".payment-method-card").forEach((card) => {
+      card.addEventListener("click", () => {
+        const methodId = card.dataset.methodId;
+        this.selectPaymentMethod(methodId);
+      });
+
+      ["mouseenter", "mouseleave"].forEach((event) => {
+        card.addEventListener(event, () => {
+          if (event === "mouseenter") {
+            card.style.transform = "translateY(-2px)";
+            card.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+          } else if (!card.classList.contains("selected")) {
+            card.style.transform = "translateY(0)";
+            card.style.boxShadow = "";
+          }
+        });
+      });
+    });
+  }
+
+  // Seleccionar método de pago
+  selectPaymentMethod(methodId) {
+    // Limpiar selección anterior
+    document.querySelectorAll(".payment-method-card").forEach((card) => {
+      card.classList.remove("selected", "border-primary", "bg-light");
+      card.style.transform = "translateY(0)";
+      card.style.boxShadow = "";
+    });
+
+    // Marcar como seleccionado
+    const selectedCard = document.querySelector(
+      `[data-method-id="${methodId}"]`
     );
-    confirmationModal.show();
+    if (selectedCard) {
+      selectedCard.classList.add("selected", "border-primary", "bg-light");
+      selectedCard.style.transform = "translateY(-2px)";
+      selectedCard.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+    }
+
+    this.state.selectedPaymentMethod = methodId;
+    this.showUploadSection();
+    this.showBasicPaymentInfo(methodId);
   }
 
-  updateConfirmationModal() {
-    const elements = {
-      finalDonorName: document.getElementById("finalDonorName"),
-      finalAmount: document.getElementById("finalAmount"),
-      finalCollector: document.getElementById("finalCollector"),
-      finalDate: document.getElementById("finalDate"),
-      finalEmail: document.getElementById("finalEmail"),
+  // Mostrar información básica del pago
+  showBasicPaymentInfo(methodId) {
+    const method = this.state.paymentMethods.find((m) => m.id === methodId);
+    if (!method) return;
+
+    let infoContainer = document.getElementById("basicPaymentInfo");
+    if (!infoContainer) {
+      const uploadSection = this.elements.uploadSection;
+      if (uploadSection) {
+        infoContainer = document.createElement("div");
+        infoContainer.id = "basicPaymentInfo";
+        infoContainer.className = "mb-3";
+        uploadSection.insertBefore(infoContainer, uploadSection.firstChild);
+      }
+    }
+
+    if (infoContainer) {
+      const amount = this.state.selectedAmount;
+      const collector = this.state.selectedCollector;
+
+      if (method.id === "yape") {
+        infoContainer.innerHTML = `
+        <div class="alert alert-info">
+          <div class="row">
+            <div class="col-md-6">
+              <strong><i class="fas fa-mobile-alt me-1"></i>Yape:</strong> ${method.details.phone}
+            </div>
+            <div class="col-md-6">
+              <strong><i class="fas fa-coins me-1"></i>Monto:</strong> S/ ${amount}
+            </div>
+          </div>
+          <div class="row mt-2">
+            <div class="col-12">
+              <strong><i class="fas fa-user me-1"></i>Titular:</strong> ${method.details.name}
+            </div>
+          </div>
+        </div>
+      `;
+      } else if (method.id === "bank") {
+        infoContainer.innerHTML = `
+        <div class="alert alert-info">
+          <div class="row">
+            <div class="col-md-6">
+              <strong><i class="fas fa-university me-1"></i>Banco:</strong> ${method.details.bank}
+            </div>
+            <div class="col-md-6">
+              <strong><i class="fas fa-coins me-1"></i>Monto:</strong> S/ ${amount}
+            </div>
+          </div>
+          <div class="row mt-2">
+            <div class="col-md-6">
+              <strong><i class="fas fa-credit-card me-1"></i>Cuenta:</strong> ${method.details.accountNumber}
+            </div>
+            <div class="col-md-6">
+              <strong><i class="fas fa-user me-1"></i>Titular:</strong> ${method.details.holder}
+            </div>
+          </div>
+        </div>
+      `;
+      }
+    }
+  }
+  // Mostrar sección de subida
+  showUploadSection() {
+    if (this.elements.uploadSection) {
+      this.elements.uploadSection.classList.remove("d-none");
+    }
+  }
+
+  // Configurar subida de archivos
+  setupFileUpload() {
+    const dropZone = this.elements.fileDropZone;
+    const fileInput = this.elements.paymentProofInput;
+
+    if (!dropZone || !fileInput) return;
+
+    dropZone.addEventListener("click", () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        this.handleFileSelection(file);
+      }
+    });
+
+    // Drag and drop
+    dropZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropZone.classList.add("border-primary", "bg-light");
+    });
+
+    dropZone.addEventListener("dragleave", () => {
+      dropZone.classList.remove("border-primary", "bg-light");
+    });
+
+    dropZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropZone.classList.remove("border-primary", "bg-light");
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        this.handleFileSelection(file);
+      }
+    });
+  }
+
+  // Manejar selección de archivos
+  handleFileSelection(file) {
+    if (!this.validateFile(file)) {
+      return;
+    }
+
+    this.state.uploadedFile = file;
+    this.showFilePreview(file);
+    this.enableConfirmButton();
+  }
+
+  // Validar archivo
+  validateFile(file) {
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    if (!allowedTypes.includes(file.type)) {
+      this.showToast("Por favor sube solo imágenes JPG, PNG o WebP", "error");
+      return false;
+    }
+
+    if (file.size > maxSize) {
+      this.showToast("El archivo es muy grande. Máximo 5MB", "error");
+      return false;
+    }
+
+    return true;
+  }
+
+  // Mostrar vista previa
+  showFilePreview(file) {
+    const preview = this.elements.filePreview;
+    if (!preview) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      preview.innerHTML = `
+      <div class="text-center">
+        <div class="position-relative d-inline-block">
+          <img src="${e.target.result}" 
+               alt="Vista previa" 
+               class="img-thumbnail"
+               style="max-width: 200px; max-height: 200px;">
+          <button type="button" 
+                  class="btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle"
+                  onclick="window.donationFlow.clearFileUpload()"
+                  style="transform: translate(50%, -50%);">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="mt-2">
+          <small class="text-muted">
+            <i class="fas fa-file-image me-1"></i>
+            ${file.name} (${this.formatFileSize(file.size)})
+          </small>
+        </div>
+      </div>
+    `;
     };
+    reader.readAsDataURL(file);
+  }
 
-    if (elements.finalDonorName) {
-      elements.finalDonorName.textContent = this.state.donorData.fullName;
+  // Limpiar subida de archivos
+  clearFileUpload() {
+    this.state.uploadedFile = null;
+
+    if (this.elements.filePreview) {
+      this.elements.filePreview.innerHTML = "";
     }
-    if (elements.finalAmount) {
-      elements.finalAmount.textContent = this.state.selectedAmount;
+
+    if (this.elements.paymentProofInput) {
+      this.elements.paymentProofInput.value = "";
     }
-    if (elements.finalCollector) {
-      elements.finalCollector.textContent = this.state.selectedCollector.name;
-    }
-    if (elements.finalDate) {
-      elements.finalDate.textContent = new Date().toLocaleDateString("es-PE");
-    }
-    if (elements.finalEmail) {
-      elements.finalEmail.textContent = this.state.donorData.email;
+
+    this.disableConfirmButton();
+  }
+
+  // Formatear tamaño de archivo
+  formatFileSize(bytes) {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  }
+
+  // Habilitar botón de confirmación
+  enableConfirmButton() {
+    if (this.elements.confirmPaymentBtn) {
+      this.elements.confirmPaymentBtn.disabled = false;
+      this.elements.confirmPaymentBtn.classList.remove("disabled");
     }
   }
-  goBackToTypeSelection() {
-    this.modals.donorDataModal.hide();
+
+  // Deshabilitar botón de confirmación
+  disableConfirmButton() {
+    if (this.elements.confirmPaymentBtn) {
+      this.elements.confirmPaymentBtn.disabled = true;
+      this.elements.confirmPaymentBtn.classList.add("disabled");
+    }
+  }
+
+  // Actualizar monto de pago
+  updatePaymentAmount() {
+    if (this.elements.paymentAmount) {
+      this.elements.paymentAmount.textContent = this.state.selectedAmount;
+    }
+  }
+
+  // Manejar confirmación de pago
+  async handlePaymentConfirmation() {
+    if (!this.state.selectedPaymentMethod) {
+      this.showToast("Por favor selecciona un método de pago", "warning");
+      return;
+    }
+
+    if (!this.state.uploadedFile) {
+      this.showToast("Por favor sube el comprobante de pago", "warning");
+      return;
+    }
+
+    try {
+      this.setLoadingState(true);
+
+      const paymentData = await this.processPayment();
+
+      this.state.isPaymentConfirmed = true;
+      this.showToast("¡Pago confirmado exitosamente!", "success");
+
+      // Proceder al modal de confirmación
+      setTimeout(() => {
+        this.proceedToConfirmation();
+      }, 1500);
+
+      console.log("Pago procesado:", paymentData);
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      this.showToast("Error al procesar el pago. Intenta nuevamente.", "error");
+    } finally {
+      this.setLoadingState(false);
+    }
+  }
+
+  // Procesar pago
+  async processPayment() {
+    // Simular procesamiento
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    return {
+      paymentId: this.generatePaymentId(),
+      method: this.state.selectedPaymentMethod,
+      amount: this.state.selectedAmount,
+      file: this.state.uploadedFile,
+      collector: this.state.selectedCollector,
+      donor: this.state.donorData,
+      timestamp: new Date().toISOString(),
+      status: "pending_verification",
+    };
+  }
+
+  // Generar ID de pago
+  generatePaymentId() {
+    return "PAY-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);
+  }
+  proceedToConfirmation() {
+    this.hideModalProgrammatically("paymentModal");
     setTimeout(() => {
-      this.modals.donorTypeModal.show();
+      this.modals.confirmationModal.show();
+      this.populateConfirmationData();
     }, 300);
   }
-
-  goBackToDataForm() {
-    this.modals.collectorsModal.hide();
-    setTimeout(() => {
-      this.modals.donorDataModal.show();
-    }, 300);
-  }
-
-  resetFlow() {
-    this.state = {
-      selectedAmount: 0,
-      donorType: null,
-      donorData: {},
-      selectedCollector: null,
-      collectorsData: [],
-      paymentData: null, // AGREGAR ESTA LÍNEA
-    };
-
-    // Limpiar controlador de pago
-    if (this.paymentController) {
-      this.paymentController.cleanup();
-      this.paymentController = null;
+  populateConfirmationData() {
+    // Nombre del donante
+    const finalDonorName = document.getElementById("finalDonorName");
+    if (finalDonorName) {
+      finalDonorName.textContent =
+        this.state.donorData.fullName || "No especificado";
     }
 
-    this.clearAmountButtonsUI();
-    this.clearCustomAmountInput();
-    this.clearDonorTypeCards();
-    this.clearForm();
-    this.hidePaymentButton();
+    // Monto
+    const finalAmount = document.getElementById("finalAmount");
+    if (finalAmount) {
+      finalAmount.textContent = this.state.selectedAmount;
+    }
+
+    // Recolector
+    const finalCollector = document.getElementById("finalCollector");
+    if (finalCollector) {
+      finalCollector.textContent =
+        this.state.selectedCollector?.nombreUsuario ||
+        this.state.selectedCollector?.name ||
+        "No especificado";
+    }
+
+    // Email
+    const finalEmail = document.getElementById("finalEmail");
+    if (finalEmail) {
+      finalEmail.textContent = this.state.donorData.email || "No especificado";
+    }
+
+    // Fecha actual
+    const finalDate = document.getElementById("finalDate");
+    if (finalDate) {
+      const now = new Date();
+      const dateString = now.toLocaleDateString("es-PE", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+      finalDate.textContent = dateString;
+    }
+
+    // Configurar botones del modal
+    this.setupConfirmationModalButtons();
   }
 
+  // Configurar botones del modal de confirmación
+  setupConfirmationModalButtons() {
+    const resetBtn = document.getElementById("resetDonationFlow");
+    const shareBtn = document.getElementById("shareOnSocial");
+
+    if (resetBtn) {
+      resetBtn.addEventListener("click", () => {
+        this.hideModalProgrammatically("confirmationModal");
+        this.resetFlow();
+      });
+    }
+
+    if (shareBtn) {
+      shareBtn.addEventListener("click", () => {
+        this.shareOnSocial();
+      });
+    }
+  }
+
+  // Compartir en redes sociales (función simple)
+  shareOnSocial() {
+    const message = `¡Acabo de hacer una donación de S/ ${this.state.selectedAmount} a través de la plataforma! 🎉❤️`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: "Mi Donación",
+        text: message,
+        url: window.location.href,
+      });
+    } else {
+      // Fallback para navegadores que no soportan Web Share API
+      const shareText = encodeURIComponent(message);
+      const shareUrl = `https://twitter.com/intent/tweet?text=${shareText}`;
+      window.open(shareUrl, "_blank");
+    }
+  }
+  // Establecer estado de carga
+  setLoadingState(isLoading) {
+    this.state.isLoading = isLoading;
+
+    if (this.elements.confirmPaymentBtn) {
+      if (isLoading) {
+        this.elements.confirmPaymentBtn.innerHTML = `
+        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+        Procesando...
+      `;
+        this.elements.confirmPaymentBtn.disabled = true;
+      } else {
+        this.elements.confirmPaymentBtn.innerHTML = `
+        <i class="fas fa-check me-2"></i>
+        Confirmar Pago Realizado
+      `;
+        this.elements.confirmPaymentBtn.disabled = false;
+      }
+    }
+  }
+
+  // Volver a recolectores
+  goBackToCollectors() {
+    this.hideModalProgrammatically("paymentModal");
+    this.showModalSafely("collectorsModal");
+  }
   clearDonorTypeCards() {
-    this.elements.donorTypeCards.forEach((card) => {
+    this.elements.donorTypeCards?.forEach((card) => {
       card.classList.remove("border-primary", "bg-light");
     });
   }
@@ -997,7 +1430,7 @@ class DonationFlowController {
       });
     }
   }
-
+  // Toast notification method
   showToast(message, type = "info") {
     const toastContainer = this.elements.toastContainer;
     const template = this.elements.toastTemplate;
@@ -1030,52 +1463,7 @@ class DonationFlowController {
       toast.remove();
     });
   }
-
-  getDonationData() {
-    return {
-      amount: this.state.selectedAmount,
-      donorType: this.state.donorType,
-      donorData: this.state.donorData,
-      selectedCollector: {
-        // AGREGAR ESTRUCTURA COMPLETA DEL RECOLECTOR
-        id:
-          this.state.selectedCollector.idUsuario ||
-          this.state.selectedCollector.id,
-        name:
-          this.state.selectedCollector.nombreUsuario ||
-          this.state.selectedCollector.name,
-        email:
-          this.state.selectedCollector.correo ||
-          this.state.selectedCollector.email,
-        phone:
-          this.state.selectedCollector.celular ||
-          this.state.selectedCollector.cellPhone,
-        faculty:
-          this.state.selectedCollector.facultadID ||
-          this.state.selectedCollector.location,
-        photo:
-          this.state.selectedCollector.fotoPerfil ||
-          this.state.selectedCollector.photo,
-        code: this.state.selectedCollector.codigoUsuario,
-        yape: this.state.selectedCollector.Yape,
-        bankAccount: this.state.selectedCollector.cuentaBancaria,
-        cycle: this.state.selectedCollector.ciclo,
-        isActive: this.state.selectedCollector.estadoActivo,
-        isAdmin: this.state.selectedCollector.esAdmin,
-        lastAccess: this.state.selectedCollector.ultimoAcceso,
-        // AGREGAR TODOS LOS CAMPOS DE LA BD
-        rawData: this.state.selectedCollector, // MANTENER DATOS ORIGINALES
-      },
-      collectorsData: this.state.collectorsData,
-      paymentData: this.state.paymentData || null,
-      timestamp: new Date().toISOString(),
-    };
-  }
-
-  getState() {
-    return { ...this.state };
-  }
-
+  // Utility methods for checking state
   isValidAmount() {
     return this.state.selectedAmount > 0;
   }
@@ -1092,16 +1480,10 @@ class DonationFlowController {
     return Object.keys(this.state.donorData).length > 0;
   }
 
-  isFlowComplete() {
-    return (
-      this.isValidAmount() &&
-      this.isDonorTypeSelected() &&
-      this.hasValidDonorData() &&
-      this.isCollectorSelected()
-    );
+  getState() {
+    return { ...this.state };
   }
 }
-
 // Initialize donation flow when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
   window.donationFlow = new DonationFlowController();
