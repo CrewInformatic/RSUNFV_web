@@ -9,7 +9,7 @@ import {
   doc,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
+import { showVolunteersModal } from "./users-events.js";
 // =============================================
 // VARIABLES GLOBALES
 // =============================================
@@ -301,7 +301,7 @@ function createUpcomingEventCard(event, fechaInicio, fechaFin) {
               <div class="d-flex align-items-center text-sm">
                 <i class="fas fa-users me-2 text-orange"></i>
                 <span class="text-dark small fw-medium">${
-                  event.voluntariosRegistrados || 0
+                  event.voluntariosInscritos || 0
                 } / ${event.cantidadVoluntariosMax || "∞"}</span>
               </div>
             </div>
@@ -519,8 +519,15 @@ export function editEvent(eventId) {
  * Ver voluntarios de evento
  */
 export function viewVolunteers(eventId) {
-  console.log("👥 Viendo voluntarios del evento:", eventId);
-  alert(`Ver voluntarios del evento: ${eventId}`);
+  console.log("👥 Abriendo modal de voluntarios para evento:", eventId);
+
+  // Verificar que showVolunteersModal esté disponible
+  if (typeof showVolunteersModal === "function") {
+    showVolunteersModal(eventId);
+  } else {
+    console.error("❌ showVolunteersModal no está disponible");
+    alert("Error al cargar el modal de voluntarios");
+  }
 }
 
 /**
@@ -598,13 +605,11 @@ window.handleEscKey = handleEscKey;
  */
 export function initializeUpcomingEvents() {
   console.log("🚀 Inicializando módulo de eventos futuros");
-
-  // Verificar que Firebase esté disponible
+  // Resto del código de inicialización...
   const checkFirebase = () => {
     if (window.firebaseDB) {
       console.log("✅ Firebase disponible, configurando eventos futuros");
 
-      // Configurar event listener para la pestaña de eventos futuros
       const upcomingTab = document.getElementById("upcoming-tab");
       if (upcomingTab) {
         upcomingTab.addEventListener("shown.bs.tab", function () {
@@ -612,29 +617,25 @@ export function initializeUpcomingEvents() {
           loadUpcomingEvents();
         });
         console.log("✅ Event listener configurado para upcoming-tab");
-      } else {
-        console.warn("⚠️ Elemento 'upcoming-tab' no encontrado");
       }
 
-      // Cargar eventos iniciales si la pestaña está activa
       const upcomingPane = document.getElementById("upcoming");
       if (upcomingPane && upcomingPane.classList.contains("active")) {
         console.log(
           "📋 Pestaña de eventos futuros ya activa, cargando eventos"
         );
-        setTimeout(loadUpcomingEvents, 100); // Pequeño delay para asegurar inicialización
+        setTimeout(loadUpcomingEvents, 100);
       }
 
       return true;
     }
     return false;
   };
-  // Intentar inmediatamente
+
   if (!checkFirebase()) {
-    // Si Firebase no está listo, esperar un poco
     let attempts = 0;
-    const maxAttempts = 20; // Aumentar intentos
-    const interval = 250; // Intervalo más frecuente
+    const maxAttempts = 20;
+    const interval = 250;
 
     const waitForFirebase = setInterval(() => {
       attempts++;
@@ -646,12 +647,6 @@ export function initializeUpcomingEvents() {
         clearInterval(waitForFirebase);
         if (attempts >= maxAttempts) {
           console.error("❌ Firebase no se inicializó después de esperar");
-          console.log("🔍 Estado actual:");
-          console.log("- window.firebaseDB:", !!window.firebaseDB);
-          console.log(
-            "- window:",
-            Object.keys(window).filter((k) => k.includes("firebase"))
-          );
         }
       }
     }, interval);

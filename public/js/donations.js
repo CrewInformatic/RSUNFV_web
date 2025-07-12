@@ -15,6 +15,8 @@ class DonationFlowController {
     this.modals = {};
     this.elements = {};
     this.init();
+    this.uploadService = null;
+    this.initializeUploadService();
   }
 
   static get DONOR_TYPES() {
@@ -787,6 +789,17 @@ class DonationFlowController {
     await this.updateCollectorInfo();
     this.updatePaymentAmount();
   }
+  async initializeUploadService() {
+    try {
+      const { DonationUploadService } = await import(
+        "./donation-upload-service.js"
+      );
+      this.uploadService = new DonationUploadService();
+      console.log("Upload service initialized");
+    } catch (error) {
+      console.error("Error initializing upload service:", error);
+    }
+  }
 
   async updateCollectorInfo() {
     const collector = this.state.selectedCollector;
@@ -1261,42 +1274,205 @@ class DonationFlowController {
     try {
       this.setLoadingState(true);
 
+      // Procesar pago y subir a Firebase
       const paymentData = await this.processPayment();
 
       this.state.isPaymentConfirmed = true;
-      this.showToast("¡Pago confirmado exitosamente!", "success");
+      this.showToast("¡Donación registrada exitosamente!", "success");
 
       // Proceder al modal de confirmación
       setTimeout(() => {
         this.proceedToConfirmation();
       }, 1500);
 
-      console.log("Pago procesado:", paymentData);
+      console.log("Donation completed:", paymentData);
     } catch (error) {
-      console.error("Error processing payment:", error);
-      this.showToast("Error al procesar el pago. Intenta nuevamente.", "error");
+      console.error("Error processing donation:", error);
+
+      // Mostrar error específico al usuario
+      let errorMessage = "Error al procesar la donación. ";
+
+      if (error.message.includes("Firebase")) {
+        errorMessage += "Problema con el servidor. ";
+      } else if (error.message.includes("upload")) {
+        errorMessage += "Error al subir el comprobante. ";
+      } else if (error.message.includes("network")) {
+        errorMessage += "Problema de conexión. ";
+      }
+
+      errorMessage += "Por favor intenta nuevamente.";
+
+      this.showToast(errorMessage, "error");
     } finally {
       this.setLoadingState(false);
     }
   }
+  async retryUpload() {
+    if (!this.uploadService) {
+      await this.initializeUploadService();
+    }
 
+    if (this.state.isPaymentConfirmed) {
+      try {
+        const donationData = this.prepareDonationData(
+          this.generateDonationId()
+        );
+        await this.uploadService.uploadDonation(
+          donationData,
+          this.state.uploadedFile
+        );
+        this.showToast("Datos enviados correctamente", "success");
+      } catch (error) {
+        console.error("Retry upload failed:", error);
+        this.showToast("Error al reintentar. Contacta soporte.", "error");
+      }
+    }
+  }
   // Procesar pago
   async processPayment() {
-    // Simular procesamiento
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      // Mostrar mensaje de procesamiento
+      this.showToast("Procesando pago y guardando datos...", "info");
 
-    return {
-      paymentId: this.generatePaymentId(),
-      method: this.state.selectedPaymentMethod,
-      amount: this.state.selectedAmount,
-      file: this.state.uploadedFile,
-      collector: this.state.selectedCollector,
-      donor: this.state.donorData,
-      timestamp: new Date().toISOString(),
-      status: "pending_verification",
-    };
+      // Simular procesamiento (puedes reducir o eliminar esto)
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Generar ID único para la donación
+      const donationId = this.generateDonationId();
+
+      // Preparar datos completos para Firebase
+      const donationData = this.prepareDonationData(donationId);
+
+      // Subir a Firebase si el servicio está disponible
+      if (this.uploadService) {
+        await this.uploadService.uploadDonation(
+          donationData,
+          this.state.uploadedFile
+        );
+        console.log("Donation uploaded to Firebase successfully");
+      } else {
+        console.warn("Upload service not available");
+        // Aquí podrías mostrar un mensaje al usuario o intentar reinicializar
+      }
+      return {
+        paymentId: this.generatePaymentId(),
+        method: this.state.selectedPaymentMethod,
+        amount: this.state.selectedAmount,
+        file: this.state.uploadedFile,
+        collector: this.state.selectedCollector,
+        donor: this.state.donorData,
+        timestamp: new Date().toISOString(),
+        status: "pending_verification",
+      };
+    } catch (error) {
+      console.error("Error in processPayment:", error);
+      // Re-lanzar el error para que sea manejado por handlePaymentConfirmation
+      throw new Error("Error al procesar el pago: " + error.message);
+    }
   }
 
+  prepareDonationData(donationId) {
+    const collector = this.state.selectedCollector;
+    const paymentMethod = this.state.paymentMethods.find(
+      (m) => m.id === this.state.selectedPaymentMethod
+    );
+
+    return {
+      // Información básica
+      donationId,
+      amount: this.state.selectedAmount,
+      currency: "PEN", // Soles peruanos
+      status: "pending_verification",
+
+      // Información del donante
+      donor: {
+        type: this.state.donorData.type,
+        fullName: this.state.donorData.fullName,
+        email: this.state.donorData.email,
+        phone: this.state.donorData.phone || null,
+        dni: this.state.donorData.dni || null,
+
+        // Datos específicos según el tipo
+        ...(this.state.donorData.type === "individual"
+          ? {
+              firstName: this.state.donorData.firstName,
+              lastName: this.state.donorData.lastName,
+            }
+          : {
+              companyName: this.state.donorData.companyName,
+              ruc: this.state.donorData.ruc,
+              representative: this.state.donorData.representative,
+              position: this.state.donorData.position,
+            }),
+
+        // Datos opcionales
+        address: this.state.donorData.address || null,
+        message: this.state.donorData.message || null,
+        newsletter: this.state.donorData.newsletter || false,
+      },
+
+      // Información del recolector
+      collector: {
+        id: collector.idUsuario || collector.id,
+        name: collector.nombreUsuario || collector.name,
+        email: collector.correo || collector.email,
+        phone: collector.celular || collector.phone || collector.cellPhone,
+        faculty:
+          collector.facultadID || collector.faculty || collector.location,
+        // Agregar más datos del recolector si están disponibles
+        ...(collector.fotoPerfil && { photo: collector.fotoPerfil }),
+        ...(collector.rating && { rating: collector.rating }),
+        ...(collector.experience && { experience: collector.experience }),
+      },
+
+      // Información del pago
+      payment: {
+        method: this.state.selectedPaymentMethod,
+        methodDetails: paymentMethod
+          ? {
+              name: paymentMethod.name,
+              ...(paymentMethod.id === "yape"
+                ? {
+                    yapeNumber: paymentMethod.details.phone,
+                  }
+                : {
+                    bankName: paymentMethod.details.bank,
+                    accountNumber: paymentMethod.details.accountNumber,
+                    accountType: paymentMethod.details.accountType,
+                  }),
+            }
+          : null,
+        proofFileName: this.state.uploadedFile
+          ? this.state.uploadedFile.name
+          : null,
+        proofFileSize: this.state.uploadedFile
+          ? this.state.uploadedFile.size
+          : null,
+        proofFileType: this.state.uploadedFile
+          ? this.state.uploadedFile.type
+          : null,
+      },
+
+      // Timestamps
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+
+      // Metadatos
+      metadata: {
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        language: navigator.language,
+        referrer: document.referrer || null,
+        screenResolution: `${screen.width}x${screen.height}`,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+    };
+  }
+  generateDonationId() {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substr(2, 9);
+    return `DON-${timestamp}-${random}`;
+  }
   // Generar ID de pago
   generatePaymentId() {
     return "PAY-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);

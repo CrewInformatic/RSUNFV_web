@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoVoluntarios UNFV - Gestión de Donaciones</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/Donaciones.css">
+    <script type="module" src="js/security.js" defer></script>
+    <script type="module" src="js/export-donations-excel.js"></script>
+    <script type="module" src="js/donation-admin-management.js" defer></script>
+    <script type="module" src="js/donation-correo.js"></script>
+
+</head>
+
+<body>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="#" class="sidebar-brand">
+                <i class="fas fa-leaf"></i>
+                <div class="brand-text">
+                    <div>EcoVoluntarios</div>
+                    <div class="brand-subtitle">UNFV</div>
+                </div>
+            </a>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="nav-link" onclick="navigateToPage('admin-dashboard.html')">
+                <i class="fas fa-chart-line"></i>
+                Dashboard
+            </button>
+            <button class="nav-link" onclick="navigateToPage('eventos.html')">
+                <i class="fas fa-calendar-alt"></i>
+                Gestión de Eventos
+            </button>
+            <button class="nav-link active" data-section="donaciones">
+                <i class="fas fa-heart"></i>
+                Donaciones
+            </button>
+            <button class="nav-link" onclick="navigateToPage('usuarios.html')">
+                <i class="fas fa-user-friends"></i>
+                Usuarios y Roles
+            </button>
+            <button class="nav-link" onclick="navigateToPage('configuracion.html')">
+                <i class="fas fa-cogs"></i>
+                Configuración
+            </button>
+            <button class="nav-link" onclick="navigateToPage('reportes.html')">
+                <i class="fas fa-chart-bar"></i>
+                Reportes
+            </button>
+        </nav>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Navbar -->
+        <nav class="top-navbar d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-secondary d-lg-none me-3" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title">Gestión de Donaciones</h1>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="userDisplayName">Administrador</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#" onclick="showProfile()">
+                                <i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="showSettings()">
+                                <i class="fas fa-cog me-2"></i>Configuración</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="#" onclick="handleLogout()">
+                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="content-wrapper">
+            <!-- Header Section -->
+            <div class="donations-header">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h2 class="mb-2">
+                            <i class="fas fa-heart me-2"></i>
+                            Gestión de Donaciones
+                        </h2>
+                        <p class="text-muted mb-0">Administra donaciones, vouchers y comunicaciones con donadores</p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <button class="btn btn-primary me-2" onclick="openSendEmailModal()">                            <i class="fas fa-envelope me-2"></i>
+                            Enviar Correos
+                        </button>
+<button class="btn btn-success" id="exportDonations" onclick="exportDonations()">
+    <i class="fas fa-file-excel me-2"></i>
+    Exportar
+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters and Search -->
+            <div class="filters-card">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-control" id="searchDonations"
+                                placeholder="Buscar por nombre, email o código...">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" id="filterStatus">
+                            <option value="">Todos los Estados</option>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="validado">Validado</option>
+                            <option value="rechazado">Rechazado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" id="filterAmount">
+                            <option value="">Todos los Montos</option>
+                            <option value="0-50">S/ 0 - 50</option>
+                            <option value="51-100">S/ 51 - 100</option>
+                            <option value="101-500">S/ 101 - 500</option>
+                            <option value="501+">S/ 501+</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="date" class="form-control" id="filterDate" placeholder="Fecha">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                            <i class="fas fa-filter-circle-xmark me-1"></i>
+                            Limpiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row g-4 mb-4">
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card primary">
+                        <div class="stat-icon">
+                            <i class="fas fa-heart text-primary"></i>
+                        </div>
+                        <div class="stat-number" id="totalDonationsCount">0</div>
+                        <div class="stat-label">Total Donaciones</div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card success">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle text-success"></i>
+                        </div>
+                        <div class="stat-number" id="validatedDonationsCount">0</div>
+                        <div class="stat-label">Donaciones Validadas</div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card warning">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock text-warning"></i>
+                        </div>
+                        <div class="stat-number" id="pendingDonationsCount">0</div>
+                        <div class="stat-label">Pendientes</div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card info">
+                        <div class="stat-icon">
+                            <i class="fas fa-dollar-sign text-info"></i>
+                        </div>
+                        <div class="stat-number" id="totalAmountRaised">S/ 0</div>
+                        <div class="stat-label">Total Recaudado</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <div class="table-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Lista de Donaciones
+                    </h5>
+                    <div class="table-actions">
+                        <button class="btn btn-outline-primary btn-sm me-2" onclick="refreshDonations()">
+                            <i class="fas fa-sync-alt me-1"></i>
+                            Actualizar
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" onclick="validateAllSelected()">
+                            <i class="fas fa-check-double me-1"></i>
+                            Validar Seleccionados
+                        </button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width: 40px;">
+                                    <input type="checkbox" id="selectAllDonations" class="form-check-input">
+                                </th>
+                                <th style="width: 200px;"><i class="fas fa-user me-1"></i>Donador</th>
+                                <th style="width: 100px;"><i class="fas fa-dollar-sign me-1"></i>Monto</th>
+                                <th style="width: 100px;"><i class="fas fa-calendar me-1"></i>Fecha</th>
+                                <th style="width: 80px;"><i class="fas fa-file-invoice me-1"></i>Voucher</th>
+                                <th style="width: 100px;"><i class="fas fa-check-circle me-1"></i>Estado</th>
+                                <th style="width: 120px;"><i class="fas fa-user-tie me-1"></i>Recolector</th>
+                                <th style="width: 140px;"><i class="fas fa-cogs me-1"></i>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="donationsTableBody">
+                            <!-- Las donaciones se cargarán dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-footer">
+                    <div class="table-info">
+                        Mostrando <span id="showingStart">0</span> a <span id="showingEnd">0</span> de <span
+                            id="totalRecords">0</span> registros
+                    </div>
+                    <nav id="paginationNav">
+                        <ul class="pagination pagination-sm mb-0" id="paginationList">
+                            <!-- La paginación se generará dinámicamente -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Modal Ver Voucher -->
+            <div class="modal fade" id="viewVoucherModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="fas fa-file-invoice me-2"></i>
+                                Voucher de Donación
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted">Donador:</h6>
+                                    <p id="voucherDonorName" class="fw-bold mb-2">-</p>
+                                    <h6 class="text-muted">Monto:</h6>
+                                    <p id="voucherAmount" class="fw-bold text-success mb-2">-</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted">Fecha:</h6>
+                                    <p id="voucherDate" class="fw-bold mb-2">-</p>
+                                    <h6 class="text-muted">Estado:</h6>
+                                    <p id="voucherStatus" class="fw-bold mb-2">-</p>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <h6 class="text-muted mb-3">Voucher Adjunto:</h6>
+                                <div id="voucherImageContainer">
+                                    <img id="voucherImage" class="img-fluid rounded shadow" style="max-height: 400px;"
+                                        alt="Voucher">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="button" class="btn btn-primary" onclick="downloadVoucher()">
+                                <i class="fas fa-download me-2"></i>Descargar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Cambiar Estado -->
+            <div class="modal fade" id="changeStatusModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="fas fa-exchange-alt me-2"></i>
+                                Cambiar Estado de Donación
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" id="changeStatusDonationId">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Donación:</label>
+                                <p id="changeStatusDonorInfo" class="mb-2">-</p>
+                                <label class="form-label">Estado actual:</label>
+                                <p id="changeStatusCurrent" class="text-muted mb-3">-</p>
+                            </div>
+                            <div class="mb-3">
+                                <label for="newStatus" class="form-label">Nuevo Estado *</label>
+                                <select class="form-select" id="newStatus" required>
+                                    <option value="">Seleccionar Estado</option>
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="validado">Validado</option>
+                                    <option value="rechazado">Rechazado</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="statusComment" class="form-label">Comentario (opcional)</label>
+                                <textarea class="form-control" id="statusComment" rows="3"
+                                    placeholder="Agregar comentario sobre el cambio de estado..."></textarea>
+                            </div>
+                            <div class="mb-3" id="collectorAssignmentDiv" style="display:none;">
+                                <label for="assignCollector" class="form-label">Asignar Recolector</label>
+                                <select class="form-select" id="assignCollector">
+                                    <option value="">Seleccionar Recolector</option>
+                                    <option value="Juan Pérez">Juan Pérez</option>
+                                    <option value="María García">María García</option>
+                                    <option value="Carlos López">Carlos López</option>
+                                    <option value="Ana Martínez">Ana Martínez</option>
+                                </select>
+                            </div>
+                            <div class="mb-3" id="receptionDescriptionDiv" style="display:none;">
+                                <label for="receptionDescription" class="form-label">Descripción de Recepción</label>
+                                <textarea class="form-control" id="receptionDescription" rows="3"
+                                    placeholder="Describe cómo fue recibida la donación..."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-primary" onclick="updateDonationStatus()">
+                                <i class="fas fa-check me-2"></i>Actualizar Estado
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Detalles de Donación -->
+            <div class="modal fade" id="donationDetailsModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Detalles de la Donación
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-primary">Información del Donador</h6>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Nombre Completo:</small>
+                                        <div id="detailDonorName" class="fw-bold">-</div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Email:</small>
+                                        <div id="detailDonorEmail" class="fw-bold">-</div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Teléfono:</small>
+                                        <div id="detailDonorPhone" class="fw-bold">-</div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Mensaje:</small>
+                                        <div id="detailDonorMessage" class="fw-bold">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-primary">Información de la Donación</h6>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Monto:</small>
+                                        <div id="detailDonationAmount" class="fw-bold text-success">-</div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Fecha:</small>
+                                        <div id="detailDonationDate" class="fw-bold">-</div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Estado:</small>
+                                        <div id="detailDonationStatus" class="fw-bold">-</div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Método de Pago:</small>
+                                        <div id="detailPaymentMethod" class="fw-bold">-</div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Referencia:</small>
+                                        <div id="detailReference" class="fw-bold">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="button" class="btn btn-primary" onclick="editDonation()">
+                                <i class="fas fa-edit me-2"></i>Editar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Exportar Donaciones -->
+    <div class="modal fade" id="exportDonationsModal" tabindex="-1">
+        
+        <div class="modal-dialog modal-xl"> <!-- Cambié a modal-xl para más espacio -->
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-file-excel me-2"></i>
+                        Exportar Donaciones a Excel
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body modal-body-scrollable">
+                    <!-- Estadísticas de Donaciones -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-muted mb-3">Estadísticas de Donaciones</h6>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <div class="card border-primary">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-heart fa-2x text-primary mb-2"></i>
+                                            <h4 class="card-title text-primary mb-1" id="exportStatsTotal">0</h4>
+                                            <p class="card-text small text-muted">Total Donaciones</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                                            <h4 class="card-title text-success mb-1" id="exportStatsValidated">0</h4>
+                                            <p class="card-text small text-muted">Validadas</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-warning">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                                            <h4 class="card-title text-warning mb-1" id="exportStatsPending">0</h4>
+                                            <p class="card-text small text-muted">Pendientes</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-info">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-dollar-sign fa-2x text-info mb-2"></i>
+                                            <h4 class="card-title text-info mb-1" id="exportStatsAmount">S/ 0</h4>
+                                            <p class="card-text small text-muted">Total Recaudado</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NUEVA SECCIÓN: Gráficos de Análisis -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-muted mb-3">
+                                <i class="fas fa-chart-pie me-2"></i>
+                                Análisis Visual de Donaciones
+                            </h6>
+                            <div class="row g-3">
+                                <!-- Gráfico de Estados -->
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-center">Estados de Donaciones</h6>
+                                            <div style="height: 200px; position: relative;">
+                                                <canvas id="statusChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Gráfico de Rangos de Monto -->
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-center">Distribución por Monto</h6>
+                                            <div style="height: 200px; position: relative;">
+                                                <canvas id="amountRangeChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Gráfico de Evolución Mensual -->
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-center">Evolución Mensual</h6>
+                                            <div style="height: 200px; position: relative;">
+                                                <canvas id="monthlyChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Gráfico de Tipos de Usuario -->
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-center">Tipos de Usuario</h6>
+                                            <div style="height: 200px; position: relative;">
+                                                <canvas id="userTypeChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Opciones de Exportación -->
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="text-muted mb-3">
+                                <i class="fas fa-download me-2"></i>
+                                Selecciona qué donaciones exportar
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="card h-100 border-2 border-info">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-filter fa-3x text-info mb-3"></i>
+                                            <h5 class="card-title text-info">Donaciones Filtradas</h5>
+                                            <p class="card-text text-muted">Exporta las donaciones que aparecen en la tabla actual</p>
+                                            <button class="btn btn-info w-100" onclick="executeExportDonations('filtered')">
+                                                <i class="fas fa-download me-2"></i>Exportar Filtradas
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card h-100 border-2 border-primary">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-heart fa-3x text-primary mb-3"></i>
+                                            <h5 class="card-title text-primary">Todas las Donaciones</h5>
+                                            <p class="card-text text-muted">Exporta la lista completa de donaciones</p>
+                                            <button class="btn btn-primary w-100" onclick="executeExportDonations('all')">
+                                                <i class="fas fa-download me-2"></i>Exportar Todas
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card h-100 border-2 border-success">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                                            <h5 class="card-title text-success">Solo Validadas</h5>
+                                            <p class="card-text text-muted">Exporta únicamente las donaciones validadas</p>
+                                            <button class="btn btn-success w-100" onclick="executeExportDonations('validated')">
+                                                <i class="fas fa-download me-2"></i>Exportar Validadas
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card h-100 border-2 border-warning">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-clock fa-3x text-warning mb-3"></i>
+                                            <h5 class="card-title text-warning">Solo Pendientes</h5>
+                                            <p class="card-text text-muted">Exporta únicamente las donaciones pendientes</p>
+                                            <button class="btn btn-warning w-100" onclick="executeExportDonations('pending')">
+                                                <i class="fas fa-download me-2"></i>Exportar Pendientes
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Información:</strong> El archivo Excel incluirá información detallada de cada donación: nombre del donador, email, monto, fecha, estado y método de pago. También incluirá estadísticas detalladas y gráficos para análisis.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Enviar Correos a Donadores -->
+<div class="modal fade" id="sendEmailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-envelope me-2"></i>
+                    Enviar Correos a Donadores
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Seleccionar Destinatarios -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Seleccionar Destinatarios:</label>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="recipientType" id="allDonors" value="all">
+                                <label class="form-check-label" for="allDonors">
+                                    <i class="fas fa-users me-2"></i>Todos los Donadores
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="recipientType" id="pendingDonors" value="pending">
+                                <label class="form-check-label" for="pendingDonors">
+                                    <i class="fas fa-clock me-2"></i>Solo Donaciones Pendientes
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="recipientType" id="validatedDonors" value="validated" checked>
+                                <label class="form-check-label" for="validatedDonors">
+                                    <i class="fas fa-check-circle me-2"></i>Solo Donaciones Validadas
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="recipientType" id="selectedDonors" value="selected">
+                                <label class="form-check-label" for="selectedDonors">
+                                    <i class="fas fa-hand-pointer me-2"></i>Solo Seleccionados
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview de Destinatarios -->
+                <div class="mb-3">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span id="recipientCount">0 destinatarios seleccionados</span>
+                    </div>
+                </div>
+
+                <!-- Asunto del Correo -->
+                <div class="mb-3">
+                    <label for="emailSubject" class="form-label fw-bold">
+                        Asunto del Correo <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" class="form-control" id="emailSubject" 
+                           placeholder="Ej: Agradecimiento por tu donación - EcoVoluntarios UNFV"
+                           value="Agradecimiento por tu donación - EcoVoluntarios UNFV">
+                </div>
+
+                <!-- Plantilla de Correo -->
+                <div class="mb-3">
+                    <label for="emailTemplate" class="form-label fw-bold">Plantilla de Correo</label>
+                    <select class="form-select" id="emailTemplate" onchange="loadEmailTemplate()">
+                        <option value="">Seleccionar Plantilla</option>
+                        <option value="agradecimiento">Agradecimiento General</option>
+                        <option value="validacion">Confirmación de Validación</option>
+                        <option value="recordatorio">Recordatorio de Donación</option>
+                        <option value="custom">Personalizado</option>
+                    </select>
+                </div>
+
+                <!-- Contenido del Correo -->
+                <div class="mb-3">
+                    <label for="emailContent" class="form-label fw-bold">
+                        Contenido del Correo <span class="text-danger">*</span>
+                    </label>
+                    <div class="form-text mb-2">
+                        Variables disponibles: {nombre}, {apellido}, {monto}, {fecha}, {estado}
+                    </div>
+                    <textarea class="form-control" id="emailContent" rows="8" 
+                              placeholder="Escribe el contenido del correo aquí...">Estimado/a {nombre} {apellido},
+
+Queremos expresar nuestro más sincero agradecimiento por tu valiosa donación de S/ {monto} realizada el {fecha}.
+
+Tu generosidad contribuye significativamente a nuestros proyectos ambientales y nos permite seguir trabajando por un futuro más sostenible.
+
+Estado de tu donación: {estado}
+
+¡Gracias por ser parte del cambio!
+
+Saludos cordiales,
+EcoVoluntarios UNFV
+Universidad Nacional Federico Villarreal</textarea>
+                </div>
+
+                <!-- Adjuntar PDF -->
+                <div class="mb-3">
+                    <label for="pdfAttachment" class="form-label fw-bold">
+                        <i class="fas fa-paperclip me-2"></i>Adjuntar PDF (Opcional)
+                    </label>
+                    <div class="input-group">
+                        <input type="file" class="form-control" id="pdfAttachment" 
+                               accept=".pdf" onchange="handlePdfAttachment(this)">
+                        <button class="btn btn-outline-secondary" type="button" onclick="clearPdfAttachment()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="form-text">
+                        Solo archivos PDF. Tamaño máximo: 5MB
+                    </div>
+                    <!-- Preview del archivo adjunto -->
+                    <div id="pdfPreview" class="mt-2" style="display: none;">
+                        <div class="alert alert-success d-flex align-items-center">
+                            <i class="fas fa-file-pdf me-2 text-danger"></i>
+                            <div class="flex-grow-1">
+                                <strong id="pdfFileName">archivo.pdf</strong>
+                                <br>
+                                <small class="text-muted">Tamaño: <span id="pdfFileSize">0 KB</span></small>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removePdfAttachment()">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="mb-3">
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary" onclick="previewEmail()">
+                            <i class="fas fa-eye me-2"></i>Vista Previa
+                        </button>
+                        <button type="button" class="btn btn-outline-info" onclick="openEmailHistory()">
+                            <i class="fas fa-history me-2"></i>Historial
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Progress Bar (oculto inicialmente) -->
+                <div id="emailProgress" class="mb-3" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Enviando correos...</span>
+                        <span id="progressText">0 / 0</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             id="progressBar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" id="sendEmailBtn" onclick="sendEmailsToRecipients()">
+                    <i class="fas fa-paper-plane me-2"></i>Enviar Correos
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Vista Previa -->
+<div class="modal fade" id="emailPreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye me-2"></i>Vista Previa del Correo
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="border rounded p-3" style="background-color: #f8f9fa;">
+                    <div class="mb-3">
+                        <strong>Para:</strong> <span id="previewRecipient">ejemplo@correo.com</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Asunto:</strong> <span id="previewSubject"></span>
+                    </div>
+                    <!-- Mostrar archivo adjunto si existe -->
+                    <div id="previewAttachment" class="mb-3" style="display: none;">
+                        <strong>Archivo adjunto:</strong> 
+                        <span class="badge bg-danger ms-2">
+                            <i class="fas fa-file-pdf me-1"></i>
+                            <span id="previewAttachmentName">archivo.pdf</span>
+                        </span>
+                    </div>
+                    <div class="border-top pt-3">
+                        <div id="previewContent" style="white-space: pre-wrap;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Historial de Correos MEJORADO -->
+<div class="modal fade" id="emailHistoryModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-history me-2"></i>
+                    Historial de Correos Enviados
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Botones de acción -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h6 class="mb-0">Registro de envíos de correos</h6>
+                        <small class="text-muted">Historial completo de correos enviados a donadores</small>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="refreshEmailHistory()">
+                            <i class="fas fa-sync-alt me-1"></i>Actualizar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabla de historial -->
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width: 120px;">
+                                    <i class="fas fa-calendar me-1"></i>Fecha
+                                </th>
+                                <th style="width: 250px;">
+                                    <i class="fas fa-envelope me-1"></i>Asunto
+                                </th>
+                                <th style="width: 120px;" class="text-center">
+                                    <i class="fas fa-users me-1"></i>Destinatarios
+                                </th>
+                                <th style="width: 100px;" class="text-center">
+                                    <i class="fas fa-check-circle me-1"></i>Estado
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="emailHistoryTableBody">
+                            <!-- Se llenará dinámicamente -->
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-5">
+                                    <div class="spinner-border text-primary mb-3" role="status">
+                                        <span class="visually-hidden">Cargando...</span>
+                                    </div>
+                                    <p>Cargando historial de correos...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Información adicional -->
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <i class="fas fa-info-circle fa-2x text-info mb-2"></i>
+                                <h6 class="card-title">Información</h6>
+                                <p class="card-text small">
+                                    Los correos se envían a través de EmailJS. 
+                                    El historial se guarda automáticamente en Firebase.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+                                <h6 class="card-title">Límites de EmailJS</h6>
+                                <p class="card-text small">
+                                    Plan gratuito: 200 correos/mes, 50 correos/hora.
+                                    Archivos adjuntos máximo 5MB.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="d-none">
+                <div class="spinner-overlay">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <small class="text-muted">Procesando...</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bootstrap JS -->
+             <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+<!-- Inicializar EmailJS -->
+<script type="text/javascript">
+(function(){
+    // ⚠️ REEMPLAZA 'TU_PUBLIC_KEY' con tu Public Key de EmailJS
+    emailjs.init('UMoK0KSvnzx9bpyPf');
+})();
+</script>
+   <script>
+        // Función para toggle del sidebar en móviles
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            
+            // Toggle sidebar cuando se hace click en el botón hamburguesa
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', toggleSidebar);
+            }
+            
+            // Cerrar sidebar cuando se hace click en el overlay
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', function() {
+                    toggleSidebar();
+                });
+            }
+            
+            // Cerrar sidebar al hacer click en un enlace (en móviles)
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 992) {
+                        toggleSidebar();
+                    }
+                });
+            });
+            
+            // Cerrar sidebar si se cambia el tamaño de ventana a desktop
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 992) {
+                    const sidebar = document.getElementById('sidebar');
+                    const overlay = document.getElementById('sidebarOverlay');
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
+                }
+            });
+            
+            // Inicializar dropdowns de Bootstrap
+            const dropdownTriggerList = document.querySelectorAll('[data-bs-toggle="dropdown"]');
+            const dropdownList = [...dropdownTriggerList].map(dropdownTriggerEl => 
+                new bootstrap.Dropdown(dropdownTriggerEl)
+            );
+        });
+
+        // Funciones de navegación (placeholder)
+        function navigateToPage(page) {
+            console.log('Navegando a:', page);
+            // Aquí iría la lógica de navegación
+        }
+
+        function logout() {
+            console.log('Cerrando sesión...');
+            // Aquí iría la lógica de logout
+        }
+
+        // Función para obtener sesión almacenada (placeholder)
+        function getStoredSession() {
+            // Retorna datos de sesión de ejemplo
+            return {
+                nombreUsuario: 'Harold Arturo'
+            };
+        }
+    </script>
+
+        </body>
+
+</html>

@@ -19,6 +19,7 @@
         <script type="module" src="js/create-events.js"></script>
     <script type="module" src="js/past-events.js"></script>
     <script type="module" src="js/upcoming-events.js"></script>
+    <script type="module" src="js/security.js" defer></script>
     <link rel="stylesheet" href="css/edit-modal.css">
     <link rel="stylesheet" href="css/upcoming-events.css">
     <link rel="stylesheet" href="css/past-events.css" />
@@ -49,9 +50,9 @@
                 <i class="fas fa-calendar-alt"></i>
                 Gestión de Eventos
             </button>
-            <button class="nav-link" onclick="navigateToPage('administradores.html')">
-                <i class="fas fa-users-cog"></i>
-                Administradores
+            <button class="nav-link" onclick="navigateToPage('Donaciones.html')">
+                <i class="fas fa-heart"></i>
+                Donaciones
             </button>
             <button class="nav-link" onclick="navigateToPage('usuarios.html')">
                 <i class="fas fa-user-friends"></i>
@@ -401,7 +402,105 @@
             </div>
         </div>
     </main>
+<!-- Modal para Ver Voluntarios -->
+<div class="modal fade" id="voluntariosModal" tabindex="-1" aria-labelledby="voluntariosModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <!-- Header del Modal -->
+      <div class="modal-header" style="background: linear-gradient(135deg, #FF8C00, #E67A00); color: white;">
+        <h5 class="modal-title fw-bold" id="voluntariosModalLabel">
+          <i class="fas fa-users me-2"></i>
+          Voluntarios del Evento
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <!-- Cuerpo del Modal -->
+      <div class="modal-body">
+        <!-- Información del Evento -->
+        <div class="event-info-card mb-4 p-3 rounded" style="background: linear-gradient(135deg, #FFF8F0, #FFEFDC); border-left: 4px solid #FF8C00;">
+          <div class="row">
+            <div class="col-md-8">
+              <h6 class="mb-1 text-dark fw-bold" id="eventTitleModal">Cargando...</h6>
+              <div class="d-flex flex-wrap gap-3 text-sm">
+                <span class="text-muted">
+                  <i class="fas fa-calendar me-1 text-orange"></i>
+                  <span id="eventDateModal">--</span>
+                </span>
+                <span class="text-muted">
+                  <i class="fas fa-clock me-1 text-orange"></i>
+                  <span id="eventTimeModal">--</span>
+                </span>
+                <span class="text-muted">
+                  <i class="fas fa-map-marker-alt me-1 text-orange"></i>
+                  <span id="eventLocationModal">--</span>
+                </span>
+              </div>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="volunteer-count-badge">
+                <span class="badge bg-orange fs-6 px-3 py-2">
+                  <i class="fas fa-users me-1"></i>
+                  <span id="volunteerCountModal">0</span> voluntarios
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
 
+        <!-- Loading Spinner -->
+        <div id="voluntariosLoading" class="text-center py-4" style="display: none;">
+          <div class="spinner-border text-orange" role="status">
+            <span class="visually-hidden">Cargando voluntarios...</span>
+          </div>
+          <p class="text-muted mt-2">Cargando información de voluntarios...</p>
+        </div>
+
+        <!-- Lista de Voluntarios -->
+        <div id="voluntariosList">
+          <!-- Aquí se cargarán los voluntarios dinámicamente -->
+        </div>
+
+        <!-- Estado sin voluntarios -->
+        <div id="noVoluntarios" class="text-center py-4" style="display: none;">
+          <i class="fas fa-user-slash fa-3x mb-3 text-muted"></i>
+          <h6 class="text-muted">No hay voluntarios registrados</h6>
+          <p class="text-muted small">Este evento aún no tiene voluntarios inscritos.</p>
+        </div>
+
+        <!-- Estado de error -->
+        <div id="voluntariosError" class="text-center py-4" style="display: none;">
+          <i class="fas fa-exclamation-triangle fa-3x mb-3 text-warning"></i>
+          <h6 class="text-warning">Error al cargar voluntarios</h6>
+          <p class="text-muted small mb-3">No se pudo cargar la información de los voluntarios.</p>
+          <button class="btn btn-orange btn-sm" onclick="retryLoadVolunteers()">
+            <i class="fas fa-redo me-1"></i> Reintentar
+          </button>
+        </div>
+      </div>
+      
+      <!-- Footer del Modal -->
+      <div class="modal-footer bg-light">
+        <div class="d-flex justify-content-between align-items-center w-100">
+          <div class="volunteer-stats">
+            <small class="text-muted">
+              <i class="fas fa-info-circle me-1"></i>
+              Total de voluntarios: <span id="totalVolunteersFooter" class="fw-bold text-orange">0</span>
+            </small>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-outline-orange btn-sm me-2" onclick="exportVolunteersList()">
+              <i class="fas fa-download me-1"></i> Exportar Lista
+            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              <i class="fas fa-times me-1"></i> Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
 </body>

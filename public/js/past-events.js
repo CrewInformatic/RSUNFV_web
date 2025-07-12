@@ -6,7 +6,7 @@ import {
   orderBy,
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
+import { showVolunteersModal } from "./users-events.js";
 // =============================================
 // CONFIGURACIÓN Y VARIABLES GLOBALES
 // =============================================
@@ -584,9 +584,26 @@ export function viewEventReport(eventId) {
  * Ver lista de voluntarios del evento
  */
 export function viewVolunteersList(eventId) {
-  console.log(`👥 Solicitando lista de voluntarios para evento: ${eventId}`);
-  // TODO: Implementar vista de voluntarios
-  alert(`Cargando lista de voluntarios del evento: ${eventId}`);
+  console.log(`👥 Abriendo modal de voluntarios para evento: ${eventId}`);
+
+  // Verificar que el eventId sea válido
+  if (!eventId) {
+    console.error("❌ ID de evento no válido");
+    window.showError
+      ? window.showError("Error", "ID de evento no válido")
+      : alert("Error: ID de evento no válido");
+    return;
+  }
+
+  try {
+    // Llamar a la función del modal de voluntarios
+    showVolunteersModal(eventId);
+  } catch (error) {
+    console.error("❌ Error al abrir modal de voluntarios:", error);
+    window.showError
+      ? window.showError("Error al cargar voluntarios", error.message)
+      : alert("Error al cargar los voluntarios del evento");
+  }
 }
 
 /**
@@ -617,7 +634,7 @@ window.viewCancellationDetails = viewCancellationDetails;
 window.refreshPastEvents = refreshPastEvents;
 window.openImageModal = openImageModal;
 window.downloadImage = downloadImage;
-
+window.viewVolunteersList = viewVolunteersList;
 // =============================================
 // INICIALIZACIÓN
 // =============================================
