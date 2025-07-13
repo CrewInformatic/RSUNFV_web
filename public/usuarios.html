@@ -48,6 +48,10 @@
                 <i class="fas fa-heart"></i>
                 Donaciones
             </button>
+            <button class="nav-link" onclick="navigateToPage('donation-inventory.html')">
+                <i class="fas fa-warehouse"></i>
+                Inventario
+            </button>
             <button class="nav-link active" data-section="usuarios">
                 <i class="fas fa-user-friends"></i>
                 Usuarios y Roles
@@ -458,36 +462,170 @@
             </div>
         </div>
     </main>
-    <!-- Modal Asignar Rol -->
-    <div class="modal fade" id="assignRoleModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Asignar Rol</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="modal fade" id="assignRoleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-tag me-2"></i>
+                    Asignar Rol
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="assignRoleUserId">
+                
+                <!-- Información del usuario -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-user me-1"></i>
+                        Usuario:
+                    </label>
+                    <p id="assignRoleUserName" class="mb-2 text-primary"></p>
+                    <label class="form-label">Rol actual:</label>
+                    <p id="currentRole" class="text-muted mb-3"></p>
                 </div>
-                <div class="modal-body">
-                    <input type="hidden" id="assignRoleUserId">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Usuario:</label>
-                        <p id="assignRoleUserName" class="mb-2"></p>
-                        <label class="form-label">Rol actual:</label>
-                        <p id="currentRole" class="text-muted mb-3"></p>
+                
+                <!-- Selector de rol -->
+                <div class="mb-3">
+                    <label for="roleSelect" class="form-label">
+                        <i class="fas fa-tags me-1"></i>
+                        Nuevo Rol
+                    </label>
+                    <select class="form-select" id="roleSelect" required onchange="handleRoleChange()">
+                        <option value="">Cargando roles...</option>
+                    </select>
+                </div>
+
+                <!-- Sección de datos bancarios (solo visible para recolector) -->
+                <div id="bankingDataSection" class="d-none">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Información requerida:</strong> Para el rol de recolector es necesario proporcionar datos bancarios para el manejo de donaciones.
                     </div>
+                    
                     <div class="mb-3">
-                        <label for="roleSelect" class="form-label">Nuevo Rol</label>
-                        <select class="form-select" id="roleSelect" required>
-                            <option value="">Cargando roles...</option>
+                        <label class="form-label">
+                            <i class="fas fa-credit-card me-1"></i>
+                            Tipo de cuenta
+                        </label>
+                        <select class="form-select" id="accountType" onchange="handleAccountTypeChange()">
+                            <option value="">Seleccionar tipo</option>
+                            <option value="yape">Yape</option>
+                            <option value="cuenta_bancaria">Cuenta Bancaria</option>
                         </select>
                     </div>
+
+                    <!-- Datos para Yape -->
+                    <div id="yapeSection" class="d-none">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    <i class="fas fa-mobile-alt me-1"></i>
+                                    Número de Yape
+                                </label>
+                                <input type="text" class="form-control" id="yapeNumber" placeholder="Ej: 940090582" maxlength="9" pattern="[0-9]{9}">
+                                <div class="form-text">Debe tener exactamente 9 dígitos</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    <i class="fas fa-university me-1"></i>
+                                    Banco
+                                </label>
+                                <input type="text" class="form-control" id="yapeBank" value="BCP" readonly>
+                                <div class="form-text">Yape funciona exclusivamente con BCP</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Datos para Cuenta Bancaria -->
+                    <div id="bankAccountSection" class="d-none">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    <i class="fas fa-hashtag me-1"></i>
+                                    Número de cuenta
+                                </label>
+                                <input type="text" class="form-control" id="accountNumber" placeholder="Número de cuenta">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    <i class="fas fa-university me-1"></i>
+                                    Banco
+                                </label>
+                                <select class="form-select" id="bankSelect">
+                                    <option value="">Seleccionar banco</option>
+                                    <option value="BCP">Banco de Crédito del Perú (BCP)</option>
+                                    <option value="BBVA">BBVA</option>
+                                    <option value="Scotiabank">Scotiabank</option>
+                                    <option value="Interbank">Interbank</option>
+                                    <option value="Banco_de_la_Nacion">Banco de la Nación</option>
+                                    <option value="Mi_Banco">Mi Banco</option>
+                                    <option value="Banco_Falabella">Banco Falabella</option>
+                                    <option value="Caja_Arequipa">Caja Arequipa</option>
+                                    <option value="Caja_Cusco">Caja Cusco</option>
+                                    <option value="Caja_Huancayo">Caja Huancayo</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Campo adicional si selecciona "Otro" banco -->
+                        <div id="otherBankSection" class="d-none mt-2">
+                            <label class="form-label">
+                                <i class="fas fa-edit me-1"></i>
+                                Nombre del banco
+                            </label>
+                            <input type="text" class="form-control" id="otherBankName" placeholder="Ingrese el nombre del banco">
+                        </div>
+                    </div>
+
+                    <!-- Campos adicionales comunes -->
+                    <div id="commonBankingFields" class="d-none mt-3">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-user-check me-1"></i>
+                                    Datos del titular
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">
+                                            <i class="fas fa-user me-1"></i>
+                                            Nombre completo del titular
+                                        </label>
+                                        <input type="text" class="form-control" id="accountHolderName" placeholder="Nombre completo del titular">
+                                        <div class="form-text">Debe coincidir con el nombre en el documento de identidad</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">
+                                            <i class="fas fa-id-card me-1"></i>
+                                            DNI del titular
+                                        </label>
+                                        <input type="text" class="form-control" id="accountHolderDNI" placeholder="12345678" maxlength="8" pattern="[0-9]{8}">
+                                        <div class="form-text">Debe tener exactamente 8 dígitos</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="updateUserRole()">Asignar Rol</button>
-                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" onclick="updateUserRole()" id="assignRoleBtn">
+                    <i class="fas fa-save me-1"></i>
+                    Asignar Rol
+                </button>
             </div>
         </div>
     </div>
+</div>
     <!-- Add User Modal -->
     <div class="modal fade" id="addUserModal" tabindex="-1">
         <div class="modal-dialog modal-lg">

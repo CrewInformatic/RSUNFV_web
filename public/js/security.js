@@ -23,6 +23,7 @@ const ADMIN_SECURITY_CONFIG = {
     "eventos.html",
     "administradores.html",
     "usuarios.html",
+    "donation-inventory.html",
     "configuracion.html",
     "reportes.html",
     "Donaciones.html",

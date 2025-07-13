@@ -300,9 +300,11 @@ function createUpcomingEventCard(event, fechaInicio, fechaFin) {
             <div class="col-6">
               <div class="d-flex align-items-center text-sm">
                 <i class="fas fa-users me-2 text-orange"></i>
-                <span class="text-dark small fw-medium">${
-                  event.voluntariosInscritos || 0
-                } / ${event.cantidadVoluntariosMax || "∞"}</span>
+                  <span class="text-dark small fw-medium">${
+                    Array.isArray(event.voluntariosInscritos)
+                      ? event.voluntariosInscritos.length
+                      : 0
+                  } / ${event.cantidadVoluntariosMax || "∞"}</span>
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-// donations_management.js - Optimizado para producción
+// donations_management.js - Optimizado para producción con seguridad de recolectores
 import {
   auth,
   db,
@@ -16,6 +16,7 @@ import {
   Timestamp,
 } from "./firebase_config.js";
 import { EmailManager } from "./donation-correo.js";
+
 class DonationsManager {
   constructor() {
     this.donations = [];
@@ -25,6 +26,7 @@ class DonationsManager {
     this.totalPages = 0;
     this.selectedDonations = new Set();
     this.currentUser = null;
+    this.currentUserData = null; // Datos completos del usuario actual
     this.usersCache = new Map();
     this.chartInstances = new Map();
     this.modalCleanupHandlers = new Map();
@@ -34,9 +36,11 @@ class DonationsManager {
 
   async init() {
     try {
-      onAuthStateChanged(auth, (user) => {
+      onAuthStateChanged(auth, async (user) => {
         if (user) {
           this.currentUser = user;
+          // Cargar datos completos del usuario actual
+          await this.loadCurrentUserData();
           this.loadDonations();
         } else {
           this.redirectToLogin();
@@ -49,10 +53,60 @@ class DonationsManager {
     }
   }
 
+  // Cargar datos completos del usuario actual
+  async loadCurrentUserData() {
+    try {
+      if (this.currentUser) {
+        const userData = await this.getUserData(this.currentUser.uid);
+        this.currentUserData = userData;
+        console.log("Usuario actual cargado:", userData);
+      }
+    } catch (error) {
+      console.error("Error al cargar datos del usuario actual:", error);
+      this.currentUserData = null;
+    }
+  }
+
+  // Verificar si el usuario actual puede gestionar la donación
+  canManageDonation(donation) {
+    if (!this.currentUser || !donation) {
+      return { canManage: false, reason: "Datos incompletos" };
+    }
+
+    // Si la donación no tiene recolector asignado, cualquiera puede gestionarla
+    if (!donation.idRecolector) {
+      return { canManage: true, reason: "Sin recolector asignado" };
+    }
+
+    // Si el usuario actual es el recolector asignado
+    if (donation.idRecolector === this.currentUser.uid) {
+      return { canManage: true, reason: "Recolector asignado" };
+    }
+
+    // Si el usuario actual es administrador (opcional - puedes quitar esta línea si no quieres que los admins puedan gestionar todo)
+    if (this.currentUserData && this.currentUserData.rol === "administrador") {
+      return { canManage: true, reason: "Administrador" };
+    }
+
+    return {
+      canManage: false,
+      reason: "Solo el recolector asignado puede gestionar esta donación",
+    };
+  }
+
+  // Verificar permisos antes de abrir modal de cambio de estado
   openChangeStatusModal(donationId) {
     const donation = this.donations.find((d) => d.id === donationId);
     if (!donation) {
       this.showError("Donación no encontrada");
+      return;
+    }
+
+    const permission = this.canManageDonation(donation);
+    if (!permission.canManage) {
+      this.showError(
+        `No tienes permisos para gestionar esta donación. ${permission.reason}`
+      );
       return;
     }
 
@@ -82,6 +136,303 @@ class DonationsManager {
       this.showError("Error al abrir el modal");
     }
   }
+
+  // Verificar permisos antes de validar donación
+  async validateDonation(donationId) {
+    const donation = this.donations.find((d) => d.id === donationId);
+    if (!donation) {
+      this.showError("Donación no encontrada");
+      return;
+    }
+
+    const permission = this.canManageDonation(donation);
+    if (!permission.canManage) {
+      this.showError(`No puedes validar esta donación. ${permission.reason}`);
+      return;
+    }
+
+    try {
+      const donationRef = doc(db, "donaciones", donationId);
+      await updateDoc(donationRef, {
+        estadoValidacion: true,
+        UsuarioEstadoValidacion: this.currentUser.uid,
+        fechaValidacion: Timestamp.now(),
+      });
+
+      this.showSuccess("Donación validada exitosamente");
+      await this.loadDonations();
+    } catch (error) {
+      this.showError("Error al validar la donación");
+    }
+  }
+
+  // Verificar permisos antes de rechazar donación
+  async rejectDonation(donationId) {
+    const donation = this.donations.find((d) => d.id === donationId);
+    if (!donation) {
+      this.showError("Donación no encontrada");
+      return;
+    }
+
+    const permission = this.canManageDonation(donation);
+    if (!permission.canManage) {
+      this.showError(`No puedes rechazar esta donación. ${permission.reason}`);
+      return;
+    }
+
+    try {
+      const donationRef = doc(db, "donaciones", donationId);
+      await updateDoc(donationRef, {
+        estadoValidacion: false,
+        UsuarioEstadoValidacion: this.currentUser.uid,
+        fechaRechazo: Timestamp.now(),
+      });
+
+      this.showSuccess("Donación rechazada");
+      await this.loadDonations();
+    } catch (error) {
+      this.showError("Error al rechazar la donación");
+    }
+  }
+
+  // Verificar permisos antes de actualizar estado
+  async updateDonationStatus() {
+    const donationId = document.getElementById("changeStatusDonationId").value;
+    const donation = this.donations.find((d) => d.id === donationId);
+
+    if (!donation) {
+      this.showError("Donación no encontrada");
+      return;
+    }
+
+    const permission = this.canManageDonation(donation);
+    if (!permission.canManage) {
+      this.showError(
+        `No tienes permisos para actualizar esta donación. ${permission.reason}`
+      );
+      return;
+    }
+
+    const newStatus = document.getElementById("newStatus").value;
+    const comment = document.getElementById("statusComment").value;
+    const assignedCollector = document.getElementById("assignCollector").value;
+    const receptionDescription = document.getElementById(
+      "receptionDescription"
+    ).value;
+
+    if (!donationId || !newStatus) {
+      this.showWarning("Por favor completa todos los campos requeridos");
+      return;
+    }
+
+    try {
+      const donationRef = doc(db, "donaciones", donationId);
+      const updateData = {
+        estadoValidacion: this.convertStatusToBoolean(newStatus),
+        UsuarioEstadoValidacion: this.currentUser.uid,
+        fechaActualizacionEstado: Timestamp.now(),
+        comentarioEstado: comment || null,
+      };
+
+      // Agregar campos adicionales según el estado
+      if (newStatus === "validado") {
+        if (assignedCollector) {
+          updateData.idRecolector = assignedCollector;
+        }
+        if (receptionDescription) {
+          updateData.descripcionRecepcion = receptionDescription;
+        }
+        updateData.fechaValidacion = Timestamp.now();
+      } else if (newStatus === "rechazado") {
+        updateData.fechaRechazo = Timestamp.now();
+      }
+
+      await updateDoc(donationRef, updateData);
+
+      // Cerrar modal
+      this.closeModal("changeStatusModal");
+
+      // Mostrar mensaje de éxito
+      this.showSuccess(`Estado cambiado a: ${this.getStatusText(newStatus)}`);
+
+      // Recargar donaciones
+      await this.loadDonations();
+    } catch (error) {
+      this.showError("Error al actualizar el estado de la donación");
+    }
+  }
+
+  // Verificar permisos para validación masiva
+  async validateAllSelected() {
+    if (this.selectedDonations.size === 0) {
+      this.showWarning("Selecciona al menos una donación");
+      return;
+    }
+
+    // Verificar permisos para cada donación seleccionada
+    const unauthorizedDonations = [];
+    const authorizedDonations = [];
+
+    for (const donationId of this.selectedDonations) {
+      const donation = this.donations.find((d) => d.id === donationId);
+      if (donation) {
+        const permission = this.canManageDonation(donation);
+        if (permission.canManage) {
+          authorizedDonations.push(donationId);
+        } else {
+          unauthorizedDonations.push({
+            id: donationId,
+            donor: this.getDonorName(donation),
+          });
+        }
+      }
+    }
+
+    if (unauthorizedDonations.length > 0) {
+      const donorNames = unauthorizedDonations.map((d) => d.donor).join(", ");
+      this.showError(
+        `No tienes permisos para validar las donaciones de: ${donorNames}`
+      );
+      return;
+    }
+
+    if (authorizedDonations.length === 0) {
+      this.showWarning("No hay donaciones autorizadas para validar");
+      return;
+    }
+
+    try {
+      const promises = authorizedDonations.map((donationId) => {
+        const donationRef = doc(db, "donaciones", donationId);
+        return updateDoc(donationRef, {
+          estadoValidacion: true,
+          UsuarioEstadoValidacion: this.currentUser.uid,
+          fechaValidacion: Timestamp.now(),
+        });
+      });
+
+      await Promise.all(promises);
+      this.selectedDonations.clear();
+      this.showSuccess(`${promises.length} donaciones validadas exitosamente`);
+      await this.loadDonations();
+    } catch (error) {
+      this.showError("Error al validar las donaciones seleccionadas");
+    }
+  }
+
+  // Modificar la creación de filas para mostrar botones según permisos
+  createDonationRow(donation) {
+    const row = document.createElement("tr");
+    row.className = "donation-row";
+    row.dataset.donationId = donation.id;
+
+    const hasVoucher = this.checkVoucherExists(donation);
+    const isChecked = this.selectedDonations.has(donation.id);
+    const permission = this.canManageDonation(donation);
+
+    // Determinar si los botones deben estar habilitados
+    const canValidate =
+      permission.canManage && !this.isValidated(donation.estadoValidacion);
+    const canReject =
+      permission.canManage && !this.isRejected(donation.estadoValidacion);
+    const canChangeStatus = permission.canManage;
+
+    row.innerHTML = `
+    <td>
+      <input type="checkbox" class="form-check-input donation-checkbox" 
+             value="${donation.id}" ${isChecked ? "checked" : ""}>
+    </td>
+    <td>
+      <div class="d-flex align-items-center">
+        <div class="avatar-circle me-2">
+          <i class="fas fa-user"></i>
+        </div>
+        <div>
+          <div class="fw-bold">${this.getDonorName(donation)}</div>
+          <small class="text-muted">${donation.Tipo_Usuario}</small>
+          ${
+            !permission.canManage && donation.idRecolector
+              ? `<small class="text-warning d-block"><i class="fas fa-lock"></i> Asignada a otro recolector</small>`
+              : ""
+          }
+        </div>
+      </div>
+    </td>
+    <td>
+      <span class="fw-bold text-success">S/ ${parseFloat(
+        donation.monto
+      ).toFixed(2)}</span>
+    </td>
+    <td>
+      <span class="text-muted">${donation.fechaFormateada}</span>
+    </td>
+    <td class="text-center">
+      ${
+        hasVoucher
+          ? `<button class="btn btn-sm btn-outline-primary" onclick="donationsManager.viewVoucher('${donation.id}')">
+            <i class="fas fa-eye"></i>
+          </button>`
+          : `<span class="text-muted">Sin voucher</span>`
+      }
+    </td>
+    <td>${this.getStatusBadge(donation.estadoValidacion)}</td>
+    <td>
+      <span class="text-muted">${this.getCollectorName(donation)}</span>
+    </td>
+    <td>
+      <div class="btn-group" role="group">
+        <button class="btn btn-sm btn-outline-info" 
+                onclick="donationsManager.openChangeStatusModal('${
+                  donation.id
+                }')"
+                title="${
+                  canChangeStatus
+                    ? "Cambiar Estado"
+                    : "Sin permisos para cambiar estado"
+                }"
+                ${!canChangeStatus ? "disabled" : ""}>
+        </button>
+        <button class="btn btn-sm btn-outline-success" 
+                onclick="donationsManager.validateDonation('${donation.id}')"
+                title="${
+                  canValidate
+                    ? "Validar"
+                    : permission.canManage
+                    ? "Ya validada"
+                    : "Sin permisos"
+                }"
+                ${!canValidate ? "disabled" : ""}>
+          <i class="fas fa-check"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-danger" 
+                onclick="donationsManager.rejectDonation('${donation.id}')"
+                title="${
+                  canReject
+                    ? "Rechazar"
+                    : permission.canManage
+                    ? "Ya rechazada"
+                    : "Sin permisos"
+                }"
+                ${!canReject ? "disabled" : ""}>
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </td>
+  `;
+
+    const checkbox = row.querySelector(".donation-checkbox");
+    checkbox.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        this.selectedDonations.add(donation.id);
+      } else {
+        this.selectedDonations.delete(donation.id);
+      }
+      this.updateSelectAllState();
+    });
+
+    return row;
+  }
+
   openSendEmailModal() {
     try {
       console.log("Abriendo modal de correos...");
@@ -115,12 +466,14 @@ class DonationsManager {
       console.error("Error:", error);
     }
   }
+
   syncWithEmailManager() {
     if (this.emailManager) {
       this.emailManager.allDonations = [...this.donations];
       this.emailManager.selectedDonations = new Set(this.selectedDonations);
     }
   }
+
   getSelectedDonations() {
     return Array.from(this.selectedDonations)
       .map((donationId) => {
@@ -128,6 +481,7 @@ class DonationsManager {
       })
       .filter((donation) => donation !== undefined);
   }
+
   // Función para manejar el cambio de estado en el select
   handleStatusChange() {
     const newStatus = document.getElementById("newStatus").value;
@@ -141,55 +495,6 @@ class DonationsManager {
     } else {
       collectorDiv.style.display = "none";
       receptionDiv.style.display = "none";
-    }
-  }
-
-  // Función para actualizar el estado de la donación
-  async updateDonationStatus() {
-    const donationId = document.getElementById("changeStatusDonationId").value;
-    const newStatus = document.getElementById("newStatus").value;
-    const comment = document.getElementById("statusComment").value;
-    const assignedCollector = document.getElementById("assignCollector").value;
-    const receptionDescription = document.getElementById(
-      "receptionDescription"
-    ).value;
-
-    if (!donationId || !newStatus) {
-      this.showWarning("Por favor completa todos los campos requeridos");
-      return;
-    }
-
-    try {
-      const donationRef = doc(db, "donaciones", donationId);
-      const updateData = {
-        estadoValidacion: this.convertStatusToBoolean(newStatus),
-        UsuarioEstadoValidacion: this.currentUser.uid,
-        fechaActualizacionEstado: Timestamp.now(),
-        comentarioEstado: comment || null,
-      };
-
-      // Agregar campos adicionales según el estado
-      if (newStatus === "validado") {
-        if (assignedCollector) {
-          updateData.idRecolector = assignedCollector;
-        }
-        if (receptionDescription) {
-          updateData.descripcionRecepcion = receptionDescription;
-        }
-      }
-
-      await updateDoc(donationRef, updateData);
-
-      // Cerrar modal
-      this.closeModal("changeStatusModal");
-
-      // Mostrar mensaje de éxito
-      this.showSuccess(`Estado cambiado a: ${this.getStatusText(newStatus)}`);
-
-      // Recargar donaciones
-      await this.loadDonations();
-    } catch (error) {
-      this.showError("Error al actualizar el estado de la donación");
     }
   }
 
@@ -227,6 +532,7 @@ class DonationsManager {
       console.error("Error al cerrar modal:", error);
     }
   }
+
   setupEventListeners() {
     const elements = {
       searchDonations: () => this.filterDonations(),
@@ -235,7 +541,6 @@ class DonationsManager {
       filterDate: () => this.filterDonations(),
       selectAllDonations: (e) => this.toggleSelectAll(e.target.checked),
       exportDonations: () => this.exportToExcel(),
-      // REMOVIDO: sendEmailBtn ya no está aquí porque ese botón está dentro del modal
     };
 
     Object.entries(elements).forEach(([id, handler]) => {
@@ -343,7 +648,13 @@ class DonationsManager {
         !filters.search ||
         this.getDonorName(donation).toLowerCase().includes(filters.search) ||
         donation.EmailUsuarioDonador?.toLowerCase().includes(filters.search) ||
-        donation.id.toLowerCase().includes(filters.search);
+        donation.id.toLowerCase().includes(filters.search) ||
+        this.getCollectorName(donation)
+          .toLowerCase()
+          .includes(filters.search) ||
+        this.getCollectorSearchText(donation)
+          .toLowerCase()
+          .includes(filters.search);
 
       const matchesStatus =
         !filters.status ||
@@ -363,6 +674,26 @@ class DonationsManager {
     this.currentPage = 1;
     this.renderDonationsTable();
     this.updateStatistics();
+  }
+
+  // Función auxiliar para obtener texto de búsqueda del recolector
+  getCollectorSearchText(donation) {
+    if (donation.collectorData) {
+      const nombre = donation.collectorData.nombreUsuario || "";
+      const apellido = donation.collectorData.apellidoUsuario || "";
+      const email = donation.collectorData.emailUsuario || "";
+      const telefono = donation.collectorData.telefonoUsuario || "";
+
+      // Crear texto combinado para búsqueda más amplia
+      return `${nombre} ${apellido} ${email} ${telefono}`.trim();
+    }
+
+    // Si no hay datos del recolector pero hay ID, incluir el ID
+    if (donation.idRecolector) {
+      return donation.idRecolector;
+    }
+
+    return "sin asignar no asignado";
   }
 
   matchesAmountRange(amount, range) {
@@ -410,89 +741,6 @@ class DonationsManager {
 
     this.renderPagination();
     this.updateTableInfo();
-  }
-
-  createDonationRow(donation) {
-    const row = document.createElement("tr");
-    row.className = "donation-row";
-    row.dataset.donationId = donation.id;
-
-    const hasVoucher = this.checkVoucherExists(donation);
-    const isChecked = this.selectedDonations.has(donation.id);
-
-    row.innerHTML = `
-    <td>
-      <input type="checkbox" class="form-check-input donation-checkbox" 
-             value="${donation.id}" ${isChecked ? "checked" : ""}>
-    </td>
-    <td>
-      <div class="d-flex align-items-center">
-        <div class="avatar-circle me-2">
-          <i class="fas fa-user"></i>
-        </div>
-        <div>
-          <div class="fw-bold">${this.getDonorName(donation)}</div>
-          <small class="text-muted">${donation.Tipo_Usuario}</small>
-        </div>
-      </div>
-    </td>
-    <td>
-      <span class="fw-bold text-success">S/ ${parseFloat(
-        donation.monto
-      ).toFixed(2)}</span>
-    </td>
-    <td>
-      <span class="text-muted">${donation.fechaFormateada}</span>
-    </td>
-    <td class="text-center">
-      ${
-        hasVoucher
-          ? `<button class="btn btn-sm btn-outline-primary" onclick="donationsManager.viewVoucher('${donation.id}')">
-            <i class="fas fa-eye"></i>
-          </button>`
-          : `<span class="text-muted">Sin voucher</span>`
-      }
-    </td>
-    <td>${this.getStatusBadge(donation.estadoValidacion)}</td>
-    <td>
-      <span class="text-muted">${this.getCollectorName(donation)}</span>
-    </td>
-    <td>
-      <div class="btn-group" role="group">
-        <button class="btn btn-sm btn-outline-info" 
-                onclick="donationsManager.openChangeStatusModal('${
-                  donation.id
-                }')"
-                title="Cambiar Estado">
-          <i class="fas fa-exchange-alt"></i>
-        </button>
-        <button class="btn btn-sm btn-outline-success" 
-                onclick="donationsManager.validateDonation('${donation.id}')"
-                ${
-                  this.isValidated(donation.estadoValidacion) ? "disabled" : ""
-                }>
-          <i class="fas fa-check"></i>
-        </button>
-        <button class="btn btn-sm btn-outline-danger" 
-                onclick="donationsManager.rejectDonation('${donation.id}')"
-                ${this.isRejected(donation.estadoValidacion) ? "disabled" : ""}>
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-    </td>
-  `;
-
-    const checkbox = row.querySelector(".donation-checkbox");
-    checkbox.addEventListener("change", (e) => {
-      if (e.target.checked) {
-        this.selectedDonations.add(donation.id);
-      } else {
-        this.selectedDonations.delete(donation.id);
-      }
-      this.updateSelectAllState();
-    });
-
-    return row;
   }
 
   checkVoucherExists(donation) {
@@ -586,60 +834,6 @@ class DonationsManager {
       return '<span class="badge bg-danger"><i class="fas fa-times me-1"></i>Rechazado</span>';
     }
     return '<span class="badge bg-warning"><i class="fas fa-clock me-1"></i>Pendiente</span>';
-  }
-
-  async validateDonation(donationId) {
-    try {
-      const donationRef = doc(db, "donaciones", donationId);
-      await updateDoc(donationRef, {
-        estadoValidacion: true,
-        UsuarioEstadoValidacion: this.currentUser.uid,
-      });
-
-      this.showSuccess("Donación validada exitosamente");
-      await this.loadDonations();
-    } catch (error) {
-      this.showError("Error al validar la donación");
-    }
-  }
-
-  async rejectDonation(donationId) {
-    try {
-      const donationRef = doc(db, "donaciones", donationId);
-      await updateDoc(donationRef, {
-        estadoValidacion: false,
-        UsuarioEstadoValidacion: this.currentUser.uid,
-      });
-
-      this.showSuccess("Donación rechazada");
-      await this.loadDonations();
-    } catch (error) {
-      this.showError("Error al rechazar la donación");
-    }
-  }
-
-  async validateAllSelected() {
-    if (this.selectedDonations.size === 0) {
-      this.showWarning("Selecciona al menos una donación");
-      return;
-    }
-
-    try {
-      const promises = Array.from(this.selectedDonations).map((donationId) => {
-        const donationRef = doc(db, "donaciones", donationId);
-        return updateDoc(donationRef, {
-          estadoValidacion: true,
-          UsuarioEstadoValidacion: this.currentUser.uid,
-        });
-      });
-
-      await Promise.all(promises);
-      this.selectedDonations.clear();
-      this.showSuccess(`${promises.length} donaciones validadas exitosamente`);
-      await this.loadDonations();
-    } catch (error) {
-      this.showError("Error al validar las donaciones seleccionadas");
-    }
   }
 
   viewVoucher(donationId) {
@@ -1121,6 +1315,7 @@ class DonationsManager {
       }
     });
   }
+
   renderPagination() {
     const paginationList = document.getElementById("paginationList");
     if (!paginationList) return;
@@ -1348,11 +1543,34 @@ const additionalStyles = `
             width: 3rem;
             height: 3rem;
         }
+
+        /* Estilos para indicadores de seguridad */
+        .text-warning {
+            color: #856404 !important;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .donation-row .text-warning {
+            font-size: 0.75em;
+            font-weight: 500;
+        }
+        
+        .security-indicator {
+            background-color: rgba(255, 193, 7, 0.1);
+            border-left: 3px solid #ffc107;
+            padding: 2px 6px;
+            border-radius: 0 4px 4px 0;
+        }
     </style>
 `;
 
 // Agregar estilos al head
 document.head.insertAdjacentHTML("beforeend", additionalStyles);
+
 // Funciones globales corregidas
 window.exportDonations = function () {
   if (window.donationsManager) {
@@ -1391,6 +1609,7 @@ window.forceCleanModals = function () {
     console.error("Error en limpieza forzada:", error);
   }
 };
+
 window.updateDonationStatus = function () {
   if (window.donationsManager) {
     window.donationsManager.updateDonationStatus();
@@ -1415,6 +1634,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
+
 window.openSendEmailModal = async function () {
   try {
     console.log("Abriendo modal de correos desde botón del header...");
@@ -1440,11 +1660,6 @@ window.sendEmailsToRecipients = function () {
     window.donationsManager.emailManager.sendEmailsToRecipients();
   } else {
     console.error("EmailManager no está inicializado");
-    console.log("donationsManager existe:", !!window.donationsManager);
-    console.log(
-      "emailManager existe:",
-      !!window.donationsManager?.emailManager
-    );
     alert(
       "Error: El sistema de correos no está inicializado. Por favor, abre primero el modal desde el botón 'Enviar Correos' del header."
     );
@@ -1498,92 +1713,10 @@ window.removePdfAttachment = function () {
   }
 };
 
-// FUNCIONES EXISTENTES (mantener estas)
-window.refreshDonations = function () {
-  if (window.donationsManager) {
-    window.donationsManager.loadDonations();
-  }
-};
 window.saveEmailConfig = function () {
   if (window.donationsManager && window.donationsManager.emailManager) {
     window.donationsManager.emailManager.saveEmailConfig();
   } else {
     console.error("EmailManager no está inicializado");
-  }
-};
-
-window.openEmailHistory = function () {
-  if (window.donationsManager && window.donationsManager.emailManager) {
-    window.donationsManager.emailManager.showModal("emailHistoryModal");
-  } else {
-    console.error("EmailManager no está inicializado");
-  }
-};
-
-window.clearFilters = function () {
-  document.getElementById("searchDonations").value = "";
-  document.getElementById("filterStatus").value = "";
-  document.getElementById("filterAmount").value = "";
-  document.getElementById("filterDate").value = "";
-
-  if (window.donationsManager) {
-    window.donationsManager.filterDonations();
-  }
-};
-
-window.validateAllSelected = function () {
-  if (window.donationsManager) {
-    window.donationsManager.validateAllSelected();
-  }
-};
-
-window.downloadVoucher = function () {
-  if (window.donationsManager) {
-    window.donationsManager.downloadVoucher();
-  }
-};
-
-window.exportDonations = function () {
-  if (window.donationsManager) {
-    window.donationsManager.exportToExcel();
-  }
-};
-
-window.executeExportDonations = function (type) {
-  if (window.donationsManager) {
-    window.donationsManager.executeExportDonations(type);
-  }
-};
-
-window.closeExportModal = function () {
-  if (window.donationsManager) {
-    window.donationsManager.closeExportModal();
-  }
-};
-
-window.forceCleanModals = function () {
-  try {
-    const backdrops = document.querySelectorAll(".modal-backdrop");
-    backdrops.forEach((backdrop) => backdrop.remove());
-
-    document.body.classList.remove("modal-open");
-    document.body.style.removeProperty("overflow");
-    document.body.style.removeProperty("padding-right");
-
-    console.log("Modales limpiados forzadamente");
-  } catch (error) {
-    console.error("Error en limpieza forzada:", error);
-  }
-};
-
-window.updateDonationStatus = function () {
-  if (window.donationsManager) {
-    window.donationsManager.updateDonationStatus();
-  }
-};
-
-window.openChangeStatusModal = function (donationId) {
-  if (window.donationsManager) {
-    window.donationsManager.openChangeStatusModal(donationId);
   }
 };

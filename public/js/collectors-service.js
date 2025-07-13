@@ -1,4 +1,4 @@
-// collectors-service.js
+// collectors-service.js - CORREGIDO
 import {
   db,
   collection,
@@ -19,9 +19,6 @@ const COLLECTORS_CONFIG = {
   SORT_FIELD: "nombreUsuario",
 };
 
-/**
- * Modelo de datos para un recolector
- */
 class CollectorModel {
   constructor(userData) {
     this.id = userData.id;
@@ -51,7 +48,8 @@ class CollectorModel {
     this.yape = userData.Yape || "";
     this.banco = userData.banco || "";
     this.cuentaBancaria = userData.cuentaBancaria || "";
-    this.apellidoUsuario = userData.apellidoUsuario || "";
+    this.nombreTitular = userData.nombreTitular || "";
+    this.dniTitular = userData.dniTitular || "";
 
     // INFORMACIÓN DE PAGO COMPLETA
     this.paymentInfo = this.extractPaymentInfo(userData);
@@ -91,17 +89,18 @@ class CollectorModel {
       bankName: userData.banco || "",
       accountNumber: userData.cuentaBancaria || "",
       cciNumber: userData.cci || "",
-      accountHolder: userData.apellidoUsuario || this.name,
+      accountHolder: userData.nombreTitular || this.name,
 
       // Datos digitales - USANDO NOMBRES EXACTOS DE FIREBASE
-      yapeNumber: userData.Yape || userData.celular || "",
+      yapeNumber: userData.Yape || "",
       plinNumber: userData.plin || userData.celular || "",
-      digitalName: userData.apellidoUsuario || this.name,
+      digitalName: userData.nombreTitular || this.name,
       qrCode: userData.codigoQR || "",
 
       // Información adicional
       cellPhone: userData.celular || "",
       email: userData.correo || "",
+      dniTitular: userData.dniTitular || "",
     };
   }
 
@@ -134,6 +133,7 @@ class CollectorModel {
           phoneNumber: this.paymentInfo.yapeNumber,
           holderName: this.paymentInfo.digitalName,
           qrCode: this.paymentInfo.qrCode,
+          bankName: this.banco || "BCP", // Yape siempre es BCP por defecto
         },
       });
     }
@@ -184,11 +184,11 @@ class CollectorModel {
   }
 
   /**
-   * Obtiene la ubicación basada en la facultad
+   * 🎯 CORREGIDO: Obtiene la ubicación basada en la facultad
    */
   getLocationFromFaculty() {
     const facultyLocationMap = {
-      F001: "Facultad de Ingeniería",
+      F001: "Facultad de Ingeniería Electrónica e Informática",
       F002: "Facultad de Medicina",
       F003: "Facultad de Derecho",
       F004: "Facultad de Educación",
@@ -197,7 +197,9 @@ class CollectorModel {
       E002: "Escuela de Arquitectura",
     };
 
-    return facultyLocationMap[this.facultyId] || "Campus Central";
+    return (
+      facultyLocationMap[this.facultyId] || this.facultyId || "Campus Central"
+    );
   }
 
   /**
@@ -239,7 +241,6 @@ class CollectorModel {
       userCode: this.userCode,
       firstName: this.firstName,
       lastName: this.lastName,
-      apellidoUsuario: this.apellidoUsuario,
 
       // Fechas
       registrationDate: this.registrationDate,
@@ -257,9 +258,12 @@ class CollectorModel {
       projectId: this.projectId,
       cycle: this.cycle,
 
-      // Campos de pago - NOMBRES EXACTOS DE FIREBASE
+      // 🎯 CAMPOS DE PAGO - NOMBRES EXACTOS DE FIREBASE CON CAMPO BANCO
       Yape: this.yape,
       cuentaBancaria: this.cuentaBancaria,
+      banco: this.banco, // ✅ CAMPO BANCO AGREGADO
+      nombreTitular: this.nombreTitular,
+      dniTitular: this.dniTitular,
 
       // Campos calculados para UI
       experience: this.experience,
@@ -278,7 +282,6 @@ class CollectorModel {
           name: this.name,
           firstName: this.firstName,
           lastName: this.lastName,
-          apellidoUsuario: this.apellidoUsuario,
           email: this.email,
           phone: this.cellPhone,
           faculty: this.location,
@@ -310,6 +313,9 @@ class CollectorModel {
           poloTallaID: this.projectId,
           Yape: this.yape,
           cuentaBancaria: this.cuentaBancaria,
+          banco: this.banco, // ✅ CAMPO BANCO EN RAW DATA
+          nombreTitular: this.nombreTitular,
+          dniTitular: this.dniTitular,
         },
       },
     };
@@ -500,23 +506,69 @@ class CollectorsService {
   }
 
   /**
-   * Obtiene recolectores con fallback a datos por defecto - MEJORADO
+   * 🎯 CORREGIDO: Obtiene recolectores con fallback a datos por defecto
    */
   static async getCollectorsWithFallback() {
     try {
-      const collectors = await this.getActiveCollectors();
+      const usersRef = collection(db, "usuarios");
+      const q = query(usersRef, where("idRol", "==", "rol_004"));
+      const snapshot = await getDocs(q);
 
-      if (collectors.length === 0) {
-        console.warn(
-          "No se encontraron recolectores, usando datos por defecto"
-        );
-        return this.getDefaultCollectors();
-      }
+      const collectors = [];
+      snapshot.forEach((doc) => {
+        const userData = doc.data();
+
+        // Crear instancia del modelo para usar métodos de conversión
+        const collectorModel = new CollectorModel({
+          id: doc.id,
+          ...userData,
+        });
+
+        const collectorData = {
+          id: doc.id,
+          idUsuario: doc.id,
+
+          // Datos personales
+          nombreUsuario: userData.nombreUsuario,
+          apellidoUsuario: userData.apellidoUsuario,
+          correo: userData.correo,
+          celular: userData.celular,
+          fotoPerfil: userData.fotoPerfil,
+          facultadID: userData.facultadID,
+
+          // ✅ CORRECCIÓN: Usar el método para obtener nombre completo de facultad
+          location: collectorModel.getLocationFromFaculty(), // Nombre completo
+          facultyName: collectorModel.getLocationFromFaculty(), // Nombre completo
+
+          // Campos bancarios
+          Yape: userData.Yape || null,
+          cuentaBancaria: userData.cuentaBancaria || null,
+          banco: userData.banco || null,
+          nombreTitular: userData.nombreTitular || null,
+          dniTitular: userData.dniTitular || null,
+
+          // Otros campos
+          name: `${userData.nombreUsuario || ""} ${
+            userData.apellidoUsuario || ""
+          }`.trim(),
+          email: userData.correo,
+          phone: userData.celular,
+          cellPhone: userData.celular,
+          photo: userData.fotoPerfil,
+
+          // Campos calculados
+          rating: "5.0",
+          donations: "0",
+          experience: "Recolector activo",
+        };
+
+        collectors.push(collectorData);
+      });
 
       return collectors;
     } catch (error) {
-      console.error("Error obteniendo recolectores, usando fallback:", error);
-      return this.getDefaultCollectors();
+      console.error("Error al cargar recolectores:", error);
+      return [];
     }
   }
 }

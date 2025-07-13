@@ -676,9 +676,27 @@ class DonationFlowController {
       container.appendChild(collectorCard);
     });
   }
+  getFacultyNameById(facultyId) {
+    const facultyLocationMap = {
+      F001: "Facultad de Ingeniería Electrónica e Informática",
+      F002: "Facultad de Medicina",
+      F003: "Facultad de Derecho",
+      F004: "Facultad de Educación",
+      F005: "Facultad de Economía",
+      E001: "Escuela de Postgrado",
+      E002: "Escuela de Arquitectura",
+    };
 
+    return facultyLocationMap[facultyId] || null;
+  }
   createCollectorCard(collector) {
     const cardElement = document.createElement("div");
+    const facultyDisplay =
+      collector.facultyName ||
+      collector.location ||
+      this.getFacultyNameById(collector.facultadID) ||
+      collector.facultadID ||
+      "Campus Central";
     cardElement.innerHTML = `
       <div class="col-md-6 col-lg-4 mb-3">
         <div class="card collector-card h-100 shadow-sm" data-collector-id="${
@@ -828,9 +846,10 @@ class DonationFlowController {
 
     if (this.elements.selectedCollectorFaculty) {
       this.elements.selectedCollectorFaculty.textContent =
-        collector.facultadID ||
-        collector.faculty ||
+        collector.facultyName ||
         collector.location ||
+        this.getFacultyNameById(collector.facultadID) ||
+        collector.facultadID ||
         "No especificado";
     }
 
@@ -874,12 +893,13 @@ class DonationFlowController {
     const collector = this.state.selectedCollector;
     if (!collector) return methods;
 
-    const name =
-      `${collector.nombreUsuario || ""} ${
-        collector.apellidoUsuario || ""
-      }`.trim() || "Recolector";
+    console.log("🔍 Datos completos del recolector:", collector);
 
-    if (collector.Yape) {
+    // Obtener nombre completo del recolector
+    const collectorName = this.getCollectorFullName(collector);
+
+    // 🎯 MÉTODO YAPE
+    if (collector.Yape && collector.Yape.trim()) {
       methods.push({
         id: "yape",
         name: "Yape",
@@ -887,33 +907,60 @@ class DonationFlowController {
         color: "text-purple",
         details: {
           phone: collector.Yape,
-          name: collector.name,
+          name: collectorName,
+          bank: collector.banco || "BCP", // Usar banco del recolector o BCP por defecto
           instructions:
             "Realiza la transferencia por el monto exacto y sube el comprobante",
         },
       });
     }
 
-    if (collector.cuentaBancaria) {
+    // 🎯 MÉTODO CUENTA BANCARIA
+    if (collector.cuentaBancaria && collector.cuentaBancaria.trim()) {
       methods.push({
         id: "bank",
         name: "Transferencia Bancaria",
         icon: "fas fa-university",
         color: "text-primary",
         details: {
-          bank: collector.banco || "Banco no especificado",
-          accountNumber: collector.cuentaBancaria || collector.name,
-          accountType: collector.tipoCuenta || "Cuenta Corriente",
-          holder: collector.name,
+          bank: collector.banco || "Banco no especificado", // ✅ CORRECCIÓN AQUÍ
+          accountNumber: collector.cuentaBancaria,
+          accountType: "Cuenta", // Puedes agregar tipoCuenta si está disponible
+          holder: collectorName,
           instructions:
             "Realiza la transferencia por el monto exacto y sube el comprobante",
         },
       });
     }
 
+    console.log("💳 Métodos de pago generados:", methods);
     return methods;
   }
+  getCollectorFullName(collector) {
+    // Intentar diferentes combinaciones de nombres
+    if (collector.nombreUsuario && collector.apellidoUsuario) {
+      return `${collector.nombreUsuario} ${collector.apellidoUsuario}`.trim();
+    }
 
+    if (collector.nombreUsuario) {
+      return collector.nombreUsuario;
+    }
+
+    if (collector.name) {
+      return collector.name;
+    }
+
+    if (collector.apellidoUsuario) {
+      return collector.apellidoUsuario;
+    }
+
+    // Usar campos del titular si están disponibles
+    if (collector.nombreTitular) {
+      return collector.nombreTitular;
+    }
+
+    return "Recolector";
+  }
   showLoadingPaymentMethods() {
     if (this.elements.paymentMethodsContainer) {
       this.elements.paymentMethodsContainer.innerHTML = `
@@ -1075,8 +1122,11 @@ class DonationFlowController {
             </div>
           </div>
           <div class="row mt-2">
-            <div class="col-12">
+            <div class="col-md-6">
               <strong><i class="fas fa-user me-1"></i>Titular:</strong> ${method.details.name}
+            </div>
+            <div class="col-md-6">
+              <strong><i class="fas fa-university me-1"></i>Banco:</strong> ${method.details.bank}
             </div>
           </div>
         </div>
@@ -1417,12 +1467,13 @@ class DonationFlowController {
         name: collector.nombreUsuario || collector.name,
         email: collector.correo || collector.email,
         phone: collector.celular || collector.phone || collector.cellPhone,
+        facultyId: collector.facultadID,
         faculty:
-          collector.facultadID || collector.faculty || collector.location,
-        // Agregar más datos del recolector si están disponibles
-        ...(collector.fotoPerfil && { photo: collector.fotoPerfil }),
-        ...(collector.rating && { rating: collector.rating }),
-        ...(collector.experience && { experience: collector.experience }),
+          collector.facultyName ||
+          collector.location ||
+          this.getFacultyNameById(collector.facultadID) ||
+          collector.facultadID ||
+          "No especificado",
       },
 
       // Información del pago

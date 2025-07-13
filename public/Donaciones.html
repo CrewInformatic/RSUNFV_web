@@ -48,6 +48,10 @@
                 <i class="fas fa-heart"></i>
                 Donaciones
             </button>
+                        <button class="nav-link" onclick="navigateToPage('donation-inventory.html')">
+                <i class="fas fa-warehouse"></i>
+                Inventario
+            </button>
             <button class="nav-link" onclick="navigateToPage('usuarios.html')">
                 <i class="fas fa-user-friends"></i>
                 Usuarios y Roles
@@ -285,65 +289,6 @@
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                             <button type="button" class="btn btn-primary" onclick="downloadVoucher()">
                                 <i class="fas fa-download me-2"></i>Descargar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modal Cambiar Estado -->
-            <div class="modal fade" id="changeStatusModal" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">
-                                <i class="fas fa-exchange-alt me-2"></i>
-                                Cambiar Estado de Donación
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <input type="hidden" id="changeStatusDonationId">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Donación:</label>
-                                <p id="changeStatusDonorInfo" class="mb-2">-</p>
-                                <label class="form-label">Estado actual:</label>
-                                <p id="changeStatusCurrent" class="text-muted mb-3">-</p>
-                            </div>
-                            <div class="mb-3">
-                                <label for="newStatus" class="form-label">Nuevo Estado *</label>
-                                <select class="form-select" id="newStatus" required>
-                                    <option value="">Seleccionar Estado</option>
-                                    <option value="pendiente">Pendiente</option>
-                                    <option value="validado">Validado</option>
-                                    <option value="rechazado">Rechazado</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="statusComment" class="form-label">Comentario (opcional)</label>
-                                <textarea class="form-control" id="statusComment" rows="3"
-                                    placeholder="Agregar comentario sobre el cambio de estado..."></textarea>
-                            </div>
-                            <div class="mb-3" id="collectorAssignmentDiv" style="display:none;">
-                                <label for="assignCollector" class="form-label">Asignar Recolector</label>
-                                <select class="form-select" id="assignCollector">
-                                    <option value="">Seleccionar Recolector</option>
-                                    <option value="Juan Pérez">Juan Pérez</option>
-                                    <option value="María García">María García</option>
-                                    <option value="Carlos López">Carlos López</option>
-                                    <option value="Ana Martínez">Ana Martínez</option>
-                                </select>
-                            </div>
-                            <div class="mb-3" id="receptionDescriptionDiv" style="display:none;">
-                                <label for="receptionDescription" class="form-label">Descripción de Recepción</label>
-                                <textarea class="form-control" id="receptionDescription" rows="3"
-                                    placeholder="Describe cómo fue recibida la donación..."></textarea>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="button" class="btn btn-primary" onclick="updateDonationStatus()">
-                                <i class="fas fa-check me-2"></i>Actualizar Estado
                             </button>
                         </div>
                     </div>

@@ -794,3 +794,41 @@ body {
     font-weight: 500;
     border: 1px solid rgba(23, 162, 184, 0.2);
 }
+/* Estilos adicionales para el modal */
+#assignRoleModal .form-control:focus,
+#assignRoleModal .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+#assignRoleModal .form-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+#assignRoleModal .card-header {
+    border-bottom: 1px solid #dee2e6;
+}
+
+#assignRoleModal .alert-info {
+    border-left: 4px solid #0dcaf0;
+}
+
+#assignRoleModal .badge {
+    font-size: 0.75rem;
+}
+
+/* Animaciones suaves para mostrar/ocultar secciones */
+#assignRoleModal .d-none {
+    display: none !important;
+    transition: all 0.3s ease;
+}
+
+/* Validación visual */
+#assignRoleModal .is-invalid {
+    border-color: #dc3545;
+}
+
+#assignRoleModal .is-valid {
+    border-color: #198754;
+}

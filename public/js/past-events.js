@@ -7,6 +7,7 @@ import {
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 import { showVolunteersModal } from "./users-events.js";
+import { generateEventReport } from "./past-reports.js";
 // =============================================
 // CONFIGURACIÓN Y VARIABLES GLOBALES
 // =============================================
@@ -492,6 +493,9 @@ function createPastEventActions(event) {
         <button class="btn btn-outline-warning btn-sm" onclick="viewCancellationDetails('${event.id}')">
           <i class="fas fa-exclamation-triangle me-1"></i>Cancelación
         </button>
+        <button class="btn btn-outline-info btn-sm" onclick="viewEventReport('${event.id}')">
+          <i class="fas fa-file-pdf me-1"></i>Reporte PDF
+        </button>
       </div>
     `;
   }
@@ -499,7 +503,7 @@ function createPastEventActions(event) {
   return `
     <div class="event-actions">
       <button class="btn btn-outline-success btn-sm" onclick="viewEventReport('${event.id}')">
-        <i class="fas fa-chart-bar me-1"></i>Reporte
+        <i class="fas fa-file-pdf me-1"></i>Reporte PDF
       </button>
       <button class="btn btn-outline-primary btn-sm" onclick="viewVolunteersList('${event.id}')">
         <i class="fas fa-users me-1"></i>Voluntarios
@@ -574,10 +578,45 @@ function stopAutoRefresh() {
 /**
  * Ver reporte del evento
  */
-export function viewEventReport(eventId) {
-  console.log(`📊 Solicitando reporte para evento: ${eventId}`);
-  // TODO: Implementar vista de reporte detallado
-  alert(`Generando reporte del evento: ${eventId}`);
+/**
+ * Ver reporte del evento - Versión actualizada con generación de PDF
+ */
+export async function viewEventReport(eventId) {
+  console.log(`📊 Generando reporte PDF para evento: ${eventId}`);
+
+  try {
+    // Mostrar indicador de carga
+    const button = document.querySelector(
+      `button[onclick="viewEventReport('${eventId}')"]`
+    );
+    if (button) {
+      const originalText = button.innerHTML;
+      button.innerHTML =
+        '<i class="fas fa-spinner fa-spin me-1"></i>Generando...';
+      button.disabled = true;
+
+      // Restaurar botón después de 3 segundos
+      setTimeout(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+      }, 3000);
+    }
+
+    // Llamar a la función de generación de reporte
+    await generateEventReport(eventId);
+  } catch (error) {
+    console.error("❌ Error al generar reporte:", error);
+
+    // Mostrar error al usuario
+    if (window.showError) {
+      window.showError(
+        "Error",
+        `No se pudo generar el reporte: ${error.message}`
+      );
+    } else {
+      alert(`Error al generar el reporte: ${error.message}`);
+    }
+  }
 }
 
 /**

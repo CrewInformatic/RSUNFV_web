@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario de Donaciones - EcoVoluntarios UNFV</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- CSS personalizado -->
+    <link rel="stylesheet" href="css/inventory.css">
+</head>
+
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ======================= SIDEBAR ======================= -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="#" class="sidebar-brand">
+                <i class="fas fa-leaf"></i>
+                <div class="brand-text">
+                    <div>EcoVoluntarios</div>
+                    <div class="brand-subtitle">UNFV</div>
+                </div>
+            </a>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="nav-link" onclick="navigateToPage('admin-dashboard.html')">
+                <i class="fas fa-chart-line"></i>
+                Dashboard
+            </button>
+            <button class="nav-link" onclick="navigateToPage('eventos.html')">
+                <i class="fas fa-calendar-alt"></i>
+                Gestión de Eventos
+            </button>
+            <button class="nav-link" onclick="navigateToPage('Donaciones.html')">
+                <i class="fas fa-heart"></i>
+                Donaciones
+            </button>
+            <button class="nav-link active" data-section="inventario">
+                <i class="fas fa-warehouse"></i>
+                Inventario
+            </button>
+            <button class="nav-link" onclick="navigateToPage('usuarios.html')">
+                <i class="fas fa-user-friends"></i>
+                Usuarios y Roles
+            </button>
+            <button class="nav-link" onclick="navigateToPage('configuracion.html')">
+                <i class="fas fa-cogs"></i>
+                Configuración
+            </button>
+            <button class="nav-link" onclick="navigateToPage('reportes.html')">
+                <i class="fas fa-chart-bar"></i>
+                Reportes
+            </button>
+        </nav>
+    </nav>
+
+    <!-- ======================= MAIN CONTENT ======================= -->
+    <main class="main-content">
+        <!-- =================== TOP NAVBAR =================== -->
+        <header class="top-navbar">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="page-title">
+                    <i class="fas fa-warehouse me-2"></i>
+                    Inventario de Donaciones
+                </h1>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-success btn-sm" id="exportExcelBtn"
+                            title="Exportar inventario completo a Excel">
+                            <i class="fas fa-file-excel me-1"></i>
+                            Exportar Excel
+                        </button>
+                        <button class="btn btn-danger btn-sm" id="exportPdfBtn"
+                            title="Exportar inventario completo a PDF">
+                            <i class="fas fa-file-pdf me-1"></i>
+                            Exportar PDF
+                        </button>
+                    </div>
+                    <!-- Modal opcional para mostrar progreso de exportación -->
+                    <div class="modal fade" id="exportProgressModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-sm">
+                            <div class="modal-content">
+                                <div class="modal-header border-0">
+                                    <h6 class="modal-title">Exportando Inventario</h6>
+                                </div>
+                                <div class="modal-body text-center">
+                                    <div class="spinner-border text-primary mb-3" role="status">
+                                        <span class="visually-hidden">Exportando...</span>
+                                    </div>
+                                    <p class="mb-0">Generando archivo Excel...</p>
+                                    <small class="text-muted">Esto puede tomar unos segundos</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle"></i>
+                            <span id="userDisplayName">Administrador</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="showProfile()">
+                                    <i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="showSettings()">
+                                    <i class="fas fa-cog me-2"></i>Configuración</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#" onclick="handleLogout()">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- =================== CONTENT WRAPPER =================== -->
+        <div class="content-wrapper">
+
+            <!-- ============= DASHBOARD HEADER ============= -->
+            <div class="dashboard-card mb-4">
+                <div class="p-3 p-md-4">
+                    <h2 style="color: var(--primary-orange);" class="mb-2 fs-4 fs-md-3">Dashboard de Inventario</h2>
+                    <p class="text-muted mb-0 small">Gestión y seguimiento de donaciones por recolector</p>
+                </div>
+            </div>
+
+            <!-- ============= SISTEMA DE ALERTAS DE PRESUPUESTO ============= -->
+            <div class="container-fluid mb-4" id="budgetAlertsContainer">
+                <!-- Alerta de Presupuesto Crítico -->
+                <div class="alert alert-danger alert-dismissible fade show d-none" id="criticalBudgetAlert"
+                    role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle fa-lg me-3"></i>
+                        <div class="flex-grow-1">
+                            <h6 class="alert-heading mb-1">⚠️ ¡Presupuesto Crítico!</h6>
+                            <p class="mb-1" id="criticalAlertMessage">Los gastos han superado el 80% del dinero
+                                disponible.</p>
+                            <div class="progress mt-2" style="height: 8px;">
+                                <div class="progress-bar bg-danger" id="criticalProgressBar" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted mt-1 d-block" id="criticalBudgetDetails">Gastos: S/. 0.00 de S/.
+                                0.00 disponibles</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Alerta de Presupuesto Alto -->
+                <div class="alert alert-warning alert-dismissible fade show d-none" id="highBudgetAlert" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-circle fa-lg me-3"></i>
+                        <div class="flex-grow-1">
+                            <h6 class="alert-heading mb-1">⚠️ Presupuesto Alto</h6>
+                            <p class="mb-1" id="warningAlertMessage">Los gastos han superado el 50% del dinero
+                                disponible.</p>
+                            <div class="progress mt-2" style="height: 8px;">
+                                <div class="progress-bar bg-warning" id="warningProgressBar" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted mt-1 d-block" id="warningBudgetDetails">Gastos: S/. 0.00 de S/.
+                                0.00 disponibles</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Alerta de Presupuesto Saludable -->
+                <div class="alert alert-success alert-dismissible fade show d-none" id="healthyBudgetAlert"
+                    role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-check-circle fa-lg me-3"></i>
+                        <div class="flex-grow-1">
+                            <h6 class="alert-heading mb-1">✅ Presupuesto Saludable</h6>
+                            <p class="mb-1">Los gastos están bajo control. ¡Excelente gestión!</p>
+                            <div class="progress mt-2" style="height: 8px;">
+                                <div class="progress-bar bg-success" id="healthyProgressBar" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted mt-1 d-block" id="healthyBudgetDetails">Gastos: S/. 0.00 de S/.
+                                0.00 disponibles</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+
+            <!-- ============= WIDGET DE RESUMEN FINANCIERO ============= -->
+            <div class="row mb-4" id="financialSummaryWidget">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent">
+                            <h6 class="card-title mb-0">
+                                <i class="fas fa-chart-pie me-2"></i>
+                                Resumen Financiero
+                            </h6>
+                        </div>
+                        <div class="card-body py-3">
+                            <div class="row g-3">
+                                <div class="col-6 col-lg-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
+                                            <i class="fas fa-coins text-success"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-muted small">Total Disponible</div>
+                                            <div class="fw-bold" id="totalAvailableBudget">S/. 0.00</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-lg-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-danger bg-opacity-10 rounded-circle p-2 me-3">
+                                            <i class="fas fa-credit-card text-danger"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-muted small">Total Gastado</div>
+                                            <div class="fw-bold" id="totalSpentBudget">S/. 0.00</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-lg-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                                            <i class="fas fa-piggy-bank text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-muted small">Dinero Restante</div>
+                                            <div class="fw-bold" id="remainingBudget">S/. 0.00</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-lg-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3">
+                                            <i class="fas fa-percentage text-warning"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-muted small">% Utilizado</div>
+                                            <div class="fw-bold" id="budgetPercentage">0%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Barra de progreso general -->
+                            <div class="mt-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <small class="text-muted">Uso del Presupuesto</small>
+                                    <small class="text-muted" id="budgetProgressText">0% utilizado</small>
+                                </div>
+                                <div class="progress" style="height: 12px;">
+                                    <div class="progress-bar" id="mainBudgetProgressBar" style="width: 0%"
+                                        role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-1">
+                                    <small class="text-success">S/. 0</small>
+                                    <small class="text-muted" id="budgetMidpoint">50%</small>
+                                    <small class="text-danger" id="totalBudgetDisplay">S/. 0</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============= STATISTICS CARDS ============= -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3">
+                    <div class="dashboard-card stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users" style="color: var(--primary-orange);"></i>
+                        </div>
+                        <div class="stat-number" id="totalRecolectores">0</div>
+                        <div class="stat-label">Recolectores Activos</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="dashboard-card stat-card success">
+                        <div class="stat-icon">
+                            <i class="fas fa-coins text-success"></i>
+                        </div>
+                        <div class="stat-number" id="totalRecaudado">S/. 0</div>
+                        <div class="stat-label">Total Recaudado</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="dashboard-card stat-card warning">
+                        <div class="stat-icon">
+                            <i class="fas fa-hand-holding-heart text-warning"></i>
+                        </div>
+                        <div class="stat-number" id="donacionesActivas">0</div>
+                        <div class="stat-label">Donaciones Activas</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="dashboard-card stat-card info">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line text-info"></i>
+                        </div>
+                        <div class="stat-number" id="gastosRegistrados">S/. 0</div>
+                        <div class="stat-label">Gastos Registrados</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============= CHARTS ROW ============= -->
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-lg-8">
+                    <div class="dashboard-card">
+                        <div class="chart-container large">
+                            <div class="chart-header">
+                                <h5 class="chart-title">Rendimiento por Recolector</h5>
+                                <div class="dropdown d-none d-sm-block">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                        data-bs-toggle="dropdown">
+                                        Último mes
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#">Última semana</a></li>
+                                        <li><a class="dropdown-item" href="#">Último mes</a></li>
+                                        <li><a class="dropdown-item" href="#">Último trimestre</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-4">
+                    <div class="dashboard-card">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h5 class="chart-title">Distribución de Gastos</h5>
+                            </div>
+                            <canvas id="expensesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============= RECOLECTORES PERFORMANCE TABLE ============= -->
+            <div class="dashboard-card mb-4">
+                <div class="table-card">
+                    <div class="table-header">
+                        <h5 class="table-title">Rendimiento de Recolectores</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Recolector</th>
+                                    <th class="d-none d-sm-table-cell">Donaciones</th>
+                                    <th>Monto</th>
+                                    <th class="d-none d-md-table-cell">Progreso</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recolectoresTableBody">
+                                <!-- Los datos se cargarán dinámicamente con JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============= EXPENSES MANAGEMENT ============= -->
+            <div class="dashboard-card">
+                <div class="table-card">
+                    <div class="table-header">
+                        <h5 class="table-title">Historial de Gastos</h5>
+                        <div class="table-actions">
+                            <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#addExpenseModal">
+                                <i class="fas fa-plus me-1"></i>
+                                <span class="d-none d-sm-inline">Registrar </span>Gasto
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Descripción</th>
+                                    <th>Categoría</th>
+                                    <th>Monto</th>
+                                    <th>Responsable</th>
+                                    <th>Comprobante</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expensesTableBody">
+                                <!-- Los datos se cargarán dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ======================= MODALS ======================= -->
+
+    <!-- ============= ADD EXPENSE MODAL ============= -->
+    <div class="modal fade" id="addExpenseModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Registrar Nuevo Gasto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addExpenseForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="expenseDate" class="form-label">Fecha del Gasto</label>
+                                <input type="date" class="form-control" id="expenseDate" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="expenseAmount" class="form-label">Monto (S/.)</label>
+                                <input type="number" class="form-control" id="expenseAmount" min="0" step="0.01"
+                                    required>
+                            </div>
+                            <div class="col-12">
+                                <label for="expenseDescription" class="form-label">Descripción del Gasto</label>
+                                <textarea class="form-control" id="expenseDescription" rows="3" required
+                                    placeholder="Describe detalladamente en qué se gastó el dinero..."></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="expenseCategory" class="form-label">Categoría</label>
+                                <select class="form-select" id="expenseCategory" required>
+                                    <option value="">Seleccionar categoría</option>
+                                    <option value="educacion">Educación</option>
+                                    <option value="salud">Salud</option>
+                                    <option value="alimentacion">Alimentación</option>
+                                    <option value="vestimenta">Vestimenta</option>
+                                    <option value="infraestructura">Infraestructura</option>
+                                    <option value="otros">Otros</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="expenseDonation" class="form-label">Donación de Origen</label>
+                                <select class="form-select" id="expenseDonation" required>
+                                    <option value="">Seleccionar donación</option>
+                                    <!-- Las opciones se cargarán dinámicamente con JavaScript -->
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="expenseReceipt" class="form-label">Comprobante de Pago</label>
+                                <input type="file" class="form-control" id="expenseReceipt" accept="image/*,.pdf">
+                                <div class="form-text">Adjunte la factura, boleta o comprobante del gasto (JPG, PNG,
+                                    PDF) - Opcional</div>
+                            </div>
+                            <div class="col-12">
+                                <label for="expenseJustification" class="form-label">Justificación del Gasto</label>
+                                <textarea class="form-control" id="expenseJustification" rows="3" required
+                                    placeholder="Explique por qué este gasto es necesario y cómo beneficia a la comunidad..."></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="expenseLocation" class="form-label">Lugar de Compra</label>
+                                <input type="text" class="form-control" id="expenseLocation" required
+                                    placeholder="Nombre del establecimiento">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="expenseResponsible" class="form-label">Responsable del Gasto</label>
+                                <select class="form-select" id="expenseResponsible" required>
+                                    <option value="">Seleccionar responsable</option>
+                                    <!-- Las opciones se cargarán dinámicamente con JavaScript -->
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="expenseNotes" class="form-label">Notas Adicionales</label>
+                                <textarea class="form-control" id="expenseNotes" rows="2"
+                                    placeholder="Información adicional relevante (opcional)"></textarea>
+                            </div>
+                        </div>
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Importante:</strong> Todos los gastos deben estar justificados.
+                            Los gastos serán revisados por el administrador.
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-warning">
+                        <i class="fas fa-save me-1"></i>
+                        Registrar Gasto
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================= NOTIFICATIONS ======================= -->
+
+    <!-- Notificación Toast para Alertas -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+        <div id="budgetToast" class="toast align-items-center border-0" role="alert" aria-live="assertive"
+            aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="budgetToastMessage">
+                    <!-- Mensaje dinámico -->
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================= SCRIPTS ======================= -->
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- LIBRERÍAS PDF - VERSIONES QUE FUNCIONAN GARANTIZADO -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+
+    <!-- Configuración global de jsPDF -->
+    <script>
+        window.addEventListener('load', function() {
+            // Verificar y configurar jsPDF
+            console.log('🔍 Verificando librerías...');
+            console.log('window.jsPDF:', typeof window.jsPDF);
+            console.log('html2canvas:', typeof html2canvas);
+            
+            // Para versión 1.5.3, jsPDF está directamente en window.jsPDF
+            if (typeof window.jsPDF !== 'undefined') {
+                console.log('✅ jsPDF 1.5.3 cargado correctamente');
+                // La versión 1.5.3 no necesita .jsPDF, se usa directamente
+                window.jsPDFConstructor = window.jsPDF;
+            } else {
+                console.error('❌ jsPDF no se cargó');
+            }
+            
+            if (typeof html2canvas !== 'undefined') {
+                console.log('✅ html2canvas cargado correctamente');
+            } else {
+                console.error('❌ html2canvas no se cargó');
+            }
+        });
+    </script>
+
+    <!-- JavaScript personalizado -->
+    <script type="module" src="js/security.js"></script>
+    <script type="module" src="js/inventory.js"></script>
+    <script type="module" src="js/inventory_excel_exporter.js"></script>
+
+    <!-- Script para manejo del menú móvil y animaciones -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+            // Función para abrir/cerrar el menú móvil
+            function toggleMobileMenu() {
+                sidebar.classList.toggle('active');
+                sidebarOverlay.classList.toggle('active');
+                document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+            }
+
+            // Función para cerrar el menú móvil
+            function closeMobileMenu() {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            // Event listeners
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+            }
+
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', closeMobileMenu);
+            }
+
+            // Cerrar menú al hacer clic en un enlace (para móvil)
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth < 1200) {
+                        closeMobileMenu();
+                    }
+                });
+            });
+
+            // Cerrar menú al cambiar el tamaño de pantalla
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 1200) {
+                    closeMobileMenu();
+                }
+            });
+
+            // Animaciones de entrada para las tarjetas
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observar todas las tarjetas del dashboard
+            const dashboardCards = document.querySelectorAll('.dashboard-card');
+            dashboardCards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+
+</html>

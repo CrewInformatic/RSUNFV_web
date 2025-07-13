@@ -1,4 +1,4 @@
-// donations_exceljs_exporter.js - VERSIÓN CORREGIDA
+// donations_exceljs_exporter.js - VERSIÓN MEJORADA CON SOPORTE COMPLETO PARA EMPRESA Y PERSONA NATURAL
 class DonationsExcelJSExporter {
   constructor() {
     this.ExcelJS = null;
@@ -50,18 +50,13 @@ class DonationsExcelJSExporter {
       workbook.creator = "Sistema de Donaciones";
       workbook.created = new Date();
 
-      // Agregar hojas - Usar versión sin imágenes por ahora
-      this.addDashboardWithoutImages(workbook, donations);
+      // Agregar hojas
+      this.addDashboardSheet(workbook, donations);
       this.addDonationsSheet(workbook, donations);
+      this.addPersonasNaturalesSheet(workbook, donations);
+      this.addEmpresasSheet(workbook, donations);
       this.addStatisticsSheet(workbook, donations);
       this.addChartsDataSheet(workbook, donations);
-
-      // Opcionalmente, agregar dashboard con gráficos nativos si es soportado
-      try {
-        this.addDashboardWithNativeCharts(workbook, donations);
-      } catch (chartError) {
-        console.warn("No se pudieron agregar gráficos nativos:", chartError);
-      }
 
       // Generar y descargar el archivo
       const buffer = await workbook.xlsx.writeBuffer();
@@ -82,8 +77,8 @@ class DonationsExcelJSExporter {
     }
   }
 
-  // Dashboard sin imágenes (versión más compatible)
-  addDashboardWithoutImages(workbook, donations) {
+  // Dashboard principal mejorado
+  addDashboardSheet(workbook, donations) {
     const worksheet = workbook.addWorksheet("Dashboard");
     const stats = this.calculateStatistics(donations);
 
@@ -118,7 +113,7 @@ class DonationsExcelJSExporter {
       color: { argb: "FF366092" },
     };
 
-    // KPIs
+    // KPIs principales
     const kpis = [
       { label: "Total Donaciones:", value: stats.total, col: "A", row: 6 },
       {
@@ -172,18 +167,43 @@ class DonationsExcelJSExporter {
       worksheet.getCell(`${valueCol}${kpi.row}`).value = kpi.value;
     });
 
+    // ANÁLISIS POR TIPO DE USUARIO
+    const userTypeData = this.calculateUserTypeData(donations);
+
+    worksheet.getCell("A12").value = "Análisis por Tipo de Usuario";
+    worksheet.getCell("A12").font = { bold: true, size: 12 };
+
+    worksheet.getCell("A13").value = "Tipo Usuario";
+    worksheet.getCell("B13").value = "Cantidad";
+    worksheet.getCell("C13").value = "Porcentaje";
+    worksheet.getCell("D13").value = "Monto Total";
+    worksheet.getCell("E13").value = "Monto Promedio";
+
+    let row = 14;
+    Object.entries(userTypeData).forEach(([type, data]) => {
+      worksheet.getCell(`A${row}`).value = type;
+      worksheet.getCell(`B${row}`).value = data.count;
+      worksheet.getCell(`C${row}`).value = data.percentage / 100;
+      worksheet.getCell(`C${row}`).numFmt = "0.0%";
+      worksheet.getCell(`D${row}`).value = data.amount;
+      worksheet.getCell(`D${row}`).numFmt = '"S/ "#,##0.00';
+      worksheet.getCell(`E${row}`).value = data.average;
+      worksheet.getCell(`E${row}`).numFmt = '"S/ "#,##0.00';
+      row++;
+    });
+
     // ANÁLISIS POR ESTADO
     const statusData = this.calculateStatusData(donations);
 
-    worksheet.getCell("A12").value = "Análisis por Estado";
-    worksheet.getCell("A12").font = { bold: true, size: 12 };
+    worksheet.getCell("A18").value = "Análisis por Estado";
+    worksheet.getCell("A18").font = { bold: true, size: 12 };
 
-    worksheet.getCell("A13").value = "Estado";
-    worksheet.getCell("B13").value = "Cantidad";
-    worksheet.getCell("C13").value = "Porcentaje";
-    worksheet.getCell("D13").value = "Monto";
+    worksheet.getCell("A19").value = "Estado";
+    worksheet.getCell("B19").value = "Cantidad";
+    worksheet.getCell("C19").value = "Porcentaje";
+    worksheet.getCell("D19").value = "Monto";
 
-    let row = 14;
+    row = 20;
     Object.entries(statusData).forEach(([status, data]) => {
       worksheet.getCell(`A${row}`).value = status;
       worksheet.getCell(`B${row}`).value = data.count;
@@ -197,15 +217,15 @@ class DonationsExcelJSExporter {
     // EVOLUCIÓN MENSUAL
     const monthlyData = this.calculateMonthlyData(donations);
 
-    worksheet.getCell("A19").value = "Evolución Mensual";
-    worksheet.getCell("A19").font = { bold: true, size: 12 };
+    worksheet.getCell("A25").value = "Evolución Mensual";
+    worksheet.getCell("A25").font = { bold: true, size: 12 };
 
-    worksheet.getCell("A20").value = "Mes";
-    worksheet.getCell("B20").value = "Cantidad";
-    worksheet.getCell("C20").value = "Monto";
-    worksheet.getCell("D20").value = "Promedio";
+    worksheet.getCell("A26").value = "Mes";
+    worksheet.getCell("B26").value = "Cantidad";
+    worksheet.getCell("C26").value = "Monto";
+    worksheet.getCell("D26").value = "Promedio";
 
-    row = 21;
+    row = 27;
     const sortedMonths = Object.keys(monthlyData).sort().slice(-6); // Últimos 6 meses
     sortedMonths.forEach((month) => {
       const data = monthlyData[month];
@@ -215,28 +235,6 @@ class DonationsExcelJSExporter {
       worksheet.getCell(`C${row}`).numFmt = '"S/ "#,##0.00';
       worksheet.getCell(`D${row}`).value = data.average;
       worksheet.getCell(`D${row}`).numFmt = '"S/ "#,##0.00';
-      row++;
-    });
-
-    // DISTRIBUCIÓN POR MONTO
-    const amountRanges = this.calculateAmountRanges(donations);
-
-    worksheet.getCell("A29").value = "Distribución por Monto";
-    worksheet.getCell("A29").font = { bold: true, size: 12 };
-
-    worksheet.getCell("A30").value = "Rango";
-    worksheet.getCell("B30").value = "Cantidad";
-    worksheet.getCell("C30").value = "Monto Total";
-    worksheet.getCell("D30").value = "Porcentaje";
-
-    row = 31;
-    Object.entries(amountRanges).forEach(([range, data]) => {
-      worksheet.getCell(`A${row}`).value = range;
-      worksheet.getCell(`B${row}`).value = data.count;
-      worksheet.getCell(`C${row}`).value = data.amount;
-      worksheet.getCell(`C${row}`).numFmt = '"S/ "#,##0.00';
-      worksheet.getCell(`D${row}`).value = data.percentage / 100;
-      worksheet.getCell(`D${row}`).numFmt = "0.0%";
       row++;
     });
 
@@ -254,12 +252,374 @@ class DonationsExcelJSExporter {
 
     // Agregar bordes a las tablas
     this.addBordersToRange(worksheet, "A6:E9");
-    this.addBordersToRange(worksheet, "A13:D16");
-    this.addBordersToRange(worksheet, "A20:D26");
-    this.addBordersToRange(worksheet, "A30:D34");
+    this.addBordersToRange(worksheet, "A13:E16");
+    this.addBordersToRange(worksheet, "A19:D22");
+    this.addBordersToRange(worksheet, "A26:D32");
   }
 
-  // Método auxiliar para agregar bordes
+  // Hoja de todas las donaciones con información completa
+  addDonationsSheet(workbook, donations) {
+    const worksheet = workbook.addWorksheet("Todas las Donaciones");
+
+    // Headers
+    const headers = [
+      "ID Donación",
+      "Tipo Usuario",
+      "Nombre/Razón Social",
+      "Documento",
+      "Email",
+      "Teléfono",
+      "Cargo/Representante",
+      "Monto (S/)",
+      "Fecha",
+      "Estado",
+      "Recolector",
+      "Email Recolector",
+      "Facultad",
+      "Método Pago",
+      "Observaciones",
+    ];
+
+    // Agregar headers con estilo
+    headers.forEach((header, index) => {
+      const cell = worksheet.getCell(1, index + 1);
+      cell.value = header;
+      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FF366092" },
+      };
+      cell.alignment = { horizontal: "center", vertical: "middle" };
+    });
+
+    // Agregar datos
+    donations.forEach((donation, rowIndex) => {
+      const row = worksheet.getRow(rowIndex + 2);
+      row.values = [
+        donation.IDUsuarioDonador || donation.id || "N/A",
+        donation.Tipo_Usuario || "N/A",
+        this.getDonorName(donation),
+        this.getDonorDocument(donation),
+        donation.EmailUsuarioDonador || "N/A",
+        donation.TelefonoUsuarioDonador || "N/A",
+        this.getDonorPosition(donation),
+        parseFloat(donation.monto || 0),
+        this.formatDate(donation.fechaDonacion),
+        this.getStatusText(donation.estadoValidacion),
+        this.getCollectorName(donation),
+        donation.emailRecolector || "N/A",
+        donation.facultadRecolector || "N/A",
+        donation.metodoPago || "N/A",
+        donation.observaciones || donation.OpcionalUsuarioDonador || "N/A",
+      ];
+
+      // Formato para montos
+      row.getCell(8).numFmt = '"S/ "#,##0.00';
+    });
+
+    // Configurar anchos de columna
+    worksheet.columns = [
+      { width: 25 }, // ID
+      { width: 18 }, // Tipo
+      { width: 35 }, // Nombre
+      { width: 15 }, // Documento
+      { width: 35 }, // Email
+      { width: 15 }, // Teléfono
+      { width: 25 }, // Cargo
+      { width: 12 }, // Monto
+      { width: 15 }, // Fecha
+      { width: 15 }, // Estado
+      { width: 25 }, // Recolector
+      { width: 35 }, // Email Rec
+      { width: 40 }, // Facultad
+      { width: 15 }, // Método
+      { width: 30 }, // Observaciones
+    ];
+
+    // Agregar autofiltro
+    worksheet.autoFilter = {
+      from: { row: 1, column: 1 },
+      to: { row: 1, column: headers.length },
+    };
+  }
+
+  // Hoja específica para Personas Naturales
+  addPersonasNaturalesSheet(workbook, donations) {
+    const personasNaturales = donations.filter(
+      (d) => d.Tipo_Usuario === "PERSONA NATURAL"
+    );
+
+    const worksheet = workbook.addWorksheet("Personas Naturales");
+
+    // Headers específicos para personas naturales
+    const headers = [
+      "ID Donación",
+      "Nombre Completo",
+      "DNI",
+      "Email",
+      "Teléfono",
+      "Monto (S/)",
+      "Fecha Donación",
+      "Estado Validación",
+      "Recolector",
+      "Email Recolector",
+      "Facultad Recolector",
+      "Método Pago",
+      "Observaciones",
+    ];
+
+    // Agregar headers con estilo
+    headers.forEach((header, index) => {
+      const cell = worksheet.getCell(1, index + 1);
+      cell.value = header;
+      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FF28a745" }, // Verde para personas naturales
+      };
+      cell.alignment = { horizontal: "center", vertical: "middle" };
+    });
+
+    // Agregar datos específicos de personas naturales
+    personasNaturales.forEach((donation, rowIndex) => {
+      const row = worksheet.getRow(rowIndex + 2);
+      row.values = [
+        donation.IDUsuarioDonador || "N/A",
+        `${donation.NombreUsuarioDonador || ""} ${
+          donation.ApellidoUsuarioDonador || ""
+        }`.trim(),
+        donation.DNIUsuarioDonador || "N/A",
+        donation.EmailUsuarioDonador || "N/A",
+        donation.TelefonoUsuarioDonador || "N/A",
+        parseFloat(donation.monto || 0),
+        this.formatDate(donation.fechaDonacion),
+        this.getStatusText(donation.estadoValidacion),
+        donation.nombreRecolector || this.getCollectorName(donation),
+        donation.emailRecolector || "N/A",
+        donation.facultadRecolector || "N/A",
+        donation.metodoPago || "N/A",
+        donation.OpcionalUsuarioDonador || "N/A",
+      ];
+
+      // Formato para montos
+      row.getCell(6).numFmt = '"S/ "#,##0.00';
+    });
+
+    // Configurar anchos de columna
+    worksheet.columns = [
+      { width: 25 }, // ID
+      { width: 35 }, // Nombre
+      { width: 12 }, // DNI
+      { width: 35 }, // Email
+      { width: 15 }, // Teléfono
+      { width: 12 }, // Monto
+      { width: 15 }, // Fecha
+      { width: 15 }, // Estado
+      { width: 25 }, // Recolector
+      { width: 35 }, // Email Rec
+      { width: 40 }, // Facultad
+      { width: 15 }, // Método
+      { width: 30 }, // Observaciones
+    ];
+
+    // Agregar resumen al final
+    const lastRow = personasNaturales.length + 3;
+    worksheet.getCell(`A${lastRow}`).value = "RESUMEN PERSONAS NATURALES";
+    worksheet.getCell(`A${lastRow}`).font = { bold: true, size: 12 };
+
+    const totalAmount = personasNaturales.reduce(
+      (sum, d) => sum + parseFloat(d.monto || 0),
+      0
+    );
+    const avgAmount =
+      personasNaturales.length > 0 ? totalAmount / personasNaturales.length : 0;
+
+    worksheet.getCell(`A${lastRow + 1}`).value = "Total Donaciones:";
+    worksheet.getCell(`B${lastRow + 1}`).value = personasNaturales.length;
+
+    worksheet.getCell(`A${lastRow + 2}`).value = "Monto Total:";
+    worksheet.getCell(`B${lastRow + 2}`).value = totalAmount;
+    worksheet.getCell(`B${lastRow + 2}`).numFmt = '"S/ "#,##0.00';
+
+    worksheet.getCell(`A${lastRow + 3}`).value = "Monto Promedio:";
+    worksheet.getCell(`B${lastRow + 3}`).value = avgAmount;
+    worksheet.getCell(`B${lastRow + 3}`).numFmt = '"S/ "#,##0.00';
+
+    // Agregar autofiltro
+    if (personasNaturales.length > 0) {
+      worksheet.autoFilter = {
+        from: { row: 1, column: 1 },
+        to: { row: 1, column: headers.length },
+      };
+    }
+  }
+
+  // Hoja específica para Empresas
+  addEmpresasSheet(workbook, donations) {
+    const empresas = donations.filter((d) => d.Tipo_Usuario === "EMPRESA");
+
+    const worksheet = workbook.addWorksheet("Empresas");
+
+    // Headers específicos para empresas
+    const headers = [
+      "ID Donación",
+      "Razón Social",
+      "RUC",
+      "Representante Legal",
+      "Cargo Representante",
+      "Email",
+      "Monto (S/)",
+      "Fecha Donación",
+      "Estado Validación",
+      "Recolector",
+      "Email Recolector",
+      "Facultad Recolector",
+      "Método Pago",
+      "Observaciones",
+    ];
+
+    // Agregar headers con estilo
+    headers.forEach((header, index) => {
+      const cell = worksheet.getCell(1, index + 1);
+      cell.value = header;
+      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FF17a2b8" }, // Azul para empresas
+      };
+      cell.alignment = { horizontal: "center", vertical: "middle" };
+    });
+
+    // Agregar datos específicos de empresas
+    empresas.forEach((donation, rowIndex) => {
+      const row = worksheet.getRow(rowIndex + 2);
+      row.values = [
+        donation.IDUsuarioDonador || "N/A",
+        donation.RazonSocialUsuarioDonador || "N/A",
+        donation["RUC-UsuarioDonador"] || "N/A",
+        donation.RepresentanteLegalUsuarioDonador || "N/A",
+        donation.CargoUsuarioDonador || "N/A",
+        donation.EmailUsuarioDonador || "N/A",
+        parseFloat(donation.monto || 0),
+        this.formatDate(donation.fechaDonacion),
+        this.getStatusText(donation.estadoValidacion),
+        donation.nombreRecolector || this.getCollectorName(donation),
+        donation.emailRecolector || "N/A",
+        donation.facultadRecolector || "N/A",
+        donation.metodoPago || "N/A",
+        donation.OpcionalUsuarioDonador || "N/A",
+      ];
+
+      // Formato para montos
+      row.getCell(7).numFmt = '"S/ "#,##0.00';
+    });
+
+    // Configurar anchos de columna
+    worksheet.columns = [
+      { width: 25 }, // ID
+      { width: 35 }, // Razón Social
+      { width: 15 }, // RUC
+      { width: 30 }, // Representante
+      { width: 20 }, // Cargo
+      { width: 35 }, // Email
+      { width: 12 }, // Monto
+      { width: 15 }, // Fecha
+      { width: 15 }, // Estado
+      { width: 25 }, // Recolector
+      { width: 35 }, // Email Rec
+      { width: 40 }, // Facultad
+      { width: 15 }, // Método
+      { width: 30 }, // Observaciones
+    ];
+
+    // Agregar resumen al final
+    const lastRow = empresas.length + 3;
+    worksheet.getCell(`A${lastRow}`).value = "RESUMEN EMPRESAS";
+    worksheet.getCell(`A${lastRow}`).font = { bold: true, size: 12 };
+
+    const totalAmount = empresas.reduce(
+      (sum, d) => sum + parseFloat(d.monto || 0),
+      0
+    );
+    const avgAmount = empresas.length > 0 ? totalAmount / empresas.length : 0;
+
+    worksheet.getCell(`A${lastRow + 1}`).value = "Total Donaciones:";
+    worksheet.getCell(`B${lastRow + 1}`).value = empresas.length;
+
+    worksheet.getCell(`A${lastRow + 2}`).value = "Monto Total:";
+    worksheet.getCell(`B${lastRow + 2}`).value = totalAmount;
+    worksheet.getCell(`B${lastRow + 2}`).numFmt = '"S/ "#,##0.00';
+
+    worksheet.getCell(`A${lastRow + 3}`).value = "Monto Promedio:";
+    worksheet.getCell(`B${lastRow + 3}`).value = avgAmount;
+    worksheet.getCell(`B${lastRow + 3}`).numFmt = '"S/ "#,##0.00';
+
+    // Agregar autofiltro
+    if (empresas.length > 0) {
+      worksheet.autoFilter = {
+        from: { row: 1, column: 1 },
+        to: { row: 1, column: headers.length },
+      };
+    }
+  }
+
+  // Métodos auxiliares mejorados para manejar empresas y personas naturales
+
+  getDonorName(donation) {
+    if (donation.Tipo_Usuario === "PERSONA NATURAL") {
+      return (
+        `${donation.NombreUsuarioDonador || ""} ${
+          donation.ApellidoUsuarioDonador || ""
+        }`.trim() || "Sin nombre"
+      );
+    } else if (donation.Tipo_Usuario === "EMPRESA") {
+      return donation.RazonSocialUsuarioDonador || "Sin razón social";
+    } else {
+      return "Usuario desconocido";
+    }
+  }
+
+  getDonorDocument(donation) {
+    if (donation.Tipo_Usuario === "PERSONA NATURAL") {
+      return donation.DNIUsuarioDonador || "Sin DNI";
+    } else if (donation.Tipo_Usuario === "EMPRESA") {
+      return donation["RUC-UsuarioDonador"] || "Sin RUC";
+    } else {
+      return "N/A";
+    }
+  }
+
+  getDonorPosition(donation) {
+    if (donation.Tipo_Usuario === "EMPRESA") {
+      return donation.CargoUsuarioDonador || "Sin cargo";
+    } else if (donation.Tipo_Usuario === "EMPRESA") {
+      return donation.RepresentanteLegalUsuarioDonador || "Sin representante";
+    } else {
+      return "N/A";
+    }
+  }
+
+  getCollectorName(donation) {
+    // Primero intentar con nombreRecolector que ya viene en algunos datos
+    if (donation.nombreRecolector) {
+      return donation.nombreRecolector;
+    }
+
+    // Si hay datos del recolector estructurados
+    if (donation.collectorData) {
+      const nombre = donation.collectorData.nombreUsuario || "";
+      const apellido = donation.collectorData.apellidoUsuario || "";
+      return `${nombre} ${apellido}`.trim() || "Recolector";
+    }
+
+    // Como fallback, usar el ID del recolector
+    return donation.idRecolector || "Sin asignar";
+  }
+
+  // Resto de métodos auxiliares (sin cambios significativos)
   addBordersToRange(worksheet, range) {
     const [start, end] = range.split(":");
     const startCol = start.match(/[A-Z]+/)[0].charCodeAt(0) - 65;
@@ -280,161 +640,6 @@ class DonationsExcelJSExporter {
     }
   }
 
-  // Dashboard con gráficos nativos de Excel (método mejorado)
-  addDashboardWithNativeCharts(workbook, donations) {
-    const worksheet = workbook.addWorksheet("Dashboard Gráficos");
-    const statusData = this.calculateStatusData(donations);
-    const monthlyData = this.calculateMonthlyData(donations);
-    const amountRanges = this.calculateAmountRanges(donations);
-
-    // Título
-    worksheet.mergeCells("A1:F1");
-    worksheet.getCell("A1").value = "DASHBOARD CON GRÁFICOS";
-    worksheet.getCell("A1").font = { size: 16, bold: true };
-    worksheet.getCell("A1").alignment = { horizontal: "center" };
-
-    // DATOS Y GRÁFICO 1: Estado de Donaciones
-    worksheet.getCell("A3").value = "Estado de Donaciones";
-    worksheet.getCell("A3").font = { bold: true };
-
-    worksheet.getCell("A4").value = "Estado";
-    worksheet.getCell("B4").value = "Cantidad";
-
-    let currentRow = 5;
-    Object.entries(statusData).forEach(([status, data]) => {
-      worksheet.getCell(`A${currentRow}`).value = status;
-      worksheet.getCell(`B${currentRow}`).value = data.count;
-      currentRow++;
-    });
-
-    // DATOS Y GRÁFICO 2: Evolución Mensual
-    worksheet.getCell("A10").value = "Evolución Mensual";
-    worksheet.getCell("A10").font = { bold: true };
-
-    worksheet.getCell("A11").value = "Mes";
-    worksheet.getCell("B11").value = "Donaciones";
-    worksheet.getCell("C11").value = "Monto";
-
-    currentRow = 12;
-    const sortedMonths = Object.keys(monthlyData).sort().slice(-6);
-    sortedMonths.forEach((month) => {
-      const data = monthlyData[month];
-      worksheet.getCell(`A${currentRow}`).value = month;
-      worksheet.getCell(`B${currentRow}`).value = data.count;
-      worksheet.getCell(`C${currentRow}`).value = data.amount;
-      currentRow++;
-    });
-
-    // DATOS Y GRÁFICO 3: Rangos de Monto
-    worksheet.getCell("A20").value = "Distribución por Rangos de Monto";
-    worksheet.getCell("A20").font = { bold: true };
-
-    worksheet.getCell("A21").value = "Rango";
-    worksheet.getCell("B21").value = "Cantidad";
-
-    currentRow = 22;
-    Object.entries(amountRanges).forEach(([range, data]) => {
-      worksheet.getCell(`A${currentRow}`).value = range;
-      worksheet.getCell(`B${currentRow}`).value = data.count;
-      currentRow++;
-    });
-
-    // Ajustar anchos de columna
-    worksheet.columns = [
-      { width: 20 },
-      { width: 15 },
-      { width: 15 },
-      { width: 10 },
-      { width: 10 },
-      { width: 10 },
-    ];
-
-    // Nota: Los gráficos nativos de Excel pueden no estar completamente soportados
-    // en todas las versiones de ExcelJS, por lo que esta es una implementación básica
-  }
-
-  // Agregar hoja de donaciones detalladas
-  addDonationsSheet(workbook, donations) {
-    const worksheet = workbook.addWorksheet("Donaciones");
-
-    // Headers
-    const headers = [
-      "ID",
-      "Tipo Usuario",
-      "Nombre/Razón Social",
-      "Email",
-      "Monto (S/)",
-      "Fecha",
-      "Estado",
-      "Recolector",
-      "Tiene Voucher",
-      "Método Pago",
-      "Banco",
-      "Número Operación",
-      "Observaciones",
-    ];
-
-    // Agregar headers
-    headers.forEach((header, index) => {
-      const cell = worksheet.getCell(1, index + 1);
-      cell.value = header;
-      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-      cell.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "FF366092" },
-      };
-      cell.alignment = { horizontal: "center", vertical: "middle" };
-    });
-
-    // Agregar datos
-    donations.forEach((donation, rowIndex) => {
-      const row = worksheet.getRow(rowIndex + 2);
-      row.values = [
-        donation.id,
-        donation.Tipo_Usuario || "N/A",
-        this.getDonorName(donation),
-        donation.EmailUsuarioDonador || "N/A",
-        parseFloat(donation.monto || 0),
-        this.formatDate(donation.fechaDonacion),
-        this.getStatusText(donation.estadoValidacion),
-        this.getCollectorName(donation),
-        this.hasVoucher(donation) ? "Sí" : "No",
-        donation.metodoPago || "N/A",
-        donation.banco || "N/A",
-        donation.numeroOperacion || "N/A",
-        donation.observaciones || "N/A",
-      ];
-
-      // Formato para montos
-      row.getCell(5).numFmt = '"S/ "#,##0.00';
-    });
-
-    // Configurar anchos de columna
-    worksheet.columns = [
-      { width: 15 },
-      { width: 20 },
-      { width: 30 },
-      { width: 35 },
-      { width: 12 },
-      { width: 15 },
-      { width: 15 },
-      { width: 25 },
-      { width: 12 },
-      { width: 15 },
-      { width: 20 },
-      { width: 18 },
-      { width: 30 },
-    ];
-
-    // Agregar autofiltro
-    worksheet.autoFilter = {
-      from: { row: 1, column: 1 },
-      to: { row: 1, column: headers.length },
-    };
-  }
-
-  // Agregar hoja de estadísticas
   addStatisticsSheet(workbook, donations) {
     const worksheet = workbook.addWorksheet("Estadísticas");
     const stats = this.calculateStatistics(donations);
@@ -448,7 +653,7 @@ class DonationsExcelJSExporter {
       color: { argb: "FF366092" },
     };
 
-    // Estadísticas
+    // Estadísticas generales
     const statsData = [
       ["Total de Donaciones", stats.total],
       ["Donaciones Validadas", stats.validated],
@@ -490,32 +695,52 @@ class DonationsExcelJSExporter {
       }
     });
 
-    // Tipos de usuario
-    worksheet.getCell("A22").value = "TIPOS DE USUARIO";
+    // Estadísticas por tipo de usuario
+    worksheet.getCell("A22").value = "ANÁLISIS POR TIPO DE USUARIO";
     worksheet.getCell("A22").font = {
       bold: true,
       size: 12,
       color: { argb: "FF366092" },
     };
 
-    let rowNum = 23;
-    Object.entries(stats.userTypes).forEach(([type, count]) => {
+    const userTypeData = this.calculateUserTypeData(donations);
+    let rowNum = 24;
+
+    worksheet.getCell("A23").value = "Tipo";
+    worksheet.getCell("B23").value = "Cantidad";
+    worksheet.getCell("C23").value = "Monto Total";
+    worksheet.getCell("D23").value = "Monto Promedio";
+    worksheet.getCell("E23").value = "% del Total";
+
+    Object.entries(userTypeData).forEach(([type, data]) => {
       worksheet.getCell(`A${rowNum}`).value = type;
-      worksheet.getCell(`B${rowNum}`).value = count;
+      worksheet.getCell(`B${rowNum}`).value = data.count;
+      worksheet.getCell(`C${rowNum}`).value = data.amount;
+      worksheet.getCell(`C${rowNum}`).numFmt = '"S/ "#,##0.00';
+      worksheet.getCell(`D${rowNum}`).value = data.average;
+      worksheet.getCell(`D${rowNum}`).numFmt = '"S/ "#,##0.00';
+      worksheet.getCell(`E${rowNum}`).value = data.percentage / 100;
+      worksheet.getCell(`E${rowNum}`).numFmt = "0.0%";
       rowNum++;
     });
 
     // Configurar anchos de columna
-    worksheet.columns = [{ width: 30 }, { width: 20 }];
+    worksheet.columns = [
+      { width: 30 },
+      { width: 20 },
+      { width: 20 },
+      { width: 20 },
+      { width: 15 },
+    ];
   }
 
-  // Agregar hoja con datos para gráficos
   addChartsDataSheet(workbook, donations) {
     const worksheet = workbook.addWorksheet("Datos Gráficos");
 
     const monthlyData = this.calculateMonthlyData(donations);
     const statusData = this.calculateStatusData(donations);
     const amountRanges = this.calculateAmountRanges(donations);
+    const userTypeData = this.calculateUserTypeData(donations);
 
     // Título
     worksheet.getCell("A1").value = "DATOS PARA GRÁFICOS";
@@ -576,6 +801,40 @@ class DonationsExcelJSExporter {
     // Espacio
     currentRow += 2;
 
+    // Datos por tipo de usuario
+    worksheet.getCell(`A${currentRow}`).value = "Datos por Tipo de Usuario";
+    worksheet.getCell(`A${currentRow}`).font = { bold: true };
+    currentRow++;
+
+    const userTypeHeaders = [
+      "Tipo",
+      "Cantidad",
+      "Monto Total",
+      "Monto Promedio",
+      "Porcentaje",
+    ];
+    userTypeHeaders.forEach((header, index) => {
+      worksheet.getCell(currentRow, index + 1).value = header;
+      worksheet.getCell(currentRow, index + 1).font = { bold: true };
+    });
+    currentRow++;
+
+    Object.entries(userTypeData).forEach(([type, data]) => {
+      worksheet.getRow(currentRow).values = [
+        type,
+        data.count,
+        data.amount,
+        data.average,
+        `${data.percentage.toFixed(1)}%`,
+      ];
+      worksheet.getCell(currentRow, 3).numFmt = '"S/ "#,##0.00';
+      worksheet.getCell(currentRow, 4).numFmt = '"S/ "#,##0.00';
+      currentRow++;
+    });
+
+    // Espacio
+    currentRow += 2;
+
     // Datos por rango de monto
     worksheet.getCell(`A${currentRow}`).value = "Datos por Rango de Monto";
     worksheet.getCell(`A${currentRow}`).font = { bold: true };
@@ -609,26 +868,7 @@ class DonationsExcelJSExporter {
     ];
   }
 
-  // Métodos auxiliares (los mismos que en el código anterior)
-  getDonorName(donation) {
-    if (donation.Tipo_Usuario === "PERSONA NATURAL") {
-      return `${donation.NombreUsuarioDonador || ""} ${
-        donation.ApellidoUsuarioDonador || ""
-      }`.trim();
-    } else {
-      return donation.RazonSocialUsuarioDonador || "Empresa";
-    }
-  }
-
-  getCollectorName(donation) {
-    if (donation.collectorData) {
-      const nombre = donation.collectorData.nombreUsuario || "";
-      const apellido = donation.collectorData.apellidoUsuario || "";
-      return `${nombre} ${apellido}`.trim() || "Recolector";
-    }
-    return donation.idRecolector || "Sin asignar";
-  }
-
+  // Métodos de validación de estado mejorados
   getStatusText(status) {
     if (this.isValidated(status)) {
       return "Validada";
@@ -642,18 +882,24 @@ class DonationsExcelJSExporter {
   isValidated(status) {
     return (
       status === true ||
+      status === "true" ||
       (typeof status === "string" &&
         (status.toLowerCase() === "validado" ||
-          status.toLowerCase() === "aprobado"))
+          status.toLowerCase() === "aprobado" ||
+          status.toLowerCase() === "validada" ||
+          status.toLowerCase() === "aprobada"))
     );
   }
 
   isRejected(status) {
     return (
       status === false ||
+      status === "false" ||
       (typeof status === "string" &&
         (status.toLowerCase() === "rechazado" ||
-          status.toLowerCase() === "denegado"))
+          status.toLowerCase() === "denegado" ||
+          status.toLowerCase() === "rechazada" ||
+          status.toLowerCase() === "denegada"))
     );
   }
 
@@ -661,10 +907,15 @@ class DonationsExcelJSExporter {
     return (
       status === null ||
       status === undefined ||
-      (typeof status === "string" && status.toLowerCase() === "pendiente")
+      status === "" ||
+      (typeof status === "string" &&
+        (status.toLowerCase() === "pendiente" ||
+          status.toLowerCase() === "en proceso" ||
+          status.toLowerCase() === "revision"))
     );
   }
 
+  // Método para verificar si tiene voucher/comprobante
   hasVoucher(donation) {
     const possibleLocations = [
       donation.validationData?.Imagen_Comprobante,
@@ -691,15 +942,23 @@ class DonationsExcelJSExporter {
     });
   }
 
+  // Métodos de manejo de fechas
   parseDate(dateInput) {
     if (!dateInput) return new Date();
 
+    // Si es un objeto Timestamp de Firebase
     if (dateInput.toDate && typeof dateInput.toDate === "function") {
       return dateInput.toDate();
-    } else if (typeof dateInput === "string") {
+    }
+    // Si es una cadena ISO
+    else if (typeof dateInput === "string") {
       return new Date(dateInput);
-    } else {
+    }
+    // Si ya es una fecha
+    else if (dateInput instanceof Date) {
       return dateInput;
+    } else {
+      return new Date();
     }
   }
 
@@ -714,7 +973,7 @@ class DonationsExcelJSExporter {
     });
   }
 
-  // Métodos de cálculo
+  // Métodos de cálculo de estadísticas mejorados
   calculateStatistics(donations) {
     const total = donations.length;
     const validated = donations.filter((d) =>
@@ -743,12 +1002,6 @@ class DonationsExcelJSExporter {
     const maxAmount = amounts.length > 0 ? Math.max(...amounts) : 0;
     const minAmount = amounts.length > 0 ? Math.min(...amounts) : 0;
 
-    const userTypes = {};
-    donations.forEach((d) => {
-      const type = d.Tipo_Usuario || "Sin especificar";
-      userTypes[type] = (userTypes[type] || 0) + 1;
-    });
-
     return {
       total,
       validated,
@@ -763,7 +1016,6 @@ class DonationsExcelJSExporter {
       validatedPercentage: total > 0 ? (validated / total) * 100 : 0,
       pendingPercentage: total > 0 ? (pending / total) * 100 : 0,
       rejectedPercentage: total > 0 ? (rejected / total) * 100 : 0,
-      userTypes,
     };
   }
 
@@ -795,7 +1047,9 @@ class DonationsExcelJSExporter {
     // Calcular promedios
     Object.keys(monthlyData).forEach((month) => {
       monthlyData[month].average =
-        monthlyData[month].amount / monthlyData[month].count;
+        monthlyData[month].count > 0
+          ? monthlyData[month].amount / monthlyData[month].count
+          : 0;
     });
 
     return monthlyData;
@@ -825,7 +1079,9 @@ class DonationsExcelJSExporter {
     // Calcular promedios y porcentajes
     Object.keys(userTypeData).forEach((type) => {
       userTypeData[type].average =
-        userTypeData[type].amount / userTypeData[type].count;
+        userTypeData[type].count > 0
+          ? userTypeData[type].amount / userTypeData[type].count
+          : 0;
       userTypeData[type].percentage =
         totalAmount > 0 ? (userTypeData[type].amount / totalAmount) * 100 : 0;
     });
@@ -874,7 +1130,8 @@ class DonationsExcelJSExporter {
       "0 - 50": { count: 0, amount: 0 },
       "51 - 100": { count: 0, amount: 0 },
       "101 - 500": { count: 0, amount: 0 },
-      "501+": { count: 0, amount: 0 },
+      "501 - 1000": { count: 0, amount: 0 },
+      "1001+": { count: 0, amount: 0 },
     };
 
     const totalAmount = donations.reduce(
@@ -894,9 +1151,12 @@ class DonationsExcelJSExporter {
       } else if (amount <= 500) {
         ranges["101 - 500"].count++;
         ranges["101 - 500"].amount += amount;
+      } else if (amount <= 1000) {
+        ranges["501 - 1000"].count++;
+        ranges["501 - 1000"].amount += amount;
       } else {
-        ranges["501+"].count++;
-        ranges["501+"].amount += amount;
+        ranges["1001+"].count++;
+        ranges["1001+"].amount += amount;
       }
     });
 
@@ -909,29 +1169,43 @@ class DonationsExcelJSExporter {
     return ranges;
   }
 
-  // Actualizar estadísticas y gráficos en el modal
+  // Métodos para actualizar modal y gráficos (sin cambios)
   updateExportModal(donations) {
     const stats = this.calculateStatistics(donations);
 
     // Actualizar estadísticas
-    document.getElementById("exportStatsTotal").textContent = stats.total;
-    document.getElementById("exportStatsValidated").textContent =
-      stats.validated;
-    document.getElementById("exportStatsPending").textContent = stats.pending;
-    document.getElementById(
-      "exportStatsAmount"
-    ).textContent = `S/ ${stats.totalAmount.toFixed(2)}`;
+    const elements = {
+      exportStatsTotal: stats.total,
+      exportStatsValidated: stats.validated,
+      exportStatsPending: stats.pending,
+      exportStatsAmount: `S/ ${stats.totalAmount.toFixed(2)}`,
+    };
+
+    Object.entries(elements).forEach(([id, value]) => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.textContent = value;
+      }
+    });
 
     // Crear gráficos
     this.createCharts(donations);
   }
 
-  // Crear todos los gráficos del modal
   createCharts(donations) {
     // Destruir gráficos existentes
     Object.values(this.charts).forEach((chart) => {
-      if (chart) chart.destroy();
+      if (chart && typeof chart.destroy === "function") {
+        chart.destroy();
+      }
     });
+    this.charts = {};
+
+    // Verificar si Chart.js está disponible
+    if (typeof Chart === "undefined") {
+      console.warn("Chart.js no está disponible");
+      return;
+    }
 
     this.createStatusChart(donations);
     this.createAmountRangeChart(donations);
@@ -939,7 +1213,6 @@ class DonationsExcelJSExporter {
     this.createUserTypeChart(donations);
   }
 
-  // Gráfico de Estados
   createStatusChart(donations) {
     const ctx = document.getElementById("statusChart")?.getContext("2d");
     if (!ctx) return;
@@ -976,7 +1249,8 @@ class DonationsExcelJSExporter {
                 const label = context.label || "";
                 const value = context.parsed || 0;
                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                const percentage = ((value / total) * 100).toFixed(1);
+                const percentage =
+                  total > 0 ? ((value / total) * 100).toFixed(1) : 0;
                 return `${label}: ${value} (${percentage}%)`;
               },
             },
@@ -986,7 +1260,6 @@ class DonationsExcelJSExporter {
     });
   }
 
-  // Gráfico de Rangos de Monto
   createAmountRangeChart(donations) {
     const ctx = document.getElementById("amountRangeChart")?.getContext("2d");
     if (!ctx) return;
@@ -1034,14 +1307,11 @@ class DonationsExcelJSExporter {
     });
   }
 
-  // Gráfico de Evolución Mensual
   createMonthlyChart(donations) {
     const ctx = document.getElementById("monthlyChart")?.getContext("2d");
     if (!ctx) return;
 
     const monthlyData = this.calculateMonthlyData(donations);
-
-    // Ordenar meses cronológicamente
     const sortedMonths = Object.keys(monthlyData).sort();
 
     this.charts.monthly = new Chart(ctx, {
@@ -1112,7 +1382,6 @@ class DonationsExcelJSExporter {
     });
   }
 
-  // Gráfico de Tipos de Usuario
   createUserTypeChart(donations) {
     const ctx = document.getElementById("userTypeChart")?.getContext("2d");
     if (!ctx) return;
@@ -1126,7 +1395,7 @@ class DonationsExcelJSExporter {
         datasets: [
           {
             data: Object.values(userTypeData).map((d) => d.count),
-            backgroundColor: ["#6f42c1", "#e83e8c", "#fd7e14", "#20c997"],
+            backgroundColor: ["#28a745", "#17a2b8", "#fd7e14", "#6f42c1"],
             borderWidth: 2,
             borderColor: "#fff",
           },
@@ -1227,10 +1496,12 @@ window.showExportModal = function (donations) {
   window.donationsExcelJSExporter.updateExportModal(donations);
 
   // Mostrar el modal
-  const modal = new bootstrap.Modal(
-    document.getElementById("exportDonationsModal")
-  );
-  modal.show();
+  if (typeof bootstrap !== "undefined") {
+    const modal = new bootstrap.Modal(
+      document.getElementById("exportDonationsModal")
+    );
+    modal.show();
+  }
 };
 
 // Inicializar cuando el DOM esté listo
@@ -1239,8 +1510,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Verificar dependencias
   if (typeof Chart === "undefined") {
-    console.error(
-      "Chart.js no está cargado. Asegúrate de incluir Chart.js en tu HTML."
+    console.warn(
+      "Chart.js no está cargado. Los gráficos del modal no funcionarán correctamente."
+    );
+  }
+
+  if (typeof bootstrap === "undefined") {
+    console.warn(
+      "Bootstrap no está cargado. Los modales pueden no funcionar correctamente."
     );
   }
 });
