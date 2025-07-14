@@ -27,7 +27,6 @@ export async function loadPastEvents() {
   const eventsContainer = document.getElementById("pastEvents");
 
   try {
-    console.log("🔄 Iniciando carga de eventos pasados...");
     if (loadingEl) loadingEl.style.display = "block";
 
     // Verificar que Firebase esté disponible
@@ -37,15 +36,12 @@ export async function loadPastEvents() {
     }
 
     const now = new Date();
-    console.log("📅 Fecha y hora actual:", now.toLocaleString("es-ES"));
 
     const eventosRef = collection(db, "eventos");
     const events = [];
 
     // Hacer consulta general sin filtros de fecha (ya que fechaInicio es string)
-    console.log(
-      "🔍 Obteniendo todos los eventos para filtrar por fecha string..."
-    );
+
     const querySnapshot = await getDocs(eventosRef);
 
     querySnapshot.forEach((doc) => {
@@ -62,15 +58,11 @@ export async function loadPastEvents() {
       return dateB - dateA; // Más reciente primero
     });
 
-    console.log(
-      `✅ Total de eventos pasados encontrados: ${sortedEvents.length}`
-    );
     displayPastEvents(sortedEvents);
 
     // Iniciar auto-refresh si no está activo
     startAutoRefresh();
   } catch (error) {
-    console.error("❌ Error al cargar eventos pasados:", error);
     if (eventsContainer) {
       eventsContainer.innerHTML = `
         <div class="text-center py-4">
@@ -143,10 +135,8 @@ function parseStringDate(dateString) {
       }
     }
 
-    console.warn("🚨 No se pudo parsear la fecha:", dateString);
     return null;
   } catch (error) {
-    console.warn("🚨 Error al parsear fecha:", dateString, error);
     return null;
   }
 }
@@ -165,11 +155,6 @@ function isPastEvent(event, currentDate) {
     const fechaInicio = parseStringDate(event.fechaInicio);
 
     if (!fechaInicio) {
-      console.warn(
-        "⚠️ Evento sin fecha de inicio válida:",
-        event.id,
-        event.fechaInicio
-      );
       return false;
     }
 
@@ -177,18 +162,10 @@ function isPastEvent(event, currentDate) {
     const isPast = fechaInicio < currentDate;
 
     if (isPast) {
-      console.log(`📅 Evento ${event.id} es pasado:`, {
-        titulo: event.titulo,
-        fechaInicio: fechaInicio.toLocaleString("es-ES"),
-        fechaActual: currentDate.toLocaleString("es-ES"),
-        diferencia:
-          Math.round((currentDate - fechaInicio) / (1000 * 60)) + " minutos",
-      });
     }
 
     return isPast;
   } catch (error) {
-    console.warn("⚠️ Error al verificar si evento es pasado:", error, event);
     return false;
   }
 }
@@ -199,7 +176,6 @@ function isPastEvent(event, currentDate) {
 function displayPastEvents(events) {
   const eventsContainer = document.getElementById("pastEvents");
   if (!eventsContainer) {
-    console.warn("⚠️ Contenedor 'pastEvents' no encontrado");
     return;
   }
 
@@ -241,16 +217,13 @@ function displayPastEvents(events) {
     try {
       const fechaInicio = parseStringDate(event.fechaInicio);
       eventsHTML += createPastEventCard(event, fechaInicio, index);
-    } catch (error) {
-      console.warn("⚠️ Error al crear tarjeta para evento:", event.id, error);
-    }
+    } catch (error) {}
   });
 
   // Agregar modal para imágenes
   eventsHTML += createImageModal();
 
   eventsContainer.innerHTML = eventsHTML;
-  console.log(`📋 Mostrados ${events.length} eventos pasados`);
 }
 
 /**
@@ -385,8 +358,6 @@ function createImageModal() {
  * Abrir modal con imagen ampliada
  */
 function openImageModal(imageSrc, eventTitle) {
-  console.log("🖼️ Abriendo modal para imagen:", imageSrc);
-
   const modal = document.getElementById("imageModal");
   const modalImage = document.getElementById("modalImage");
   const modalTitle = document.getElementById("imageModalLabel");
@@ -418,10 +389,6 @@ function openImageModal(imageSrc, eventTitle) {
       });
     }
   } else {
-    console.error("❌ Elementos del modal no encontrados");
-    console.log("Modal:", modal);
-    console.log("Modal Image:", modalImage);
-    console.log("Modal Title:", modalTitle);
   }
 }
 
@@ -546,7 +513,6 @@ function startAutoRefresh() {
 
   // Configurar nuevo intervalo
   autoRefreshInterval = setInterval(() => {
-    console.log("🔄 Auto-actualizando eventos pasados...");
     const pastPane = document.getElementById("past");
 
     // Solo actualizar si la pestaña de eventos pasados está activa
@@ -554,10 +520,6 @@ function startAutoRefresh() {
       loadPastEvents();
     }
   }, AUTO_REFRESH_MINUTES * 60 * 1000);
-
-  console.log(
-    `⏰ Auto-refresh configurado cada ${AUTO_REFRESH_MINUTES} minutos`
-  );
 }
 
 /**
@@ -567,7 +529,6 @@ function stopAutoRefresh() {
   if (autoRefreshInterval) {
     clearInterval(autoRefreshInterval);
     autoRefreshInterval = null;
-    console.log("⏹️ Auto-refresh detenido");
   }
 }
 
@@ -582,8 +543,6 @@ function stopAutoRefresh() {
  * Ver reporte del evento - Versión actualizada con generación de PDF
  */
 export async function viewEventReport(eventId) {
-  console.log(`📊 Generando reporte PDF para evento: ${eventId}`);
-
   try {
     // Mostrar indicador de carga
     const button = document.querySelector(
@@ -605,8 +564,6 @@ export async function viewEventReport(eventId) {
     // Llamar a la función de generación de reporte
     await generateEventReport(eventId);
   } catch (error) {
-    console.error("❌ Error al generar reporte:", error);
-
     // Mostrar error al usuario
     if (window.showError) {
       window.showError(
@@ -623,11 +580,8 @@ export async function viewEventReport(eventId) {
  * Ver lista de voluntarios del evento
  */
 export function viewVolunteersList(eventId) {
-  console.log(`👥 Abriendo modal de voluntarios para evento: ${eventId}`);
-
   // Verificar que el eventId sea válido
   if (!eventId) {
-    console.error("❌ ID de evento no válido");
     window.showError
       ? window.showError("Error", "ID de evento no válido")
       : alert("Error: ID de evento no válido");
@@ -638,7 +592,6 @@ export function viewVolunteersList(eventId) {
     // Llamar a la función del modal de voluntarios
     showVolunteersModal(eventId);
   } catch (error) {
-    console.error("❌ Error al abrir modal de voluntarios:", error);
     window.showError
       ? window.showError("Error al cargar voluntarios", error.message)
       : alert("Error al cargar los voluntarios del evento");
@@ -649,7 +602,6 @@ export function viewVolunteersList(eventId) {
  * Ver detalles de cancelación
  */
 export function viewCancellationDetails(eventId) {
-  console.log(`❌ Solicitando detalles de cancelación para evento: ${eventId}`);
   // TODO: Implementar vista de detalles de cancelación
   alert(`Mostrando motivos de cancelación del evento: ${eventId}`);
 }
@@ -658,7 +610,6 @@ export function viewCancellationDetails(eventId) {
  * Refrescar eventos pasados manualmente
  */
 export function refreshPastEvents() {
-  console.log("🔄 Refrescando eventos pasados manualmente...");
   loadPastEvents();
 }
 
@@ -682,11 +633,8 @@ window.viewVolunteersList = viewVolunteersList;
  * Inicializar eventos pasados cuando se carga la página
  */
 export function initializePastEvents() {
-  console.log("🚀 Inicializando módulo de eventos pasados mejorado");
-
   // Verificar dependencias
   if (!window.firebaseDB) {
-    console.warn("⚠️ Firebase DB no disponible, reintentando en 1 segundo...");
     setTimeout(initializePastEvents, 1000);
     return;
   }
@@ -695,25 +643,19 @@ export function initializePastEvents() {
   const pastTab = document.getElementById("past-tab");
   if (pastTab) {
     pastTab.addEventListener("shown.bs.tab", function () {
-      console.log("📋 Pestaña de eventos pasados activada");
       loadPastEvents();
     });
 
     // Event listener para cuando se oculta la pestaña (optimización)
     pastTab.addEventListener("hidden.bs.tab", function () {
-      console.log("📋 Pestaña de eventos pasados desactivada");
       // No detener auto-refresh para mantener datos actualizados
     });
-
-    console.log("✅ Event listeners configurados para pestaña past-tab");
   } else {
-    console.warn("⚠️ Elemento 'past-tab' no encontrado");
   }
 
   // Cargar eventos iniciales si la pestaña está activa
   const pastPane = document.getElementById("past");
   if (pastPane && pastPane.classList.contains("active")) {
-    console.log("📋 Panel de eventos pasados está activo, cargando eventos...");
     loadPastEvents();
   }
 
@@ -721,10 +663,6 @@ export function initializePastEvents() {
   window.addEventListener("beforeunload", () => {
     stopAutoRefresh();
   });
-
-  console.log(
-    "✅ Módulo de eventos pasados inicializado correctamente con auto-refresh"
-  );
 }
 
 // Auto-inicializar si el DOM ya está listo
@@ -739,7 +677,3 @@ window.initializePastEvents = initializePastEvents;
 window.loadPastEvents = loadPastEvents;
 window.stopAutoRefresh = stopAutoRefresh;
 window.startAutoRefresh = startAutoRefresh;
-
-console.log(
-  "📋 Módulo past-events.js cargado y mejorado con sistema de miniaturas"
-);

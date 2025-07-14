@@ -38,10 +38,7 @@ function getFirebaseDB() {
  * @param {string} eventId - ID del evento
  */
 async function showVolunteersModal(eventId) {
-  console.log("👥 Mostrando modal de voluntarios para evento:", eventId);
-
   if (!eventId) {
-    console.error("❌ ID de evento no válido");
     return;
   }
 
@@ -55,7 +52,6 @@ async function showVolunteersModal(eventId) {
     // Cargar datos del evento y voluntarios
     await loadEventVolunteers(eventId);
   } catch (error) {
-    console.error("❌ Error al mostrar modal de voluntarios:", error);
     window.showError
       ? window.showError("Error al cargar voluntarios", error)
       : alert("Error al cargar los voluntarios del evento");
@@ -78,7 +74,7 @@ async function loadEventVolunteers(eventId) {
 
   try {
     // 1. Cargar datos del evento
-    console.log("📋 Cargando datos del evento...");
+
     const eventDoc = await getDoc(doc(firebaseDB, "eventos", eventId));
 
     if (!eventDoc.exists()) {
@@ -88,15 +84,11 @@ async function loadEventVolunteers(eventId) {
     currentEventData = { id: eventDoc.id, ...eventDoc.data() };
     currentEventId = eventId;
 
-    console.log("✅ Evento cargado:", currentEventData);
-
     // 2. Actualizar información del evento en el modal
     updateEventInfoInModal(currentEventData);
 
     // 3. Cargar voluntarios
-    console.log("👥 Cargando voluntarios...");
     const voluntariosInscritos = currentEventData.voluntariosInscritos || [];
-    console.log("📝 IDs de voluntarios:", voluntariosInscritos);
 
     if (voluntariosInscritos.length === 0) {
       showNoVolunteersState();
@@ -107,10 +99,8 @@ async function loadEventVolunteers(eventId) {
     const voluntariosData = await loadVolunteersData(voluntariosInscritos);
     currentVolunteersList = voluntariosData;
 
-    console.log("✅ Voluntarios cargados:", voluntariosData.length);
     displayVolunteers(voluntariosData);
   } catch (error) {
-    console.error("❌ Error al cargar evento y voluntarios:", error);
     showErrorState();
 
     // Mostrar título de error
@@ -130,8 +120,6 @@ async function loadVolunteersData(volunteerIds) {
   const firebaseDB = getFirebaseDB();
   const voluntariosData = [];
 
-  console.log(`🔄 Cargando datos de ${volunteerIds.length} voluntarios...`);
-
   // Procesar voluntarios en lotes para evitar muchas consultas simultáneas
   const batchSize = 5;
   for (let i = 0; i < volunteerIds.length; i += batchSize) {
@@ -145,14 +133,9 @@ async function loadVolunteersData(volunteerIds) {
 
         if (volunteerDoc.exists()) {
           const volunteerData = { id: volunteerDoc.id, ...volunteerDoc.data() };
-          console.log(
-            `✅ Voluntario cargado: ${
-              volunteerData.nombreUsuario || volunteerData.correo
-            }`
-          );
+
           return volunteerData;
         } else {
-          console.warn(`⚠️ Voluntario no encontrado: ${volunteerId}`);
           return {
             id: volunteerId,
             nombreUsuario: "Usuario eliminado",
@@ -163,7 +146,6 @@ async function loadVolunteersData(volunteerIds) {
           };
         }
       } catch (error) {
-        console.error(`❌ Error al cargar voluntario ${volunteerId}:`, error);
         return {
           id: volunteerId,
           nombreUsuario: "Error al cargar",
@@ -188,7 +170,6 @@ async function loadVolunteersData(volunteerIds) {
       return nameA.localeCompare(nameB);
     });
 
-  console.log(`✅ Cargados ${voluntariosValidos.length} voluntarios`);
   return voluntariosValidos;
 }
 
@@ -197,8 +178,6 @@ async function loadVolunteersData(volunteerIds) {
  * @param {Object} eventData - Datos del evento
  */
 function updateEventInfoInModal(eventData) {
-  console.log("🔄 Actualizando información del evento en modal:", eventData);
-
   // Actualizar título del modal principal
   const modalTitle = document.getElementById("voluntariosModalTitle");
   if (modalTitle) {
@@ -218,8 +197,6 @@ function updateEventInfoInModal(eventData) {
 
   // Actualizar información del evento en el área específica
   updateEventDetailsSection(eventData);
-
-  console.log("✅ Información del evento actualizada en modal");
 }
 
 /**
@@ -294,7 +271,6 @@ function createEventInfoHTML(eventData) {
       // Si es un string
       return fecha.toString();
     } catch (error) {
-      console.warn("⚠️ Error al formatear fecha:", fecha);
       return "No especificada";
     }
   };
@@ -392,7 +368,6 @@ function displayVolunteers(volunteers) {
   const listEl = document.getElementById("voluntariosList");
 
   if (!listEl) {
-    console.error("❌ Elemento voluntariosList no encontrado");
     return;
   }
 
@@ -413,8 +388,6 @@ function displayVolunteers(volunteers) {
 
   // Actualizar contador
   updateVolunteersCount(volunteers.length);
-
-  console.log(`✅ Mostrados ${volunteers.length} voluntarios en el DOM`);
 }
 
 /**
@@ -656,7 +629,6 @@ function formatEventDate(dateInput) {
       day: "numeric",
     });
   } catch (error) {
-    console.error("Error al formatear fecha:", error);
     return dateInput?.toString() || "Fecha no válida";
   }
 }
@@ -671,11 +643,8 @@ function formatEventDate(dateInput) {
  * @param {string} method - Método de contacto ('phone' o 'email')
  */
 function contactVolunteer(volunteerId, method) {
-  console.log(`📞 Contactando voluntario ${volunteerId} por ${method}`);
-
   const voluntario = currentVolunteersList.find((v) => v.id === volunteerId);
   if (!voluntario) {
-    console.error("Voluntario no encontrado:", volunteerId);
     alert("Voluntario no encontrado");
     return;
   }
@@ -711,7 +680,6 @@ function contactVolunteer(volunteerId, method) {
  * Reintentar cargar voluntarios
  */
 function retryLoadVolunteers() {
-  console.log("🔄 Reintentando cargar voluntarios...");
   if (currentEventId) {
     loadEventVolunteers(currentEventId);
   }
@@ -721,8 +689,6 @@ function retryLoadVolunteers() {
  * Exportar lista de voluntarios
  */
 function exportVolunteersList() {
-  console.log("📤 Exportando lista de voluntarios...");
-
   if (currentVolunteersList.length === 0) {
     alert("No hay voluntarios para exportar");
     return;
@@ -749,11 +715,8 @@ function exportVolunteersList() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
-      console.log("✅ Lista de voluntarios exportada exitosamente");
     }
   } catch (error) {
-    console.error("❌ Error al exportar lista:", error);
     alert("Error al exportar la lista de voluntarios");
   }
 }
@@ -809,20 +772,14 @@ window.exportVolunteersList = exportVolunteersList;
  * Inicializar módulo de voluntarios
  */
 function initializeVolunteersModal() {
-  console.log("🚀 Inicializando módulo de modal de voluntarios");
-
   // Verificar que Bootstrap esté disponible
   if (typeof bootstrap === "undefined") {
-    console.warn(
-      "⚠️ Bootstrap no está cargado, el modal podría no funcionar correctamente"
-    );
   }
 
   // Limpiar modal al cerrarlo
   const modal = document.getElementById("voluntariosModal");
   if (modal) {
     modal.addEventListener("hidden.bs.modal", function () {
-      console.log("🔄 Limpiando modal de voluntarios");
       currentEventId = null;
       currentVolunteersList = [];
       currentEventData = null;
@@ -858,8 +815,6 @@ function initializeVolunteersModal() {
       showVolunteersLoading(false);
     });
   }
-
-  console.log("✅ Módulo de modal de voluntarios inicializado correctamente");
 }
 
 // Auto-inicializar
@@ -868,8 +823,6 @@ if (document.readyState === "loading") {
 } else {
   setTimeout(initializeVolunteersModal, 100);
 }
-
-console.log("👥 Módulo usuarios-events.js (MEJORADO) cargado correctamente");
 
 // =============================================
 // EXPORTACIONES

@@ -442,23 +442,14 @@ async function createUserProfile(uid, userData) {
     if (error.code) {
       switch (error.code) {
         case "permission-denied":
-          console.error(
-            "Error de permisos: Verifica las reglas de seguridad de Firestore"
-          );
           break;
         case "unavailable":
-          console.error(
-            "Firestore no disponible: Problema de conexión a la red"
-          );
           break;
         case "invalid-argument":
-          console.error("Argumentos inválidos:", userData);
           break;
         case "not-found":
-          console.error("Proyecto de Firestore no encontrado");
           break;
         default:
-          console.error("Error de Firestore no manejado:", error.code);
       }
     }
 
@@ -479,7 +470,6 @@ async function checkStudentCodeExists(codigo) {
 
     return !querySnapshot.empty;
   } catch (error) {
-    console.error("Error al verificar código de estudiante:", error);
     return false;
   }
 }
@@ -552,7 +542,6 @@ function redirectToVerificationPage(user, userName) {
       window.location.href = verificationUrl;
     }, 4000);
   } catch (error) {
-    console.error("Error en redirección:", error);
     showModal(
       "Error de redirección",
       "Hubo un problema al redireccionar. Por favor, verifica tu email manualmente.",
@@ -688,12 +677,7 @@ window.handleRegister = async function (event) {
       // Eliminar usuario de Authentication si falla Firestore
       try {
         await user.delete();
-      } catch (deleteError) {
-        console.error(
-          "Error al eliminar usuario de Authentication:",
-          deleteError
-        );
-      }
+      } catch (deleteError) {}
       throw new Error("Error al crear el perfil del usuario en Firestore");
     }
 
@@ -704,9 +688,7 @@ window.handleRegister = async function (event) {
       // Eliminar usuario si falla el envío de email
       try {
         await user.delete();
-      } catch (deleteError) {
-        console.error("Error al eliminar usuario:", deleteError);
-      }
+      } catch (deleteError) {}
       throw new Error(
         "No se pudo enviar el email de verificación: " + emailError.message
       );

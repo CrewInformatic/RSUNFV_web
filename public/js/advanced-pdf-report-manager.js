@@ -32,8 +32,6 @@ class AdvancedPDFReportManager {
   // =================== MÉTODO PRINCIPAL ===================
   static async generateReport(reportData) {
     try {
-      console.log("Generando PDF con datos:", reportData);
-
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF("p", "mm", "a4");
 
@@ -381,7 +379,6 @@ class AdvancedPDFReportManager {
     try {
       // Verificar si autoTable está disponible
       if (typeof doc.autoTable !== "function") {
-        console.warn("autoTable no disponible, usando tabla básica");
         return this.addBasicTable(doc, data, yPos, colors);
       }
 
@@ -453,7 +450,6 @@ class AdvancedPDFReportManager {
 
       return doc.lastAutoTable.finalY + 10;
     } catch (error) {
-      console.error("Error al crear tabla con autoTable:", error);
       // Fallback a tabla básica
       return this.addBasicTable(doc, data, yPos, colors);
     }
@@ -841,7 +837,6 @@ class AdvancedPDFReportManager {
     try {
       // Verificar si autoTable está disponible
       if (typeof doc.autoTable !== "function") {
-        console.warn("autoTable no disponible, usando tabla básica");
         return this.addBasicTable(doc, data, yPos, colors);
       }
 
@@ -913,7 +908,6 @@ class AdvancedPDFReportManager {
 
       return doc.lastAutoTable.finalY + 10;
     } catch (error) {
-      console.error("Error al crear tabla con autoTable:", error);
       // Fallback a tabla básica
       return this.addBasicTable(doc, data, yPos, colors);
     }
@@ -1008,7 +1002,6 @@ class AdvancedPDFReportManager {
 
       return currentY + 10;
     } catch (error) {
-      console.error("Error al crear tabla básica:", error);
       doc.setFontSize(this.fonts.normal);
       doc.setTextColor(100, 100, 100);
       doc.text("Error al mostrar tabla", this.margins.left, yPos);
@@ -1020,14 +1013,12 @@ class AdvancedPDFReportManager {
   // ✅ MÉTODO CORREGIDO
   static hexToRgb(hex) {
     if (!hex || typeof hex !== "string") {
-      console.warn("Color hex inválido:", hex);
       return [0, 0, 0];
     }
 
     hex = hex.replace(/^#/, "");
 
     if (hex.length !== 6 || !/^[0-9A-Fa-f]{6}$/.test(hex)) {
-      console.warn("Formato hex inválido:", hex);
       return [0, 0, 0];
     }
 
@@ -1061,7 +1052,6 @@ class AdvancedPDFReportManager {
         doc[colorMethod](0, 0, 0);
       }
     } catch (error) {
-      console.error(`Error al aplicar color con ${colorMethod}:`, error);
       doc[colorMethod](0, 0, 0);
     }
   }
@@ -1777,11 +1767,8 @@ window.AdvancedPDFReportManager = AdvancedPDFReportManager;
 
 // Verificar dependencias al cargar
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("AdvancedPDFReportManager cargado correctamente ✓");
-
   // Verificar dependencias
   if (typeof window.jspdf === "undefined") {
-    console.warn("⚠️ jsPDF no encontrado. Asegúrate de incluir la librería.");
   }
 
   // Verificar autoTable de manera más robusta
@@ -1791,11 +1778,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const testDoc = new jsPDF();
 
       if (typeof testDoc.autoTable === "function") {
-        console.log("✅ jsPDF autoTable plugin cargado correctamente");
       } else {
-        console.warn(
-          "⚠️ jsPDF autoTable plugin no encontrado. Las tablas usarán formato básico."
-        );
       }
     }
   }, 100);

@@ -28,9 +28,7 @@ function saveSession(userSession) {
   try {
     currentUser = userSession;
     sessionStorage.setItem("userSession", JSON.stringify(userSession));
-  } catch (error) {
-    console.error("Error al guardar sesión:", error);
-  }
+  } catch (error) {}
 }
 
 function getStoredSession() {
@@ -48,7 +46,6 @@ function getStoredSession() {
 
     return null;
   } catch (error) {
-    console.error("Error al obtener sesión:", error);
     sessionStorage.removeItem("userSession");
     return null;
   }
@@ -95,6 +92,14 @@ function autoCleanOnLogin() {
 }
 
 // =============================================
+// FUNCIONES DE VERIFICACIÓN DE PERMISOS
+// =============================================
+
+function hasAdminAccess(session) {
+  return session.esAdmin === true || session.idRol === "rol_004";
+}
+
+// =============================================
 // FUNCIÓN DE VERIFICACIÓN DE AUTENTICACIÓN
 // =============================================
 
@@ -117,7 +122,7 @@ function checkAdminAuthentication() {
     return null;
   }
 
-  if (!session.esAdmin) {
+  if (!hasAdminAccess(session)) {
     alert("No tienes permisos para acceder a esta página");
     window.location.href = "descarga_app.html";
     return null;
@@ -154,7 +159,7 @@ window.requireAdmin = async function () {
     return null;
   }
 
-  if (!session.esAdmin) {
+  if (!hasAdminAccess(session)) {
     alert("No tienes permisos de administrador");
     window.location.href = "descarga_app.html";
     return null;
@@ -182,7 +187,7 @@ window.navigateToPage = function (pageName) {
     "reportes.html",
   ];
 
-  if (adminPages.includes(pageName) && !session.esAdmin) {
+  if (adminPages.includes(pageName) && !hasAdminAccess(session)) {
     alert("No tienes permisos para acceder a esta página");
     return;
   }
@@ -193,12 +198,13 @@ window.navigateToPage = function (pageName) {
 window.showProfile = function () {
   const session = getStoredSession();
   if (session) {
+    const userRole = hasAdminAccess(session) ? "Administrador" : "Usuario";
     alert(
       `Perfil de Usuario:\n\nnombreUsuario: ${session.nombreUsuario}\nCorreo: ${
         session.correo
-      }\nRol: ${
-        session.esAdmin ? "Administrador" : "Usuario"
-      }\nÚltimo acceso: ${new Date(session.loginTime).toLocaleString()}`
+      }\nRol: ${userRole}\nÚltimo acceso: ${new Date(
+        session.loginTime
+      ).toLocaleString()}`
     );
   }
 };
@@ -243,7 +249,9 @@ function updateUserInfo(session) {
 
   const userRole = document.getElementById("userRole");
   if (userRole) {
-    userRole.textContent = session.esAdmin ? "Administrador" : "Usuario";
+    userRole.textContent = hasAdminAccess(session)
+      ? "Administrador"
+      : "Usuario";
   }
 }
 
@@ -258,6 +266,7 @@ window.checkAuthentication = checkAuthentication;
 window.checkAdminAuthentication = checkAdminAuthentication;
 window.initializeAdminPage = initializeAdminPage;
 window.updateUserInfo = updateUserInfo;
+window.hasAdminAccess = hasAdminAccess;
 
 // =============================================
 // FUNCIONES DE INTERFAZ DE USUARIO
@@ -318,7 +327,6 @@ async function getUserData(uid) {
     }
     return null;
   } catch (error) {
-    console.error("Error al obtener datos del usuario:", error);
     return null;
   }
 }
@@ -329,9 +337,7 @@ async function updateLastAccess(uid) {
     await updateDoc(userDocRef, {
       ultimoAcceso: new Date().toISOString(),
     });
-  } catch (error) {
-    console.error("Error al actualizar último acceso:", error);
-  }
+  } catch (error) {}
 }
 
 // =============================================
@@ -339,7 +345,7 @@ async function updateLastAccess(uid) {
 // =============================================
 
 function redirectUserByRole(userData) {
-  if (userData.esAdmin === true) {
+  if (userData.esAdmin === true || userData.idRol === "rol_004") {
     window.location.href = "admin-dashboard.html";
   } else {
     window.location.href = "descarga_app.html";
@@ -395,16 +401,6 @@ window.handleLogin = async function (event) {
   }
 
   // Verificar que Firebase esté inicializado
-  if (!auth) {
-    console.error("Firebase auth no está inicializado");
-    showModal(
-      "Error del sistema",
-      "Sistema de autenticación no disponible. Recarga la página.",
-      "⚠️",
-      "error"
-    );
-    return;
-  }
 
   setLoginLoading(true);
 
@@ -433,7 +429,6 @@ window.handleLogin = async function (event) {
     const userData = await getUserData(user.uid);
 
     if (!userData) {
-      console.error("No se encontraron datos del usuario en Firestore");
       throw new Error("No se encontraron datos del usuario en Firestore");
     }
 
@@ -453,6 +448,7 @@ window.handleLogin = async function (event) {
       facultad: userData.facultad,
       ciclo: userData.ciclo,
       esAdmin: userData.esAdmin || false,
+      idRol: userData.idRol || null,
       loginTime: new Date().toISOString(),
     };
 
@@ -473,8 +469,6 @@ window.handleLogin = async function (event) {
       redirectUserByRole(userData);
     }, 2000);
   } catch (error) {
-    console.error("Error en login:", error.code);
-
     setLoginLoading(false);
 
     let errorMessage =
@@ -540,7 +534,6 @@ window.logout = async function () {
       window.location.href = "index.html";
     }, 2000);
   } catch (error) {
-    console.error("Error al cerrar sesión:", error);
     clearSession();
     window.location.href = "index.html";
   }
@@ -565,6 +558,7 @@ onAuthStateChanged(auth, async (user) => {
         facultad: userData.facultad,
         ciclo: userData.ciclo,
         esAdmin: userData.esAdmin || false,
+        idRol: userData.idRol || null,
         loginTime: new Date().toISOString(),
       };
 
@@ -589,11 +583,9 @@ if (modal) {
 
 document.addEventListener("DOMContentLoaded", function () {
   if (!auth) {
-    console.error("Firebase Authentication: No disponible");
   }
 
   if (!db) {
-    console.error("Firestore Database: No disponible");
   }
 
   document.querySelectorAll(".form-input").forEach((input) => {

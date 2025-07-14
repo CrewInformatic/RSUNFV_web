@@ -40,9 +40,7 @@ function startRealtimeVerificationCheck() {
             handleSuccessfulVerification(currentUser.email);
           }
         })
-        .catch((error) => {
-          console.log("Error al verificar estado:", error);
-        });
+        .catch((error) => {});
     }
   }, 3000);
 
@@ -346,8 +344,6 @@ async function processEmailVerification() {
 
 // Event Listeners con verificación de existencia
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("Página de verificación de email cargada");
-
   // NUEVA: Implementar medidas de seguridad
   implementSecurityMeasures();
 
@@ -390,7 +386,6 @@ onAuthStateChanged(auth, (user) => {
 
 // Manejar errores globales
 window.addEventListener("error", (e) => {
-  console.error("Error global:", e.error);
   showMessage("Ha ocurrido un error inesperado. Recarga la página.", "error");
 });
 

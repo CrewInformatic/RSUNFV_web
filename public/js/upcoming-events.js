@@ -10,6 +10,7 @@ import {
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 import { showVolunteersModal } from "./users-events.js";
+
 // =============================================
 // VARIABLES GLOBALES
 // =============================================
@@ -33,7 +34,6 @@ function getFirebaseDB() {
  */
 function parseStringToDate(dateString) {
   if (!dateString || typeof dateString !== "string") {
-    console.warn("⚠️ Fecha inválida:", dateString);
     return new Date();
   }
 
@@ -68,10 +68,8 @@ function parseStringToDate(dateString) {
       return parsedDate;
     }
 
-    console.warn("⚠️ No se pudo parsear la fecha:", dateString);
     return new Date();
   } catch (error) {
-    console.error("❌ Error al parsear fecha:", dateString, error);
     return new Date();
   }
 }
@@ -117,8 +115,6 @@ function isDateFromToday(dateString) {
  * Cargar y mostrar eventos futuros - ACTUALIZADA PARA FECHAS STRING
  */
 export async function loadUpcomingEvents() {
-  console.log("🔄 Iniciando carga de eventos futuros...");
-
   const loadingEl = document.getElementById("upcomingLoading");
   const eventsContainer = document.getElementById("upcomingEvents");
 
@@ -130,8 +126,6 @@ export async function loadUpcomingEvents() {
     if (!firebaseDB) {
       throw new Error("Firebase no está inicializado");
     }
-
-    console.log("📅 Consultando eventos desde hoy...");
 
     const eventosRef = collection(firebaseDB, "eventos");
 
@@ -147,13 +141,6 @@ export async function loadUpcomingEvents() {
 
       // Filtrar eventos futuros en memoria
       if (eventData.fechaInicio && isDateFromToday(eventData.fechaInicio)) {
-        console.log("📋 Evento encontrado:", {
-          id: eventData.id,
-          titulo: eventData.titulo,
-          fechaInicio: eventData.fechaInicio,
-          fechaParsed: parseStringToDate(eventData.fechaInicio),
-          estado: eventData.estado,
-        });
         events.push(eventData);
       }
     });
@@ -166,10 +153,7 @@ export async function loadUpcomingEvents() {
     });
 
     displayUpcomingEvents(events);
-    console.log(`✅ Cargados ${events.length} eventos futuros activos`);
   } catch (error) {
-    console.error("❌ Error al cargar eventos futuros:", error);
-
     if (eventsContainer) {
       eventsContainer.innerHTML = `
         <div class="text-center py-4">
@@ -194,7 +178,6 @@ export async function loadUpcomingEvents() {
 function displayUpcomingEvents(events) {
   const eventsContainer = document.getElementById("upcomingEvents");
   if (!eventsContainer) {
-    console.error("❌ Contenedor 'upcomingEvents' no encontrado");
     return;
   }
 
@@ -221,7 +204,6 @@ function displayUpcomingEvents(events) {
   });
 
   eventsContainer.innerHTML = eventsHTML;
-  console.log(`✅ Mostrados ${events.length} eventos en el DOM`);
 }
 
 /**
@@ -477,16 +459,12 @@ export async function cancelUpcomingEvent(eventId) {
       throw new Error("Firebase no está inicializado");
     }
 
-    console.log("🚫 Cancelando evento:", eventId);
-
     const eventRef = doc(firebaseDB, "eventos", eventId);
     await updateDoc(eventRef, {
       estado: "cancelado",
       fechaCancelacion: serverTimestamp(),
       canceladoPor: window.currentUser?.correo || "admin",
     });
-
-    console.log("✅ Evento cancelado exitosamente");
 
     window.showSuccess
       ? window.showSuccess("Evento cancelado exitosamente")
@@ -497,7 +475,6 @@ export async function cancelUpcomingEvent(eventId) {
       loadUpcomingEvents();
     }, 500);
   } catch (error) {
-    console.error("❌ Error al cancelar evento:", error);
     window.showError
       ? window.showError("Error al cancelar el evento", error)
       : alert("Error al cancelar el evento. Intenta de nuevo.");
@@ -511,8 +488,6 @@ import { showEditModal } from "./editModal.js";
  * Editar evento - Actualizada para usar modal
  */
 export function editEvent(eventId) {
-  console.log("✏️ Editando evento:", eventId);
-
   // Llamar al modal de edición
   showEditModal(eventId);
 }
@@ -521,13 +496,10 @@ export function editEvent(eventId) {
  * Ver voluntarios de evento
  */
 export function viewVolunteers(eventId) {
-  console.log("👥 Abriendo modal de voluntarios para evento:", eventId);
-
   // Verificar que showVolunteersModal esté disponible
   if (typeof showVolunteersModal === "function") {
     showVolunteersModal(eventId);
   } else {
-    console.error("❌ showVolunteersModal no está disponible");
     alert("Error al cargar el modal de voluntarios");
   }
 }
@@ -536,53 +508,8 @@ export function viewVolunteers(eventId) {
  * Refrescar eventos futuros
  */
 export function refreshUpcomingEvents() {
-  console.log("🔄 Refrescando eventos futuros...");
   loadUpcomingEvents();
 }
-
-// =============================================
-// FUNCIONES DE DEBUG
-// =============================================
-
-/**
- * Función de debug para Firebase
- */
-window.debugFirebase = function () {
-  console.log("🔍 Debug Firebase:");
-  console.log("- Firebase DB:", !!window.firebaseDB);
-  console.log("- Current User:", window.currentUser);
-
-  if (window.firebaseDB) {
-    console.log("- Firebase inicializado correctamente");
-    // Intentar una consulta simple
-    const eventosRef = collection(window.firebaseDB, "eventos");
-    getDocs(eventosRef)
-      .then((snapshot) => {
-        console.log(`- Total eventos en BD: ${snapshot.size}`);
-
-        // Mostrar algunos ejemplos de fechas
-        let count = 0;
-        snapshot.forEach((doc) => {
-          if (count < 3) {
-            const data = doc.data();
-            console.log(`- Evento ${count + 1}:`, {
-              id: doc.id,
-              titulo: data.titulo,
-              fechaInicio: data.fechaInicio,
-              fechaParsed: parseStringToDate(data.fechaInicio),
-              estado: data.estado,
-            });
-            count++;
-          }
-        });
-      })
-      .catch((err) => {
-        console.error("- Error al consultar eventos:", err);
-      });
-  } else {
-    console.error("- Firebase NO inicializado");
-  }
-};
 
 // =============================================
 // FUNCIONES GLOBALES PARA USO EN HTML
@@ -606,26 +533,17 @@ window.handleEscKey = handleEscKey;
  * Inicializar eventos futuros cuando se carga la página
  */
 export function initializeUpcomingEvents() {
-  console.log("🚀 Inicializando módulo de eventos futuros");
-  // Resto del código de inicialización...
   const checkFirebase = () => {
     if (window.firebaseDB) {
-      console.log("✅ Firebase disponible, configurando eventos futuros");
-
       const upcomingTab = document.getElementById("upcoming-tab");
       if (upcomingTab) {
         upcomingTab.addEventListener("shown.bs.tab", function () {
-          console.log("📋 Pestaña de eventos futuros activada");
           loadUpcomingEvents();
         });
-        console.log("✅ Event listener configurado para upcoming-tab");
       }
 
       const upcomingPane = document.getElementById("upcoming");
       if (upcomingPane && upcomingPane.classList.contains("active")) {
-        console.log(
-          "📋 Pestaña de eventos futuros ya activa, cargando eventos"
-        );
         setTimeout(loadUpcomingEvents, 100);
       }
 
@@ -641,15 +559,9 @@ export function initializeUpcomingEvents() {
 
     const waitForFirebase = setInterval(() => {
       attempts++;
-      console.log(
-        `🔄 Esperando Firebase... intento ${attempts}/${maxAttempts}`
-      );
 
       if (checkFirebase() || attempts >= maxAttempts) {
         clearInterval(waitForFirebase);
-        if (attempts >= maxAttempts) {
-          console.error("❌ Firebase no se inicializó después de esperar");
-        }
       }
     }, interval);
   }
@@ -665,7 +577,3 @@ if (document.readyState === "loading") {
 
 // Exportar función de inicialización
 window.initializeUpcomingEvents = initializeUpcomingEvents;
-
-console.log(
-  "📅 Módulo upcoming-events.js cargado correctamente - VERSION STRING DATES"
-);

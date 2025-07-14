@@ -65,7 +65,6 @@ function getStoredSession() {
 
     return null;
   } catch (error) {
-    console.error("❌ Error al obtener sesión:", error);
     sessionStorage.removeItem("userSession");
     return null;
   }
@@ -75,9 +74,7 @@ function clearSession() {
   try {
     window.currentUser = null;
     sessionStorage.removeItem("userSession");
-  } catch (error) {
-    console.error("❌ Error al limpiar sesión:", error);
-  }
+  } catch (error) {}
 }
 
 function checkAuthentication() {
@@ -235,7 +232,6 @@ async function initializeEventsPage() {
     // Cargar eventos iniciales de la pestaña activa
     loadInitialEvents();
   } catch (error) {
-    console.error("❌ Error durante la inicialización:", error);
     alert("Error al inicializar la página. Por favor, recarga la página.");
   }
 }
@@ -264,7 +260,6 @@ async function waitForModules() {
 
       waited += interval;
       if (waited >= maxWait) {
-        console.warn("⚠️ Tiempo de espera agotado para cargar módulos");
         resolve();
         return;
       }
@@ -386,7 +381,6 @@ if (document.readyState === "loading") {
 
 // Función para mostrar mensajes de error consistentes
 window.showError = function (message, error = null) {
-  console.error("❌ Error:", message, error);
   alert(`Error: ${message}`);
 };
 
@@ -406,21 +400,12 @@ window.validateSession = function () {
 };
 
 // Función de debug para verificar estado de los módulos (solo en desarrollo)
-window.debugModules = function () {
-  console.log("🔍 Estado de los módulos:");
-  console.log("- Firebase DB:", !!window.firebaseDB);
-  console.log("- Create Event:", typeof window.initializeCreateEvent);
-  console.log("- Upcoming Events:", typeof window.initializeUpcomingEvents);
-  console.log("- Load Upcoming:", typeof window.loadUpcomingEvents);
-  console.log("- Past Events:", typeof window.initializePastEvents);
-  console.log("- Current User:", window.currentUser);
-};
+window.debugModules = function () {};
 
 // Función para forzar recarga de eventos futuros
 window.forceLoadUpcoming = function () {
   if (window.loadUpcomingEvents) {
     window.loadUpcomingEvents();
   } else {
-    console.error("❌ Función loadUpcomingEvents no disponible");
   }
 };

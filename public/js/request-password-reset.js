@@ -63,11 +63,8 @@ function startResendCountdown() {
 
 // Función para cambiar entre pasos
 function goToStep(step) {
-  console.log(`Cambiando al paso: ${step}`);
-
   // Solo permitir pasos 1 y 2
   if (step > 2) {
-    console.log("Paso no disponible en esta página");
     return;
   }
 
@@ -117,7 +114,6 @@ function canResendEmail() {
 // Función para enviar email de recuperación
 async function sendRecoveryEmail(event, isResend = false) {
   event.preventDefault();
-  console.log("Iniciando proceso de recuperación...");
 
   const emailInput = document.getElementById("recovery-email");
   const sendBtn = document.getElementById("send-btn");
@@ -176,7 +172,6 @@ async function sendRecoveryEmail(event, isResend = false) {
     };
 
     await sendPasswordResetEmail(auth, email, actionCodeSettings);
-    console.log("Email de recuperación enviado exitosamente");
 
     // Registrar intento exitoso
     if (!emailAttempts[email]) {
@@ -206,8 +201,6 @@ async function sendRecoveryEmail(event, isResend = false) {
         : "Email de recuperación enviado correctamente"
     );
   } catch (error) {
-    console.error("Error al enviar email:", error);
-
     let errorMessage = "Error al enviar el email. ";
     switch (error.code) {
       case "auth/user-not-found":
@@ -242,8 +235,6 @@ async function resendEmail(event) {
 
 // Event listeners
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("Página de recuperación cargada");
-
   // Agregar event listeners
   const recoveryForm = document.getElementById("recovery-form");
   if (recoveryForm) {

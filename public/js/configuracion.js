@@ -1,16 +1,13 @@
-// configuracion.js
+// configuracion.js - Versión optimizada para producción
 import {
   auth,
   db,
   onAuthStateChanged,
-  updateProfile,
   doc,
   getDoc,
   setDoc,
   updateDoc,
   serverTimestamp,
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail,
 } from "./firebase_config.js";
 
 // Variables globales
@@ -25,7 +22,6 @@ const CLOUDINARY_CONFIG = {
   apiKey: "572426943132833",
 };
 
-// Para compatibilidad con el código existente
 const CLOUDINARY_UPLOAD_PRESET = CLOUDINARY_CONFIG.uploadPreset;
 const CLOUDINARY_CLOUD_NAME = CLOUDINARY_CONFIG.cloudName;
 
@@ -52,38 +48,38 @@ const BANCOS = [
 
 const TALLAS = ["XS", "S", "M", "L", "XL", "XXL"];
 
+const CICLOS_ROMANOS = [
+  "I",
+  "II",
+  "III",
+  "IV",
+  "V",
+  "VI",
+  "VII",
+  "VIII",
+  "IX",
+  "X",
+];
+
 // Inicialización del sistema
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("DOM cargado, iniciando sistema...");
-
-  // Primero poblar los datos estáticos
   populateStaticData();
-
-  // Luego configurar los event listeners
   setupEventListeners();
-
-  // Finalmente inicializar la autenticación
   initializeAuth();
 });
 
 // Autenticación y carga de datos
 function initializeAuth() {
-  console.log("Inicializando autenticación...");
-
   onAuthStateChanged(auth, async (user) => {
     if (user) {
-      console.log("Usuario autenticado:", user.email);
       currentUser = user;
       await loadUserProfile();
 
-      // Esperar un poco más para asegurar que el DOM esté listo
+      // Delay para asegurar que el DOM esté completamente listo
       setTimeout(() => {
-        console.log("🔄 Iniciando autocompletado de campos...");
         populateFormFields();
-      }, 800); // Aumenté el timeout
+      }, 500);
     } else {
-      console.log("Usuario no autenticado, redirigiendo...");
-      // Redirigir al login si no hay usuario autenticado
       window.location.href = "login.html";
     }
   });
@@ -92,33 +88,17 @@ function initializeAuth() {
 // Cargar perfil del usuario desde Firestore
 async function loadUserProfile() {
   try {
-    if (!currentUser) {
-      console.log("No hay usuario actual");
-      return;
-    }
+    if (!currentUser) return;
 
-    console.log("Cargando perfil para usuario:", currentUser.uid);
     const userDoc = await getDoc(doc(db, "usuarios", currentUser.uid));
 
     if (userDoc.exists()) {
       userProfile = userDoc.data();
       isDataLoaded = true;
-      console.log("Perfil cargado exitosamente:", userProfile);
-
-      // Debug específico para Yape
-      console.log("🔍 DEBUG YAPE:");
-      console.log("- userProfile.yape:", userProfile.yape);
-      console.log("- Tipo:", typeof userProfile.yape);
-      console.log("- Longitud:", userProfile.yape?.length);
-      console.log("- Es número?", /^\d+$/.test(userProfile.yape || ""));
     } else {
-      console.log(
-        "No se encontró el perfil del usuario, creando uno por defecto"
-      );
       await createDefaultProfile();
     }
   } catch (error) {
-    console.error("Error al cargar el perfil:", error);
     showMessage("Error al cargar el perfil del usuario", "danger");
   }
 }
@@ -132,19 +112,19 @@ async function createDefaultProfile() {
       apellidoUsuario: "",
       correo: currentUser.email,
       celular: "",
-      edad: "", // STRING
-      facultadID: "", // Corregido: facultadID (mayúscula)
-      escuelaID: "", // Corregido: escuelaID (mayúscula)
-      ciclo: "", // STRING en formato romano: "I", "II", etc.
+      edad: "",
+      facultadID: "",
+      escuelaID: "",
+      ciclo: "",
       poloTallaID: "",
       banco: "",
       cuentaBancaria: "",
-      yape: "",
+      Yape: "",
       fotoPerfil:
         "https://res.cloudinary.com/dupkeaqnz/image/upload/v1750485086/h1yjan3omjtlrot1a4wa.jpg",
-      idRol: "rol_004", // Rol de recolector de donaciones por defecto
-      esAdmin: "false", // STRING
-      estadoActivo: "true", // STRING
+      idRol: "rol_004",
+      esAdmin: "false",
+      estadoActivo: "true",
       codigoUsuario: generateUserCode(),
       fechaCreacion: serverTimestamp(),
       fechaActualizacion: serverTimestamp(),
@@ -152,9 +132,7 @@ async function createDefaultProfile() {
 
     await setDoc(doc(db, "usuarios", currentUser.uid), defaultProfile);
     userProfile = defaultProfile;
-    console.log("Perfil por defecto creado");
   } catch (error) {
-    console.error("Error al crear perfil por defecto:", error);
     showMessage("Error al crear el perfil", "danger");
   }
 }
@@ -168,12 +146,9 @@ function generateUserCode() {
 
 // Poblar datos estáticos en los selects
 function populateStaticData() {
-  console.log("Poblando datos estáticos...");
-
   // Facultades
   const facultadSelect = document.getElementById("facultadId");
   if (facultadSelect) {
-    // Limpiar opciones existentes EXCEPTO la primera
     const firstOption = facultadSelect.querySelector('option[value=""]');
     facultadSelect.innerHTML = "";
     if (firstOption) facultadSelect.appendChild(firstOption);
@@ -184,13 +159,11 @@ function populateStaticData() {
       option.textContent = nombre;
       facultadSelect.appendChild(option);
     });
-    console.log("Facultades pobladas:", FACULTADES);
   }
 
   // Bancos
   const bancoSelect = document.getElementById("banco");
   if (bancoSelect) {
-    // Limpiar opciones existentes EXCEPTO la primera
     const firstOption = bancoSelect.querySelector('option[value=""]');
     bancoSelect.innerHTML = "";
     if (firstOption) bancoSelect.appendChild(firstOption);
@@ -201,13 +174,11 @@ function populateStaticData() {
       option.textContent = banco;
       bancoSelect.appendChild(option);
     });
-    console.log("Bancos poblados:", BANCOS);
   }
 
   // Tallas
   const tallaSelect = document.getElementById("poloTallaID");
   if (tallaSelect) {
-    // Limpiar opciones existentes EXCEPTO la primera
     const firstOption = tallaSelect.querySelector('option[value=""]');
     tallaSelect.innerHTML = "";
     if (firstOption) tallaSelect.appendChild(firstOption);
@@ -218,268 +189,141 @@ function populateStaticData() {
       option.textContent = talla;
       tallaSelect.appendChild(option);
     });
-    console.log("Tallas pobladas:", TALLAS);
   }
 
-  // Ciclos - REEMPLAZAR completamente para usar valores romanos
+  // Ciclos
   const cicloSelect = document.getElementById("ciclo");
   if (cicloSelect) {
     cicloSelect.innerHTML = '<option value="">Selecciona tu ciclo</option>';
-    const ciclosRomanos = [
-      "I",
-      "II",
-      "III",
-      "IV",
-      "V",
-      "VI",
-      "VII",
-      "VIII",
-      "IX",
-      "X",
-    ];
 
-    ciclosRomanos.forEach((romano, index) => {
+    CICLOS_ROMANOS.forEach((romano) => {
       const option = document.createElement("option");
-      option.value = romano; // Valor en romano: "I", "II", etc.
+      option.value = romano;
       option.textContent = `${romano} Ciclo`;
       cicloSelect.appendChild(option);
     });
-    console.log("Ciclos poblados con valores romanos:", ciclosRomanos);
   }
 }
 
 // Poblar campos del formulario con datos del usuario
 function populateFormFields() {
-  if (!userProfile || !isDataLoaded) {
-    console.log("Perfil no cargado aún", { userProfile, isDataLoaded });
-    return;
-  }
+  if (!userProfile || !isDataLoaded) return;
 
-  console.log("🔄 POBLANDO CAMPOS CON PERFIL:", userProfile);
+  // Campos editables
+  const fields = {
+    nombreUsuario: userProfile.nombreUsuario || "",
+    apellidoUsuario: userProfile.apellidoUsuario || "",
+    edad: userProfile.edad || "",
+  };
 
-  // CAMPOS EDITABLES
-  const nombreInput = document.getElementById("nombreUsuario");
-  const apellidoInput = document.getElementById("apellidoUsuario");
+  // Poblar campos básicos
+  Object.entries(fields).forEach(([fieldId, value]) => {
+    const element = document.getElementById(fieldId);
+    if (element) element.value = value;
+  });
+
+  // Celular con formato
   const celularInput = document.getElementById("celular");
-  const edadInput = document.getElementById("edad");
-  const facultadSelect = document.getElementById("facultadId");
-  const escuelaSelect = document.getElementById("escuelaID");
-  const cicloSelect = document.getElementById("ciclo");
-  const tallaSelect = document.getElementById("poloTallaID");
+  if (celularInput && userProfile.celular) {
+    const celular = userProfile.celular;
+    celularInput.value =
+      celular.length === 9
+        ? `${celular.substring(0, 3)} ${celular.substring(
+            3,
+            6
+          )} ${celular.substring(6)}`
+        : celular;
+  }
 
-  if (nombreInput) {
-    nombreInput.value = userProfile.nombreUsuario || "";
-    console.log("✅ Nombre poblado:", nombreInput.value);
-  }
-  if (apellidoInput) {
-    apellidoInput.value = userProfile.apellidoUsuario || "";
-    console.log("✅ Apellido poblado:", apellidoInput.value);
-  }
-  if (celularInput) {
-    // Formatear el celular al mostrarlo
-    const celular = userProfile.celular || "";
-    if (celular.length === 9) {
-      celularInput.value =
-        celular.substring(0, 3) +
-        " " +
-        celular.substring(3, 6) +
-        " " +
-        celular.substring(6);
-    } else {
-      celularInput.value = celular;
+  // Selects
+  const selects = {
+    facultadId: userProfile.facultadID,
+    ciclo: userProfile.ciclo,
+    poloTallaID: userProfile.poloTallaID,
+    banco: userProfile.banco,
+  };
+
+  Object.entries(selects).forEach(([selectId, value]) => {
+    const element = document.getElementById(selectId);
+    if (element && value) element.value = value;
+  });
+
+  // Campos de solo lectura
+  const readonlyFields = [
+    { id: "correo", value: userProfile.correo || "" },
+    { id: "codigoUsuario", value: userProfile.codigoUsuario || "" },
+    {
+      id: "idRol",
+      value:
+        {
+          rol_001: "Administrador",
+          rol_002: "Coordinador",
+          rol_003: "Voluntario",
+          rol_004: "Recolector de Donaciones",
+        }[userProfile.idRol] ||
+        userProfile.idRol ||
+        "",
+    },
+  ];
+
+  readonlyFields.forEach(({ id, value }) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.value = value;
+      element.disabled = true;
+      element.style.backgroundColor = "#f8f9fa";
+      element.style.cursor = "not-allowed";
     }
-    console.log("✅ Celular poblado:", celularInput.value);
-  }
-  if (edadInput) {
-    edadInput.value = userProfile.edad || "";
-    console.log("✅ Edad poblada:", edadInput.value);
-  }
+  });
 
-  // FACULTAD - AUTOCOMPLETE
-  if (facultadSelect && userProfile.facultadID) {
-    facultadSelect.value = userProfile.facultadID;
-    console.log(
-      "🎯 FACULTAD AUTOCOMPLETADA:",
-      userProfile.facultadID,
-      "→",
-      facultadSelect.options[facultadSelect.selectedIndex]?.text
-    );
-  }
-
-  // CICLO - AUTOCOMPLETE
-  if (cicloSelect && userProfile.ciclo) {
-    cicloSelect.value = userProfile.ciclo;
-    console.log(
-      "🎯 CICLO AUTOCOMPLETADO:",
-      userProfile.ciclo,
-      "→",
-      cicloSelect.options[cicloSelect.selectedIndex]?.text
-    );
-  }
-
-  // TALLA - AUTOCOMPLETE
-  if (tallaSelect && userProfile.poloTallaID) {
-    tallaSelect.value = userProfile.poloTallaID;
-    console.log("🎯 TALLA AUTOCOMPLETADA:", userProfile.poloTallaID);
-  }
-
-  // CAMPOS NO EDITABLES (Solo lectura)
-  const correoInput = document.getElementById("correo");
-  const codigoUsuarioInput = document.getElementById("codigoUsuario");
-  const rolInput = document.getElementById("idRol");
-
-  if (correoInput) {
-    correoInput.value = userProfile.correo || "";
-    correoInput.disabled = true;
-    correoInput.style.backgroundColor = "#f8f9fa";
-    correoInput.style.cursor = "not-allowed";
-    console.log("🔒 Correo poblado (readonly):", correoInput.value);
-  }
-
-  if (codigoUsuarioInput) {
-    codigoUsuarioInput.value = userProfile.codigoUsuario || "";
-    codigoUsuarioInput.disabled = true;
-    codigoUsuarioInput.style.backgroundColor = "#f8f9fa";
-    codigoUsuarioInput.style.cursor = "not-allowed";
-    console.log(
-      "🔒 Código usuario poblado (readonly):",
-      codigoUsuarioInput.value
-    );
-  }
-
-  if (rolInput) {
-    const rolesNombres = {
-      rol_001: "Administrador",
-      rol_002: "Coordinador",
-      rol_003: "Voluntario",
-      rol_004: "Recolector de Donaciones",
-    };
-    rolInput.value = rolesNombres[userProfile.idRol] || userProfile.idRol || "";
-    rolInput.disabled = true;
-    rolInput.style.backgroundColor = "#f8f9fa";
-    rolInput.style.cursor = "not-allowed";
-    console.log("🔒 Rol poblado (readonly):", rolInput.value);
-  }
-
-  // INFORMACIÓN BANCARIA - AUTOCOMPLETE
-  const bancoSelect = document.getElementById("banco");
+  // Cuenta bancaria con formato
   const cuentaInput = document.getElementById("cuentaBancaria");
-  const yapeInput = document.getElementById("yape");
-
-  console.log("🔍 Verificando elementos bancarios:");
-  console.log("- bancoSelect:", !!bancoSelect);
-  console.log("- cuentaInput:", !!cuentaInput);
-  console.log("- yapeInput:", !!yapeInput);
-
-  // BANCO - AUTOCOMPLETE
-  if (bancoSelect && userProfile.banco) {
-    bancoSelect.value = userProfile.banco;
-    console.log(
-      "🎯 BANCO AUTOCOMPLETADO:",
-      userProfile.banco,
-      "→",
-      bancoSelect.options[bancoSelect.selectedIndex]?.text
-    );
-  }
-
-  // CUENTA BANCARIA - AUTOCOMPLETE Y FORMATO
   if (cuentaInput && userProfile.cuentaBancaria) {
     const cuenta = userProfile.cuentaBancaria;
-    if (cuenta && cuenta.length > 4) {
-      cuentaInput.value = cuenta.match(/.{1,4}/g).join("-");
-    } else {
-      cuentaInput.value = cuenta;
-    }
-    console.log("🎯 CUENTA BANCARIA AUTOCOMPLETADA:", cuentaInput.value);
+    cuentaInput.value =
+      cuenta.length > 4 ? cuenta.match(/.{1,4}/g).join("-") : cuenta;
   }
 
-  // YAPE - AUTOCOMPLETE Y FORMATO (con múltiples intentos)
-  function autocompletarYape() {
-    const yapeInputNow = document.getElementById("yape");
-    console.log("🔍 Reintentando Yape - Input encontrado:", !!yapeInputNow);
-
-    if (yapeInputNow && userProfile.yape) {
-      const yape = userProfile.yape || "";
-      console.log(
-        "🔍 Yape desde Firebase:",
-        yape,
-        "Longitud:",
-        yape.length,
-        "Tipo:",
-        typeof yape
-      );
-
-      if (yape) {
-        // Si tiene exactamente 9 dígitos, formatear
-        if (yape.length === 9 && /^\d{9}$/.test(yape)) {
-          yapeInputNow.value =
-            yape.substring(0, 3) +
-            " " +
-            yape.substring(3, 6) +
-            " " +
-            yape.substring(6);
-          console.log(
-            "🎯 YAPE AUTOCOMPLETADO Y FORMATEADO:",
-            yapeInputNow.value
-          );
-        } else {
-          // Si no tiene 9 dígitos exactos, mostrar tal como está
-          yapeInputNow.value = yape;
-          console.log(
-            "🎯 YAPE AUTOCOMPLETADO SIN FORMATO:",
-            yapeInputNow.value
-          );
-        }
-        return true; // Éxito
-      }
+  // Yape con formato (múltiples intentos)
+  const autocompletarYape = () => {
+    const yapeInput = document.getElementById("yape");
+    if (yapeInput && userProfile.Yape) {
+      const yape = userProfile.Yape;
+      yapeInput.value =
+        yape.length === 9 && /^\d{9}$/.test(yape)
+          ? `${yape.substring(0, 3)} ${yape.substring(3, 6)} ${yape.substring(
+              6
+            )}`
+          : yape;
+      return true;
     }
-    return false; // Falló
-  }
+    return false;
+  };
 
-  // Intentar autocompletar Yape inmediatamente
   if (!autocompletarYape()) {
-    console.log("⏳ Primer intento de Yape falló, reintentando en 100ms...");
     setTimeout(() => {
       if (!autocompletarYape()) {
-        console.log(
-          "⏳ Segundo intento de Yape falló, reintentando en 300ms..."
-        );
-        setTimeout(() => {
-          if (!autocompletarYape()) {
-            console.log(
-              "❌ Yape no se pudo autocompletar después de 3 intentos"
-            );
-          }
-        }, 300);
+        setTimeout(autocompletarYape, 300);
       }
     }, 100);
   }
 
-  // FOTO DE PERFIL
+  // Foto de perfil
   const profileImage = document.getElementById("profileImage");
   if (profileImage && userProfile.fotoPerfil) {
     profileImage.src = userProfile.fotoPerfil;
-    console.log("🖼️ Foto de perfil poblada:", userProfile.fotoPerfil);
   }
 
-  // ACTUALIZAR ESCUELAS Y AUTOCOMPLETAR
+  // Actualizar escuelas
   if (userProfile.facultadID) {
     updateEscuelas(userProfile.facultadID);
-    // Después de actualizar las escuelas, seleccionar la escuela del usuario
     setTimeout(() => {
+      const escuelaSelect = document.getElementById("escuelaID");
       if (escuelaSelect && userProfile.escuelaID) {
         escuelaSelect.value = userProfile.escuelaID;
-        console.log(
-          "🎯 ESCUELA AUTOCOMPLETADA:",
-          userProfile.escuelaID,
-          "→",
-          escuelaSelect.options[escuelaSelect.selectedIndex]?.text
-        );
       }
-    }, 200); // Aumenté el timeout para asegurar que las escuelas se carguen
+    }, 200);
   }
-
-  console.log("✅ AUTOCOMPLETADO TERMINADO");
 }
 
 // Actualizar escuelas según la facultad seleccionada
@@ -501,13 +345,7 @@ function updateEscuelas(facultadId) {
 
 // Configurar event listeners
 function setupEventListeners() {
-  // Toggle de contraseñas
-  setupPasswordToggles();
-
-  // Subida de imagen
   setupImageUpload();
-
-  // Formateo de números
   setupNumberFormatting();
 
   // Cambio de facultad
@@ -516,14 +354,8 @@ function setupEventListeners() {
     facultadSelect.addEventListener("change", function () {
       updateEscuelas(this.value);
       const escuelaSelect = document.getElementById("escuelaID");
-      if (escuelaSelect) escuelaSelect.value = ""; // Limpiar escuela seleccionada
+      if (escuelaSelect) escuelaSelect.value = "";
     });
-  }
-
-  // Validación de contraseña en tiempo real
-  const confirmPasswordInput = document.getElementById("confirmPassword");
-  if (confirmPasswordInput) {
-    confirmPasswordInput.addEventListener("input", validatePasswordMatch);
   }
 
   // Botones principales
@@ -532,46 +364,6 @@ function setupEventListeners() {
 
   if (saveButton) saveButton.addEventListener("click", saveProfile);
   if (cancelButton) cancelButton.addEventListener("click", cancelChanges);
-}
-
-// Configurar toggles de contraseña
-function setupPasswordToggles() {
-  const toggles = [
-    { inputId: "currentPassword", buttonId: "toggleCurrentPassword" },
-    { inputId: "newPassword", buttonId: "toggleNewPassword" },
-    { inputId: "confirmPassword", buttonId: "toggleConfirmPassword" },
-  ];
-
-  toggles.forEach(({ inputId, buttonId }) => {
-    const button = document.getElementById(buttonId);
-    if (button) {
-      button.addEventListener("click", () => togglePassword(inputId, buttonId));
-    }
-  });
-}
-
-// Toggle de visibilidad de contraseña
-function togglePassword(inputId, buttonId) {
-  const input = document.getElementById(inputId);
-  const button = document.getElementById(buttonId);
-
-  if (!input || !button) return;
-
-  const icon = button.querySelector("i");
-
-  if (input.type === "password") {
-    input.type = "text";
-    if (icon) {
-      icon.classList.remove("fa-eye");
-      icon.classList.add("fa-eye-slash");
-    }
-  } else {
-    input.type = "password";
-    if (icon) {
-      icon.classList.remove("fa-eye-slash");
-      icon.classList.add("fa-eye");
-    }
-  }
 }
 
 // Configurar subida de imagen
@@ -583,46 +375,35 @@ function setupImageUpload() {
 
   fileInput.addEventListener("change", async function (e) {
     const file = e.target.files[0];
-    if (file) {
-      // Validar archivo
-      if (!file.type.startsWith("image/")) {
-        showMessage(
-          "Por favor selecciona un archivo de imagen válido",
-          "danger"
-        );
-        return;
-      }
+    if (!file) return;
 
-      if (file.size > 5 * 1024 * 1024) {
-        // 5MB
-        showMessage("El archivo es demasiado grande. Máximo 5MB", "danger");
-        return;
-      }
+    // Validar archivo
+    if (!file.type.startsWith("image/")) {
+      showMessage("Por favor selecciona un archivo de imagen válido", "danger");
+      return;
+    }
 
-      try {
-        // Mostrar preview inmediatamente
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          profileImage.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
+    if (file.size > 5 * 1024 * 1024) {
+      showMessage("El archivo es demasiado grande. Máximo 5MB", "danger");
+      return;
+    }
 
-        // Subir a Cloudinary
-        const imageUrl = await uploadToCloudinary(file);
+    const originalSrc = profileImage.src;
 
-        // Actualizar en la base de datos
-        await updateProfileImage(imageUrl);
+    try {
+      // Mostrar preview
+      const reader = new FileReader();
+      reader.onload = (e) => (profileImage.src = e.target.result);
+      reader.readAsDataURL(file);
 
-        showMessage("Foto de perfil actualizada correctamente", "success");
-      } catch (error) {
-        console.error("Error al subir imagen:", error);
-        showMessage("Error al subir la imagen", "danger");
+      // Subir a Cloudinary
+      const imageUrl = await uploadToCloudinary(file);
+      await updateProfileImage(imageUrl);
 
-        // Restaurar imagen anterior
-        if (userProfile && userProfile.fotoPerfil) {
-          profileImage.src = userProfile.fotoPerfil;
-        }
-      }
+      showMessage("Foto de perfil actualizada correctamente", "success");
+    } catch (error) {
+      showMessage("Error al subir la imagen", "danger");
+      profileImage.src = originalSrc;
     }
   });
 }
@@ -652,25 +433,18 @@ async function uploadToCloudinary(file) {
 
 // Actualizar foto de perfil en la base de datos
 async function updateProfileImage(imageUrl) {
-  try {
-    await updateDoc(doc(db, "usuarios", currentUser.uid), {
-      fotoPerfil: imageUrl,
-      fechaActualizacion: serverTimestamp(),
-    });
+  await updateDoc(doc(db, "usuarios", currentUser.uid), {
+    fotoPerfil: imageUrl,
+    fechaActualizacion: serverTimestamp(),
+  });
 
-    // Actualizar perfil local
-    userProfile.fotoPerfil = imageUrl;
-  } catch (error) {
-    console.error("Error al actualizar foto de perfil:", error);
-    throw error;
-  }
+  userProfile.fotoPerfil = imageUrl;
 }
 
 // Configurar formateo de números
 function setupNumberFormatting() {
   // Formato de teléfono
-  const phoneInputs = ["celular", "yape"];
-  phoneInputs.forEach((inputId) => {
+  ["celular", "yape"].forEach((inputId) => {
     const input = document.getElementById(inputId);
     if (input) {
       input.addEventListener("input", function () {
@@ -694,14 +468,12 @@ function formatPhoneNumber(input) {
   if (value.length > 9) value = value.substring(0, 9);
 
   if (value.length >= 6) {
-    value =
-      value.substring(0, 3) +
-      " " +
-      value.substring(3, 6) +
-      " " +
-      value.substring(6);
+    value = `${value.substring(0, 3)} ${value.substring(
+      3,
+      6
+    )} ${value.substring(6)}`;
   } else if (value.length >= 3) {
-    value = value.substring(0, 3) + " " + value.substring(3);
+    value = `${value.substring(0, 3)} ${value.substring(3)}`;
   }
 
   input.value = value;
@@ -719,34 +491,14 @@ function formatAccountNumber(input) {
   input.value = value;
 }
 
-// Validar coincidencia de contraseñas
-function validatePasswordMatch() {
-  const newPasswordInput = document.getElementById("newPassword");
-  const confirmPasswordInput = document.getElementById("confirmPassword");
-
-  if (!newPasswordInput || !confirmPasswordInput) return;
-
-  const newPassword = newPasswordInput.value;
-  const confirmPassword = confirmPasswordInput.value;
-
-  if (confirmPassword && newPassword !== confirmPassword) {
-    confirmPasswordInput.setCustomValidity("Las contraseñas no coinciden");
-    confirmPasswordInput.classList.add("is-invalid");
-  } else {
-    confirmPasswordInput.setCustomValidity("");
-    confirmPasswordInput.classList.remove("is-invalid");
-  }
-}
-
 // Validar formulario completo
 function validateForm() {
   const requiredFields = [
     "nombreUsuario",
     "apellidoUsuario",
-    // "correo", // NO validar correo porque es readonly
     "celular",
     "edad",
-    "facultadId", // Mantener el ID del HTML
+    "facultadId",
     "escuelaID",
     "ciclo",
   ];
@@ -756,42 +508,12 @@ function validateForm() {
     if (!field || !field.value.trim()) {
       const label = field?.previousElementSibling?.textContent || fieldId;
       showMessage(`El campo ${label} es requerido`, "danger");
-      if (field) field.focus();
+      field?.focus();
       return false;
     }
   }
 
-  const newPasswordInput = document.getElementById("newPassword");
-  const confirmPasswordInput = document.getElementById("confirmPassword");
-
-  if (newPasswordInput && confirmPasswordInput) {
-    const newPassword = newPasswordInput.value;
-    const confirmPassword = confirmPasswordInput.value;
-
-    if (newPassword) {
-      if (newPassword.length < 8) {
-        showMessage("La contraseña debe tener al menos 8 caracteres", "danger");
-        return false;
-      }
-
-      if (newPassword !== confirmPassword) {
-        showMessage("Las contraseñas no coinciden", "danger");
-        return false;
-      }
-
-      if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
-        showMessage(
-          "La contraseña debe contener al menos una mayúscula, una minúscula y un número",
-          "danger"
-        );
-        return false;
-      }
-    }
-  }
-
-  // NO validar email porque es readonly y no se puede cambiar
-
-  // Validar edad (como string pero verificar que sea número válido)
+  // Validar edad
   const edadInput = document.getElementById("edad");
   if (edadInput) {
     const edad = parseInt(edadInput.value);
@@ -801,25 +523,11 @@ function validateForm() {
     }
   }
 
-  // Validar ciclo (debe ser romano válido)
+  // Validar ciclo
   const cicloInput = document.getElementById("ciclo");
-  if (cicloInput) {
-    const ciclosValidos = [
-      "I",
-      "II",
-      "III",
-      "IV",
-      "V",
-      "VI",
-      "VII",
-      "VIII",
-      "IX",
-      "X",
-    ];
-    if (!ciclosValidos.includes(cicloInput.value)) {
-      showMessage("Debe seleccionar un ciclo académico válido", "danger");
-      return false;
-    }
+  if (cicloInput && !CICLOS_ROMANOS.includes(cicloInput.value)) {
+    showMessage("Debe seleccionar un ciclo académico válido", "danger");
+    return false;
   }
 
   return true;
@@ -832,105 +540,55 @@ async function saveProfile() {
   const saveButton = document.querySelector(".btn-primary");
   if (!saveButton) return;
 
+  // Prevenir múltiples clics
+  if (saveButton.disabled) return;
+
   const originalText = saveButton.innerHTML;
 
   try {
-    // Mostrar estado de carga
+    // Deshabilitar botón inmediatamente
+    saveButton.disabled = true;
     saveButton.innerHTML =
       '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
-    saveButton.disabled = true;
 
-    // Recopilar datos del formulario - TODOS COMO STRING
-    // SOLO campos editables, excluyendo los protegidos
+    // Recopilar datos del formulario
     const profileData = {
       nombreUsuario:
         document.getElementById("nombreUsuario")?.value.trim() || "",
       apellidoUsuario:
         document.getElementById("apellidoUsuario")?.value.trim() || "",
-      // correo: NO SE ACTUALIZA - protegido
       celular:
         document.getElementById("celular")?.value.replace(/\s/g, "") || "",
-      edad: document.getElementById("edad")?.value || "", // STRING
-      facultadID: document.getElementById("facultadId")?.value || "", // HTML usa facultadId, DB usa facultadID
+      edad: document.getElementById("edad")?.value || "",
+      facultadID: document.getElementById("facultadId")?.value || "",
       escuelaID: document.getElementById("escuelaID")?.value || "",
-      ciclo: document.getElementById("ciclo")?.value || "", // STRING
+      ciclo: document.getElementById("ciclo")?.value || "",
       poloTallaID: document.getElementById("poloTallaID")?.value || "",
       banco: document.getElementById("banco")?.value || "",
       cuentaBancaria:
         document.getElementById("cuentaBancaria")?.value.replace(/-/g, "") ||
         "",
-      yape: document.getElementById("yape")?.value.replace(/\s/g, "") || "",
+      Yape: document.getElementById("yape")?.value.replace(/\s/g, "") || "",
       fechaActualizacion: serverTimestamp(),
     };
 
-    // CAMPOS PROTEGIDOS que NO se actualizan:
-    // - idUsuario (inmutable)
-    // - correo (protegido)
-    // - codigoUsuario (inmutable)
-    // - idRol (solo admin puede cambiar)
-    // - esAdmin (solo admin puede cambiar)
-    // - estadoActivo (solo admin puede cambiar)
-    // - fechaCreacion (inmutable)
-
     // Actualizar en Firestore
     await updateDoc(doc(db, "usuarios", currentUser.uid), profileData);
-
-    // Cambiar contraseña si se proporcionó
-    const newPasswordInput = document.getElementById("newPassword");
-    if (newPasswordInput && newPasswordInput.value) {
-      const currentPasswordInput = document.getElementById("currentPassword");
-      if (!currentPasswordInput || !currentPasswordInput.value) {
-        showMessage(
-          "Debes ingresar tu contraseña actual para cambiarla",
-          "danger"
-        );
-        return;
-      }
-
-      await changePassword(currentPasswordInput.value, newPasswordInput.value);
-    }
 
     // Actualizar perfil local
     userProfile = { ...userProfile, ...profileData };
 
     showMessage("Perfil actualizado correctamente", "success");
-
-    // Limpiar campos de contraseña
-    const currentPasswordInput = document.getElementById("currentPassword");
-    const confirmPasswordInput = document.getElementById("confirmPassword");
-
-    if (currentPasswordInput) currentPasswordInput.value = "";
-    if (newPasswordInput) newPasswordInput.value = "";
-    if (confirmPasswordInput) confirmPasswordInput.value = "";
-
-    // Scroll to top
     window.scrollTo({ top: 0, behavior: "smooth" });
   } catch (error) {
-    console.error("Error al guardar perfil:", error);
-    showMessage("Error al guardar el perfil: " + error.message, "danger");
-  } finally {
-    // Restaurar botón
+    showMessage(`Error al guardar el perfil: ${error.message}`, "danger");
+  }
+
+  // Restaurar botón después de un pequeño delay
+  setTimeout(() => {
     saveButton.innerHTML = originalText;
     saveButton.disabled = false;
-  }
-}
-
-// Cambiar contraseña
-async function changePassword(currentPassword, newPassword) {
-  try {
-    // Reautenticar usuario
-    await signInWithEmailAndPassword(auth, currentUser.email, currentPassword);
-
-    // Actualizar contraseña
-    await updateProfile(currentUser, { password: newPassword });
-
-    console.log("Contraseña actualizada");
-  } catch (error) {
-    if (error.code === "auth/wrong-password") {
-      throw new Error("La contraseña actual es incorrecta");
-    }
-    throw error;
-  }
+  }, 500);
 }
 
 // Cancelar cambios
@@ -941,16 +599,6 @@ function cancelChanges() {
     )
   ) {
     populateFormFields();
-
-    // Limpiar campos de contraseña
-    const currentPasswordInput = document.getElementById("currentPassword");
-    const newPasswordInput = document.getElementById("newPassword");
-    const confirmPasswordInput = document.getElementById("confirmPassword");
-
-    if (currentPasswordInput) currentPasswordInput.value = "";
-    if (newPasswordInput) newPasswordInput.value = "";
-    if (confirmPasswordInput) confirmPasswordInput.value = "";
-
     showMessage("Cambios cancelados", "info");
   }
 }
@@ -980,9 +628,7 @@ function showMessage(message, type) {
   // Auto-hide después de 5 segundos
   setTimeout(() => {
     const alert = messageContainer.querySelector(".alert");
-    if (alert) {
-      alert.remove();
-    }
+    if (alert) alert.remove();
   }, 5000);
 }
 
@@ -1007,7 +653,7 @@ document.addEventListener("click", function (e) {
   }
 });
 
-// Funciones globales (para mantener compatibilidad)
+// Funciones globales
 window.saveProfile = saveProfile;
 window.cancelChanges = cancelChanges;
 window.toggleSidebar = toggleSidebar;

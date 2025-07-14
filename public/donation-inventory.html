@@ -538,23 +538,20 @@
     <script>
         window.addEventListener('load', function() {
             // Verificar y configurar jsPDF
-            console.log('🔍 Verificando librerías...');
-            console.log('window.jsPDF:', typeof window.jsPDF);
-            console.log('html2canvas:', typeof html2canvas);
             
             // Para versión 1.5.3, jsPDF está directamente en window.jsPDF
             if (typeof window.jsPDF !== 'undefined') {
-                console.log('✅ jsPDF 1.5.3 cargado correctamente');
+
                 // La versión 1.5.3 no necesita .jsPDF, se usa directamente
                 window.jsPDFConstructor = window.jsPDF;
             } else {
-                console.error('❌ jsPDF no se cargó');
+
             }
             
             if (typeof html2canvas !== 'undefined') {
-                console.log('✅ html2canvas cargado correctamente');
+
             } else {
-                console.error('❌ html2canvas no se cargó');
+
             }
         });
     </script>
@@ -565,76 +562,78 @@
     <script type="module" src="js/inventory_excel_exporter.js"></script>
 
     <!-- Script para manejo del menú móvil y animaciones -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+   <script>
+        // Función para toggle del sidebar en móviles
+        function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
             const sidebarOverlay = document.getElementById('sidebarOverlay');
-
-            // Función para abrir/cerrar el menú móvil
-            function toggleMobileMenu() {
-                sidebar.classList.toggle('active');
-                sidebarOverlay.classList.toggle('active');
-                document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+            
+            // Toggle sidebar cuando se hace click en el botón hamburguesa
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', toggleSidebar);
             }
-
-            // Función para cerrar el menú móvil
-            function closeMobileMenu() {
-                sidebar.classList.remove('active');
-                sidebarOverlay.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-
-            // Event listeners
-            if (mobileMenuBtn) {
-                mobileMenuBtn.addEventListener('click', toggleMobileMenu);
-            }
-
+            
+            // Cerrar sidebar cuando se hace click en el overlay
             if (sidebarOverlay) {
-                sidebarOverlay.addEventListener('click', closeMobileMenu);
+                sidebarOverlay.addEventListener('click', function() {
+                    toggleSidebar();
+                });
             }
-
-            // Cerrar menú al hacer clic en un enlace (para móvil)
+            
+            // Cerrar sidebar al hacer click en un enlace (en móviles)
             const navLinks = document.querySelectorAll('.nav-link');
             navLinks.forEach(link => {
-                link.addEventListener('click', () => {
-                    if (window.innerWidth < 1200) {
-                        closeMobileMenu();
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 992) {
+                        toggleSidebar();
                     }
                 });
             });
-
-            // Cerrar menú al cambiar el tamaño de pantalla
-            window.addEventListener('resize', () => {
-                if (window.innerWidth >= 1200) {
-                    closeMobileMenu();
+            
+            // Cerrar sidebar si se cambia el tamaño de ventana a desktop
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 992) {
+                    const sidebar = document.getElementById('sidebar');
+                    const overlay = document.getElementById('sidebarOverlay');
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
                 }
             });
-
-            // Animaciones de entrada para las tarjetas
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }
-                });
-            }, observerOptions);
-
-            // Observar todas las tarjetas del dashboard
-            const dashboardCards = document.querySelectorAll('.dashboard-card');
-            dashboardCards.forEach(card => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-                observer.observe(card);
-            });
+            
+            // Inicializar dropdowns de Bootstrap
+            const dropdownTriggerList = document.querySelectorAll('[data-bs-toggle="dropdown"]');
+            const dropdownList = [...dropdownTriggerList].map(dropdownTriggerEl => 
+                new bootstrap.Dropdown(dropdownTriggerEl)
+            );
         });
+
+        // Funciones de navegación (placeholder)
+        function navigateToPage(page) {
+            console.log('Navegando a:', page);
+            // Aquí iría la lógica de navegación
+        }
+
+        function logout() {
+            console.log('Cerrando sesión...');
+            // Aquí iría la lógica de logout
+        }
+
+        // Función para obtener sesión almacenada (placeholder)
+        function getStoredSession() {
+            // Retorna datos de sesión de ejemplo
+            return {
+                nombreUsuario: 'Harold Arturo'
+            };
+        }
     </script>
 </body>
 

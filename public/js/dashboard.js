@@ -9,7 +9,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 // =============================================
-// GESTIÓN DE SESIÓN
+// GESTIÓN DE SESIÓN SIMPLIFICADA
 // =============================================
 
 let currentUser = null;
@@ -36,25 +36,8 @@ function clearSession() {
     currentUser = null;
     sessionStorage.removeItem("userSession");
   } catch (error) {
-    console.error("Error al limpiar sesión:", error);
+    // Silencioso en producción
   }
-}
-
-function checkAuthentication() {
-  const session = getStoredSession();
-
-  if (!session) {
-    window.location.href = "index.html";
-    return null;
-  }
-
-  if (!session.esAdmin) {
-    alert("No tienes permisos para acceder a esta página");
-    window.location.href = "descarga_app.html";
-    return null;
-  }
-
-  return session;
 }
 
 // =============================================
@@ -67,14 +50,11 @@ function isCurrentMonth(date) {
   const now = new Date();
   let targetDate;
 
-  // Manejar diferentes formatos de fecha
   if (typeof date === "string") {
     targetDate = new Date(date);
   } else if (date.seconds) {
-    // Timestamp de Firestore
     targetDate = new Date(date.seconds * 1000);
   } else if (date.toDate && typeof date.toDate === "function") {
-    // Timestamp de Firestore con método toDate
     targetDate = date.toDate();
   } else {
     targetDate = new Date(date);
@@ -162,7 +142,6 @@ async function getEventsData() {
   snapshot.forEach((doc) => {
     const eventData = doc.data();
 
-    // Contar participantes totales
     if (
       eventData.voluntariosInscritos &&
       Array.isArray(eventData.voluntariosInscritos)
@@ -170,13 +149,11 @@ async function getEventsData() {
       const participants = eventData.voluntariosInscritos.length;
       totalParticipants += participants;
 
-      // Contar nuevos participantes este mes
       if (isEventFromThisMonth(eventData)) {
         newParticipantsThisMonth += participants;
       }
     }
 
-    // Contar nuevos eventos este mes - revisar múltiples campos posibles
     if (isEventFromThisMonth(eventData)) {
       newEventsThisMonth++;
     }
@@ -191,7 +168,6 @@ async function getEventsData() {
 }
 
 function isEventFromThisMonth(eventData) {
-  // Revisar múltiples campos posibles para la fecha de creación
   const dateFields = [
     eventData.fechaCreacion,
     eventData.fechaRegistro,
@@ -225,7 +201,6 @@ async function getUsersData() {
     } else {
       volunteers++;
 
-      // Contar nuevos voluntarios este mes - revisar múltiples campos
       const dateFields = [
         userData.fechaRegistro,
         userData.fechaCreacion,
@@ -237,7 +212,7 @@ async function getUsersData() {
       for (const dateField of dateFields) {
         if (dateField && isCurrentMonth(dateField)) {
           newVolunteersThisMonth++;
-          break; // Solo contar una vez por usuario
+          break;
         }
       }
     }
@@ -384,7 +359,6 @@ async function getEventsList() {
 
 function sortEventsByRecentness(events) {
   return events.sort((a, b) => {
-    // Priorizar por fecha de creación
     if (a.fechaCreacion && b.fechaCreacion) {
       const dateA = parseEventDate(a.fechaCreacion);
       const dateB = parseEventDate(b.fechaCreacion);
@@ -393,7 +367,6 @@ function sortEventsByRecentness(events) {
       }
     }
 
-    // Fallback a fecha de inicio
     if (a.fechaInicio && b.fechaInicio) {
       const dateA = parseEventDate(a.fechaInicio);
       const dateB = parseEventDate(b.fechaInicio);
@@ -402,7 +375,6 @@ function sortEventsByRecentness(events) {
       }
     }
 
-    // Fallback a orden alfabético
     const titleA = (a.titulo || a.nombreUsuario || "").toLowerCase();
     const titleB = (b.titulo || b.nombreUsuario || "").toLowerCase();
     return titleA.localeCompare(titleB);
@@ -613,11 +585,11 @@ function updateUserInfo(session) {
 }
 
 // =============================================
-// INICIALIZACIÓN Y NAVEGACIÓN GLOBAL
+// INICIALIZACIÓN SIMPLIFICADA
 // =============================================
 
 async function initializeDashboard() {
-  const session = checkAuthentication();
+  const session = getStoredSession();
   if (!session) return;
 
   updateUserInfo(session);
@@ -627,69 +599,17 @@ async function initializeDashboard() {
 }
 
 // =============================================
-// FUNCIONES GLOBALES EXPORTADAS
+// FUNCIONES GLOBALES EXPORTADAS SIMPLIFICADAS
 // =============================================
-
-window.navigateToPage = function (pageName) {
-  const session = getStoredSession();
-  if (!session) {
-    window.location.href = "index.html";
-    return;
-  }
-
-  const adminPages = [
-    "eventos.html",
-    "administradores.html",
-    "usuarios.html",
-    "configuracion.html",
-    "reportes.html",
-  ];
-
-  if (adminPages.includes(pageName) && !session.esAdmin) {
-    alert("No tienes permisos para acceder a esta página");
-    return;
-  }
-
-  window.location.href = pageName;
-};
-
-window.showProfile = function () {
-  const session = getStoredSession();
-  if (session) {
-    const roleText = session.esAdmin ? "Administrador" : "Usuario";
-    const lastAccess = new Date(session.loginTime).toLocaleString();
-
-    alert(
-      `Perfil de Usuario:\n\n` +
-        `Usuario: ${session.nombreUsuario}\n` +
-        `Correo: ${session.correo}\n` +
-        `Rol: ${roleText}\n` +
-        `Último acceso: ${lastAccess}`
-    );
-  }
-};
-
-window.showSettings = function () {
-  alert("Página de configuración en desarrollo");
-};
-
-window.handleLogout = function () {
-  const confirmed = confirm("¿Estás seguro de que deseas cerrar sesión?");
-  if (confirmed) {
-    clearSession();
-    alert("Sesión cerrada exitosamente");
-    window.location.href = "index.html";
-  }
-};
 
 window.refreshDashboard = async function () {
   await loadDashboardStats();
   await loadRecentEvents();
 };
 
+// Funciones básicas de sesión (para compatibilidad)
 window.getStoredSession = getStoredSession;
 window.clearSession = clearSession;
-window.checkAuthentication = checkAuthentication;
 
 // =============================================
 // EVENT LISTENERS

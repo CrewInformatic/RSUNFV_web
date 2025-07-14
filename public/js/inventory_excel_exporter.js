@@ -13,9 +13,7 @@ class InventoryExcelExporter {
         "https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"
       );
       this.ExcelJS = window.ExcelJS;
-      console.log("ExcelJS cargado correctamente para inventario");
     } catch (error) {
-      console.error("Error cargando ExcelJS:", error);
       this.showError("Error al cargar la librería de exportación");
     }
   }
@@ -76,7 +74,6 @@ class InventoryExcelExporter {
 
       this.showSuccess(`Inventario exportado exitosamente: ${filename}`);
     } catch (error) {
-      console.error("Error al exportar inventario:", error);
       this.showError("Error al generar el reporte de inventario");
     }
   }

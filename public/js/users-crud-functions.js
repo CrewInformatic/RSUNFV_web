@@ -94,7 +94,6 @@ const utils = {
   },
 
   handleError(error, context, showUser = true) {
-    console.error(`❌ Error en ${context}:`, error);
     if (showUser)
       this.showToast("Error", error.message || `Error ${context}`, "error");
   },
@@ -179,7 +178,6 @@ const participationModule = {
       state.participationMap = participationMap;
       return participationMap;
     } catch (error) {
-      console.error("Error al cargar participaciones:", error);
       return new Map();
     }
   },
@@ -399,8 +397,6 @@ const exportModule = {
    * Función principal de exportación - integrada con el sistema completo
    */
   exportUsers() {
-    console.log("📊 Iniciando exportación desde CRUD...");
-
     // Actualizar datos en el módulo de exportación
     this.updateExportData();
 
@@ -464,10 +460,9 @@ const dataLoader = {
   async loadRolesData() {
     try {
       state.rolesData = await loadRoles();
-      console.log("🔍 Roles cargados en gestión de usuarios:", state.rolesData);
+
       return state.rolesData;
     } catch (error) {
-      console.error("❌ Error al cargar roles:", error);
       state.rolesData = [];
       return [];
     }
@@ -1191,17 +1186,12 @@ async function populateModalSelects() {
           .map((f) => `<option value="${f.id}">${f.name}</option>`)
           .join("");
     }
-
-    console.log("✅ Selects del modal poblados correctamente");
   } catch (error) {
-    console.error("❌ Error al poblar selects del modal:", error);
     utils.showToast("Error", "Error al cargar datos del formulario", "error");
   }
 }
 
 function handleAdminRegistered(event) {
-  console.log("🎉 Nuevo administrador registrado:", event.detail);
-
   // Mostrar mensaje de éxito
   utils.showToast(
     "Administrador Creado",
@@ -1217,10 +1207,6 @@ function handleAdminRegistered(event) {
 
 async function initialize() {
   try {
-    console.log(
-      "🚀 Inicializando gestión de usuarios con roles y participaciones..."
-    );
-
     // Configurar eventos de filtros
     ["filterSchool", "filterStatus"].forEach((id) => {
       const element = document.getElementById(id);
@@ -1254,11 +1240,7 @@ async function initialize() {
     window.exportUsers = exportModule.exportUsers.bind(exportModule);
     window.executeExport = executeExport;
     window.exportAllUsersToExcel = exportAllUsersToExcel;
-    console.log(
-      "✅ Gestión de usuarios con roles y participaciones inicializada"
-    );
   } catch (error) {
-    console.error("❌ Error al inicializar:", error);
     utils.showToast("Error", "Error al cargar el sistema", "error");
   }
 }
@@ -1270,8 +1252,6 @@ function setupAddAdminButton() {
   );
 
   if (addAdminButton) {
-    console.log("✅ Botón de agregar administrador encontrado y configurado");
-
     // El botón ya debería abrir el modal automáticamente por Bootstrap
     // Solo necesitamos asegurarnos de que el modal esté configurado correctamente
 
@@ -1279,27 +1259,20 @@ function setupAddAdminButton() {
     if (modal) {
       // Evento cuando se abre el modal
       modal.addEventListener("show.bs.modal", function () {
-        console.log("📝 Modal de agregar administrador abierto");
-
         // Asegurarse de que los selects tengan datos
         populateModalSelects();
       });
 
       // Evento cuando se cierra el modal
-      modal.addEventListener("hidden.bs.modal", function () {
-        console.log("❌ Modal de agregar administrador cerrado");
-      });
+      modal.addEventListener("hidden.bs.modal", function () {});
     }
   } else {
-    console.warn("⚠️ No se encontró el botón para agregar administrador");
   }
 }
 
 // Función para refrescar datos cuando se crea/modifica un evento
 window.refreshUserParticipations = async function () {
   try {
-    console.log("🔄 Refrescando participaciones de usuarios...");
-
     // Recargar mapa de participaciones
     await participationModule.loadEventsParticipation();
 
@@ -1317,11 +1290,7 @@ window.refreshUserParticipations = async function () {
 
     // Actualizar la tabla
     ui.updateTable(ui.getCurrentPageUsers());
-
-    console.log("✅ Participaciones actualizadas");
-  } catch (error) {
-    console.error("❌ Error al refrescar participaciones:", error);
-  }
+  } catch (error) {}
 };
 
 // Inicializar cuando el DOM esté listo

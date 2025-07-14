@@ -1,17 +1,11 @@
 // firebase-redirect.js Esta página captura los parámetros de Firebase y redirige según el tipo de operación
 function processFirebaseAction() {
-  console.log("Procesando parámetros de Firebase...");
-
   // Obtener parámetros de la URL actual
   const urlParams = new URLSearchParams(window.location.search);
   const mode = urlParams.get("mode");
   const oobCode = urlParams.get("oobCode");
   const continueUrl = urlParams.get("continueUrl");
 
-  console.log("Parámetros detectados:", {
-    mode,
-    oobCode: oobCode ? "presente" : "ausente",
-  });
   // Verificar que tenemos los parámetros necesarios
   if (!mode || !oobCode) {
     showError(
@@ -46,8 +40,6 @@ function handlePasswordReset(mode, oobCode) {
   // Construir la URL de destino
   const targetUrl = `confirm-password-reset.html?mode=${mode}&oobCode=${oobCode}`;
 
-  console.log("Redirigiendo a restablecimiento:", targetUrl);
-
   // Redirigir después de un breve delay
   setTimeout(() => {
     window.location.href = targetUrl;
@@ -63,8 +55,6 @@ function handleEmailVerification(mode, oobCode) {
 
   // Construir la URL de destino
   const targetUrl = `emailVerification.html?mode=${mode}&oobCode=${oobCode}`;
-
-  console.log("Redirigiendo a verificación de email:", targetUrl);
 
   // Redirigir después de un breve delay
   setTimeout(() => {

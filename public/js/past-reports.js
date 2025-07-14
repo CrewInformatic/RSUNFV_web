@@ -18,8 +18,6 @@ const jsPDF = window.jspdf?.jsPDF || window.jsPDF;
  * Generar reporte PDF del evento
  */
 export async function generateEventReport(eventId) {
-  console.log(`📄 Iniciando generación de reporte para evento: ${eventId}`);
-
   try {
     // Verificar que jsPDF esté disponible
     if (!jsPDF) {
@@ -50,8 +48,6 @@ export async function generateEventReport(eventId) {
     )}_${formatDateForFilename(new Date())}.pdf`;
     pdf.save(fileName);
 
-    console.log(`✅ Reporte PDF generado exitosamente: ${fileName}`);
-
     // Mostrar mensaje de éxito
     if (window.showSuccess) {
       window.showSuccess(
@@ -60,7 +56,6 @@ export async function generateEventReport(eventId) {
       );
     }
   } catch (error) {
-    console.error("❌ Error al generar reporte PDF:", error);
     throw error;
   }
 }
@@ -84,7 +79,6 @@ async function getEventData(eventId) {
 
     return { id: eventSnap.id, ...eventSnap.data() };
   } catch (error) {
-    console.error("Error al obtener datos del evento:", error);
     throw error;
   }
 }
@@ -114,7 +108,6 @@ async function getVolunteersData(eventId) {
 
     return volunteers;
   } catch (error) {
-    console.error("Error al obtener datos de voluntarios:", error);
     return [];
   }
 }
@@ -540,9 +533,6 @@ function parseStringDate(dateString) {
 
     return null;
   } catch (error) {
-    console.warn("Error al parsear fecha:", dateString, error);
     return null;
   }
 }
-
-console.log("📄 Módulo past-reports.js cargado correctamente");

@@ -44,7 +44,6 @@ const ROLES = {
 
 // Inicialización del sistema
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("Inicializando Sistema de Reportes EcoVoluntarios...");
   initializeReportsSystem();
   loadStatistics();
   loadRecentReports();
@@ -65,9 +64,6 @@ function initializeReportsSystem() {
 
   // Verificar dependencias
   if (typeof window.AdvancedPDFReportManager === "undefined") {
-    console.warn(
-      "AdvancedPDFReportManager no encontrado. Asegúrate de incluir advanced-pdf-report-manager.js"
-    );
   }
 }
 
@@ -98,7 +94,6 @@ function setupEventListeners() {
 // Generar reporte rápido - Función principal para botones
 async function generateQuickReport(type) {
   try {
-    console.log(`Generando reporte rápido: ${type}`);
     showProgressModal();
     updateProgressModal("Iniciando generación...", 10);
 
@@ -123,7 +118,6 @@ async function generateQuickReport(type) {
     updateProgressModal("Completado", 100);
     setTimeout(() => hideProgressModal(), 1000);
   } catch (error) {
-    console.error("Error al generar reporte rápido:", error);
     showNotification("Error al generar reporte: " + error.message, "error");
     hideProgressModal();
   }
@@ -177,7 +171,6 @@ async function handleReportSubmission(e) {
     const data = await fetchReportData(reportConfig);
     await generateReport(reportConfig, data);
   } catch (error) {
-    console.error("Error al generar reporte:", error);
     showNotification("Error al generar reporte: " + error.message, "error");
   } finally {
     hideProgressModal();
@@ -211,7 +204,6 @@ async function fetchReportData(config) {
         throw new Error(`Tipo de reporte no válido: ${config.type}`);
     }
   } catch (error) {
-    console.error("Error al obtener datos:", error);
     throw error;
   }
 }
@@ -576,7 +568,6 @@ async function generateReport(config, data) {
 
     showNotification("Reporte generado y guardado exitosamente", "success");
   } catch (error) {
-    console.error("Error al generar reporte:", error);
     throw error;
   }
 }
@@ -640,11 +631,9 @@ async function saveReportToFirebase(reportData) {
     };
 
     const docRef = await addDoc(collection(db, "reports"), reportDoc);
-    console.log("Reporte guardado con ID:", docRef.id);
 
     return docRef.id;
   } catch (error) {
-    console.error("Error al guardar reporte:", error);
     throw error;
   }
 }
@@ -659,11 +648,7 @@ async function updateReportAfterGeneration(reportId) {
       fileSize: "2.1 MB", // Estimado, podrías calcular el tamaño real
       completedAt: serverTimestamp(),
     });
-
-    console.log("Reporte actualizado después de generación:", reportId);
-  } catch (error) {
-    console.error("Error al actualizar reporte:", error);
-  }
+  } catch (error) {}
 }
 
 // =================== FUNCIONES DE UTILIDAD ===================
@@ -861,7 +846,6 @@ async function loadStatistics() {
 
     updateStatisticsUI(reportStats);
   } catch (error) {
-    console.error("Error al cargar estadísticas:", error);
     updateStatisticsUI(reportStats);
   }
 }
@@ -958,7 +942,6 @@ async function loadRecentReports() {
 
     container.innerHTML = reportsHTML;
   } catch (error) {
-    console.error("Error al cargar reportes recientes:", error);
     const container = document.getElementById("recentReportsTable");
     if (container) {
       container.innerHTML =
@@ -1013,7 +996,6 @@ async function downloadReportFromFirebase(reportId) {
 
     showNotification("Reporte descargado exitosamente", "success");
   } catch (error) {
-    console.error("Error al descargar reporte:", error);
     showNotification("Error al descargar reporte", "error");
   }
 }
@@ -1032,7 +1014,6 @@ async function viewReportDetails(reportId) {
       showNotification("Reporte no encontrado", "warning");
     }
   } catch (error) {
-    console.error("Error al obtener detalles del reporte:", error);
     showNotification("Error al obtener detalles", "error");
   }
 }
@@ -1060,7 +1041,6 @@ async function deleteReportFromFirebase(reportId) {
 
     showNotification("Reporte eliminado exitosamente", "success");
   } catch (error) {
-    console.error("Error al eliminar reporte:", error);
     showNotification("Error al eliminar reporte", "error");
   }
 }
@@ -1180,7 +1160,6 @@ function showReportDetailsModal(report) {
 
 function addToRecentReports(report) {
   // Esta función ya no es necesaria porque ahora guardamos directamente en Firebase
-  console.log("Reporte agregado a Firebase:", report);
 }
 
 function deleteReport(reportId) {
@@ -1779,12 +1758,10 @@ window.showNotification = showNotification;
 // =================== MANEJO DE ERRORES GLOBALES ===================
 
 window.addEventListener("error", function (event) {
-  console.error("Error en Sistema de Reportes:", event.error);
   showNotification("Ha ocurrido un error inesperado en el sistema", "error");
 });
 
 window.addEventListener("unhandledrejection", function (event) {
-  console.error("Error no manejado:", event.reason);
   showNotification("Error en procesamiento de datos", "error");
   event.preventDefault();
 });
@@ -1795,26 +1772,13 @@ window.addEventListener("unhandledrejection", function (event) {
 document.addEventListener("DOMContentLoaded", function () {
   // Verificar jsPDF
   if (typeof window.jspdf === "undefined") {
-    console.warn(
-      "jsPDF no encontrado. Los reportes PDF podrían no funcionar correctamente."
-    );
   }
 
   // Verificar Bootstrap
   if (typeof bootstrap === "undefined") {
-    console.warn(
-      "Bootstrap JS no encontrado. Los modales podrían no funcionar correctamente."
-    );
   }
 
   // Verificar Firebase
   if (typeof db === "undefined") {
-    console.warn(
-      "Firebase no encontrado. Las funciones de guardado podrían no funcionar."
-    );
   }
-
-  console.log(
-    "Sistema de Reportes EcoVoluntarios inicializado correctamente ✓"
-  );
 });

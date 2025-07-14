@@ -13,9 +13,7 @@ class DonationsExcelJSExporter {
         "https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"
       );
       this.ExcelJS = window.ExcelJS;
-      console.log("ExcelJS cargado correctamente");
     } catch (error) {
-      console.error("Error cargando ExcelJS:", error);
       this.showError("Error al cargar la librería de exportación");
     }
   }
@@ -72,7 +70,6 @@ class DonationsExcelJSExporter {
 
       this.showSuccess(`Reporte exportado exitosamente: ${filename}`);
     } catch (error) {
-      console.error("Error al exportar:", error);
       this.showError("Error al generar el reporte de Excel");
     }
   }
@@ -1203,7 +1200,6 @@ class DonationsExcelJSExporter {
 
     // Verificar si Chart.js está disponible
     if (typeof Chart === "undefined") {
-      console.warn("Chart.js no está disponible");
       return;
     }
 
@@ -1510,14 +1506,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Verificar dependencias
   if (typeof Chart === "undefined") {
-    console.warn(
-      "Chart.js no está cargado. Los gráficos del modal no funcionarán correctamente."
-    );
   }
 
   if (typeof bootstrap === "undefined") {
-    console.warn(
-      "Bootstrap no está cargado. Los modales pueden no funcionar correctamente."
-    );
   }
 });

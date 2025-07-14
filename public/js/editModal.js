@@ -34,7 +34,7 @@ function getFirebaseDB() {
   if (window.firebaseDB) {
     return window.firebaseDB;
   }
-  console.error("❌ Firebase DB no está inicializado");
+
   return null;
 }
 
@@ -191,7 +191,6 @@ function getStoredSession() {
     }
     return null;
   } catch (error) {
-    console.error("❌ Error al obtener sesión:", error);
     sessionStorage.removeItem("userSession");
     return null;
   }
@@ -250,7 +249,6 @@ async function loadEventData(eventId) {
     // Configurar manejo de imágenes
     setupImageHandling();
   } catch (error) {
-    console.error("❌ Error al cargar datos del evento:", error);
     alert(`Error al cargar el evento: ${error.message}`);
     closeEditModal();
   }
@@ -517,7 +515,6 @@ async function uploadImageToCloudinary(file) {
       publicId: data.public_id,
     };
   } catch (error) {
-    console.error(`❌ Error uploading ${file.name}:`, error);
     throw error;
   }
 }
@@ -642,7 +639,6 @@ window.saveEventChanges = async function (eventId) {
       await window.loadUpcomingEvents();
     }
   } catch (error) {
-    console.error("❌ Error al actualizar evento:", error);
     alert(`Error al actualizar evento: ${error.message}`);
     hideEditUploadProgress();
   } finally {

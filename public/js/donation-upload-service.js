@@ -1,5 +1,5 @@
 // donation-upload-service.js
-// Servicio para subir donaciones a Firebase con Cloudinary - VERSIÓN CORREGIDA
+// Servicio para subir donaciones a Firebase con Cloudinary - VERSIÓN PRODUCCIÓN
 
 export class DonationUploadService {
   constructor() {
@@ -25,9 +25,7 @@ export class DonationUploadService {
       this.db = db;
 
       this.initialized = true;
-      console.log("Firebase services initialized successfully");
     } catch (error) {
-      console.error("Error initializing Firebase:", error);
       throw error;
     }
   }
@@ -92,22 +90,18 @@ export class DonationUploadService {
         throw new Error("No se recibió URL de la imagen");
       }
     } catch (error) {
-      console.error("Error uploading to Cloudinary:", error);
       throw error;
     }
   }
 
-  // ✅ MÉTODO PRINCIPAL MEJORADO - MEJOR MANEJO DE ERRORES Y LOGS
+  // MÉTODO PRINCIPAL MEJORADO - MEJOR MANEJO DE ERRORES
   async uploadDonation(donationData, proofFile) {
     await this.waitForInitialization();
 
     let proofUrl = null;
 
     try {
-      console.log("🚀 Starting donation upload process...");
-      console.log("📊 Datos recibidos:", donationData);
-
-      // ✅ VALIDAR DATOS CRÍTICOS ANTES DE PROCESAR
+      // VALIDAR DATOS CRÍTICOS ANTES DE PROCESAR
       this.validateDonationData(donationData);
 
       // Generar ID único de validación
@@ -118,29 +112,23 @@ export class DonationUploadService {
 
       // 1. Subir comprobante de pago a Cloudinary si existe
       if (proofFile) {
-        console.log("📤 Subiendo comprobante a Cloudinary...");
         proofUrl = await this.uploadPaymentProof(
           proofFile,
           donationData.donationId,
           validationId
         );
-        console.log("✅ Payment proof uploaded:", proofUrl);
       }
 
       // 2. Guardar en colección 'donaciones'
-      console.log("💾 Guardando datos de donación...");
       await this.saveDonationData(
         donationData,
         validationId,
         donorId,
         proofUrl
       );
-      console.log("✅ Donation data saved to donaciones collection");
 
       // 3. Guardar en colección 'validacion'
-      console.log("📋 Guardando datos de validación...");
       await this.saveValidationData(validationId, proofUrl);
-      console.log("✅ Validation data saved to validacion collection");
 
       // 4. Opcional: Crear entrada en tabla de actividad
       await this.createActivityLog(
@@ -149,7 +137,6 @@ export class DonationUploadService {
         validationId
       );
 
-      console.log("🎉 Donation upload completed successfully");
       return {
         success: true,
         donationId: donationData.donationId,
@@ -158,21 +145,17 @@ export class DonationUploadService {
         proofUrl: proofUrl,
       };
     } catch (error) {
-      console.error("❌ Error uploading donation:", error);
-
       // En caso de error, intentar eliminar la imagen de Cloudinary
       if (proofUrl) {
-        await this.deleteCloudinaryImage(proofUrl).catch(console.error);
+        await this.deleteCloudinaryImage(proofUrl).catch(() => {});
       }
 
       throw error;
     }
   }
 
-  // ✅ NUEVO MÉTODO: Validar datos antes de procesar
+  // VALIDAR DATOS ANTES DE PROCESAR
   validateDonationData(donationData) {
-    console.log("🔍 Validando datos de donación...");
-
     // Validar estructura básica
     if (!donationData) {
       throw new Error("No se recibieron datos de donación");
@@ -212,8 +195,6 @@ export class DonationUploadService {
     if (!donationData.payment.method) {
       throw new Error("Método de pago faltante");
     }
-
-    console.log("✅ Validación de datos completada");
   }
 
   // Generar ID único de validación
@@ -250,32 +231,25 @@ export class DonationUploadService {
 
       return downloadURL;
     } catch (error) {
-      console.error("Error uploading payment proof:", error);
       throw new Error("Error al subir comprobante de pago: " + error.message);
     }
   }
 
-  // ✅ GUARDAR DATOS DE DONACIÓN - COMPLETAMENTE CORREGIDO CON VALIDACIONES EXTRA
+  // GUARDAR DATOS DE DONACIÓN - COMPLETAMENTE CORREGIDO CON VALIDACIONES
   async saveDonationData(donationData, validationId, donorId, proofUrl) {
     try {
       // Importar funciones necesarias
       const { doc, setDoc } = await import("./firebase_config.js");
 
-      console.log("🔍 Procesando datos de donación:");
-      console.log("- Tipo de donante:", donationData.donor.type);
-      console.log("- Datos del donor:", donationData.donor);
-      console.log("- Datos del recolector:", donationData.collector);
-      console.log("- Datos de pago:", donationData.payment);
-
-      // ✅ PREPARAR DATOS SEGÚN ESTRUCTURA ESPECÍFICA
+      // PREPARAR DATOS SEGÚN ESTRUCTURA ESPECÍFICA
       const donacionData = {
         // ID único del donador
         IDUsuarioDonador: donorId,
 
-        // ✅ CAMPOS CONDICIONALES SEGÚN TIPO DE DONANTE
+        // CAMPOS CONDICIONALES SEGÚN TIPO DE DONANTE
         ...(donationData.donor.type === "individual"
           ? {
-              // 🟦 CAMPOS PARA PERSONA NATURAL
+              // CAMPOS PARA PERSONA NATURAL
               NombreUsuarioDonador: donationData.donor.firstName || "",
               ApellidoUsuarioDonador: donationData.donor.lastName || "",
               DNIUsuarioDonador: donationData.donor.dni || "",
@@ -283,14 +257,14 @@ export class DonationUploadService {
               EmailUsuarioDonador: donationData.donor.email || "",
             }
           : {
-              // 🟦 CAMPOS PARA EMPRESA - TODOS COMPLETADOS
+              // CAMPOS PARA EMPRESA - TODOS COMPLETADOS
               RazonSocialUsuarioDonador: donationData.donor.companyName || "",
               "RUC-UsuarioDonador": donationData.donor.ruc || "",
               RepresentanteLegalUsuarioDonador:
                 donationData.donor.representative || "",
               CargoUsuarioDonador: donationData.donor.position || "",
               EmailUsuarioDonador: donationData.donor.email || "",
-              // ✅ CAMPO OPCIONAL PARA EMPRESAS (mensaje o teléfono)
+              // CAMPO OPCIONAL PARA EMPRESAS (mensaje o teléfono)
               OpcionalUsuarioDonador:
                 donationData.donor.message ||
                 donationData.donor.phone ||
@@ -313,13 +287,13 @@ export class DonationUploadService {
         // ID de validación
         IDValidacion: validationId,
 
-        // ✅ Estado de validación (string, no boolean)
+        // Estado de validación (string, no boolean)
         estadoValidacion: "pendiente",
 
         // Usuario que modificó el estado de validación (vacío por ahora)
         UsuarioEstadoValidacion: "",
 
-        // ✅ CAMPOS DEL RECOLECTOR - TODOS CON VALIDACIONES
+        // CAMPOS DEL RECOLECTOR - TODOS CON VALIDACIONES
         idRecolector: donationData.collector.id || "",
         nombreRecolector:
           donationData.collector.name ||
@@ -335,14 +309,14 @@ export class DonationUploadService {
           donationData.collector.department ||
           "",
 
-        // ✅ CAMPOS DE PAGO - CON VALIDACIONES EXTRA
+        // CAMPOS DE PAGO - CON VALIDACIONES EXTRA
         metodoPago:
           donationData.payment.method ||
           donationData.payment.paymentMethod ||
           donationData.paymentMethod ||
           "",
 
-        // ✅ CAMPOS ADICIONALES DE PAGO (si están disponibles)
+        // CAMPOS ADICIONALES DE PAGO (si están disponibles)
         banco: donationData.payment.bank || donationData.payment.bankName || "",
         numeroOperacion:
           donationData.payment.operationNumber ||
@@ -350,7 +324,7 @@ export class DonationUploadService {
           donationData.payment.reference ||
           "",
 
-        // ✅ OBSERVACIONES O COMENTARIOS
+        // OBSERVACIONES O COMENTARIOS
         observaciones:
           donationData.comments ||
           donationData.observations ||
@@ -359,41 +333,19 @@ export class DonationUploadService {
           "",
       };
 
-      // ✅ VALIDACIONES FINALES ANTES DE GUARDAR
-      console.log("🔧 Aplicando validaciones finales...");
-
+      // VALIDACIONES FINALES ANTES DE GUARDAR
       // Verificar que campos críticos no estén vacíos
       if (
         !donacionData.nombreRecolector ||
         donacionData.nombreRecolector === "Sin nombre"
       ) {
-        console.warn("⚠️ Nombre del recolector faltante o inválido");
         donacionData.nombreRecolector =
           donacionData.idRecolector || "Recolector desconocido";
       }
 
-      if (!donacionData.emailRecolector) {
-        console.warn("⚠️ Email del recolector faltante");
-      }
-
-      if (!donacionData.facultadRecolector) {
-        console.warn("⚠️ Facultad del recolector faltante");
-      }
-
       if (!donacionData.metodoPago) {
-        console.warn("⚠️ Método de pago faltante");
         donacionData.metodoPago = "No especificado";
       }
-
-      // ✅ Log de verificación final antes de guardar
-      console.log("📝 Datos finales para Firebase:");
-      console.log("- IDUsuarioDonador:", donacionData.IDUsuarioDonador);
-      console.log("- Tipo_Usuario:", donacionData.Tipo_Usuario);
-      console.log("- nombreRecolector:", donacionData.nombreRecolector);
-      console.log("- emailRecolector:", donacionData.emailRecolector);
-      console.log("- facultadRecolector:", donacionData.facultadRecolector);
-      console.log("- metodoPago:", donacionData.metodoPago);
-      console.log("- monto:", donacionData.monto);
 
       // Guardar en colección 'donaciones' usando el donationId como documento
       await setDoc(
@@ -401,13 +353,9 @@ export class DonationUploadService {
         donacionData
       );
 
-      console.log("✅ Datos guardados exitosamente en colección 'donaciones'");
-
       // También agregar a colección de estadísticas diarias
       await this.updateDailyStats(donationData);
     } catch (error) {
-      console.error("❌ Error saving donation data:", error);
-      console.error("❌ Datos que causaron el error:", donationData);
       throw new Error("Error al guardar datos de donación: " + error.message);
     }
   }
@@ -424,17 +372,9 @@ export class DonationUploadService {
         fechaCreacion: new Date().toISOString(),
       };
 
-      console.log(
-        "📋 Guardando validación:",
-        validationId,
-        "con URL:",
-        proofUrl
-      );
-
       // Guardar en colección 'validacion' usando validationId como documento
       await setDoc(doc(this.db, "validacion", validationId), validacionData);
     } catch (error) {
-      console.error("Error saving validation data:", error);
       throw new Error("Error al guardar datos de validación: " + error.message);
     }
   }
@@ -489,7 +429,6 @@ export class DonationUploadService {
         });
       }
     } catch (error) {
-      console.error("Error updating daily stats:", error);
       // No lanzar error aquí para no interrumpir el proceso principal
     }
   }
@@ -508,12 +447,11 @@ export class DonationUploadService {
         userAgent: navigator.userAgent,
       });
     } catch (error) {
-      console.error("Error creating activity log:", error);
       // No lanzar error para no interrumpir el proceso principal
     }
   }
 
-  // ✅ MÉTODO AUXILIAR: Obtener datos completos del recolector (si tienes una función para esto)
+  // MÉTODO AUXILIAR: Obtener datos completos del recolector
   async enrichCollectorData(collectorId) {
     try {
       const { doc, getDoc } = await import("./firebase_config.js");
@@ -535,7 +473,6 @@ export class DonationUploadService {
 
       return null;
     } catch (error) {
-      console.error("Error enriching collector data:", error);
       return null;
     }
   }
@@ -550,7 +487,6 @@ export class DonationUploadService {
 
       return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
     } catch (error) {
-      console.error("Error getting donation:", error);
       throw error;
     }
   }
@@ -565,7 +501,6 @@ export class DonationUploadService {
 
       return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
     } catch (error) {
-      console.error("Error getting validation:", error);
       throw error;
     }
   }
@@ -611,7 +546,6 @@ export class DonationUploadService {
         { isValidated: estadoString, userId }
       );
     } catch (error) {
-      console.error("Error updating validation status:", error);
       throw error;
     }
   }
@@ -632,7 +566,6 @@ export class DonationUploadService {
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
-      console.error("Error getting stats:", error);
       throw error;
     }
   }
@@ -653,7 +586,6 @@ export class DonationUploadService {
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
-      console.error("Error getting pending validations:", error);
       throw error;
     }
   }
@@ -669,7 +601,6 @@ export class DonationUploadService {
       });
       return true;
     } catch (error) {
-      console.error("Connection test failed:", error);
       return false;
     }
   }
@@ -684,37 +615,8 @@ export class DonationUploadService {
 
       // Nota: Para eliminar imágenes de Cloudinary necesitas hacer una petición autenticada
       // Esto normalmente se hace desde el backend por seguridad
-      console.log(
-        "Image deletion would require backend implementation:",
-        publicId
-      );
     } catch (error) {
-      console.error("Error deleting Cloudinary image:", error);
-    }
-  }
-
-  // ✅ MÉTODO DE DEBUG: Para verificar qué datos se están enviando
-  debugDonationData(donationData) {
-    console.log("🐛 DEBUG - Estructura completa de donationData:");
-    console.log(JSON.stringify(donationData, null, 2));
-
-    console.log("🐛 DEBUG - Campos críticos:");
-    console.log("- donationData.collector:", donationData.collector);
-    console.log("- donationData.payment:", donationData.payment);
-    console.log("- donationData.donor:", donationData.donor);
-
-    if (donationData.collector) {
-      console.log("🐛 DEBUG - Collector details:");
-      Object.keys(donationData.collector).forEach((key) => {
-        console.log(`  - ${key}:`, donationData.collector[key]);
-      });
-    }
-
-    if (donationData.payment) {
-      console.log("🐛 DEBUG - Payment details:");
-      Object.keys(donationData.payment).forEach((key) => {
-        console.log(`  - ${key}:`, donationData.payment[key]);
-      });
+      // Error silencioso
     }
   }
 }

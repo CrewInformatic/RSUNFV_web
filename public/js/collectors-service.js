@@ -369,8 +369,6 @@ class CollectorsService {
    */
   static async getActiveCollectors() {
     try {
-      console.log("Obteniendo recolectores activos...");
-
       const collectorsQuery = query(
         collection(db, COLLECTORS_CONFIG.COLLECTION_NAME),
         where("idRol", "==", COLLECTORS_CONFIG.ROLE_ID),
@@ -391,19 +389,14 @@ class CollectorsService {
         if (collector.isValid()) {
           collectors.push(collector.toUIFormat());
         } else {
-          console.warn("Recolector inválido encontrado:", userData);
         }
       });
 
       // Ordenar por nombre
       collectors.sort((a, b) => a.name.localeCompare(b.name));
 
-      console.log(`${collectors.length} recolectores obtenidos exitosamente`);
-      console.log("Datos completos de recolectores:", collectors);
-
       return collectors;
     } catch (error) {
-      console.error("Error obteniendo recolectores:", error);
       throw new CollectorsServiceError(
         "Error al cargar los recolectores",
         error
@@ -440,15 +433,10 @@ class CollectorsService {
       });
 
       if (foundCollector) {
-        console.log(
-          "Recolector encontrado con datos completos:",
-          foundCollector
-        );
       }
 
       return foundCollector;
     } catch (error) {
-      console.error("Error obteniendo recolector por ID:", error);
       throw new CollectorsServiceError("Error al obtener el recolector", error);
     }
   }
@@ -461,10 +449,6 @@ class CollectorsService {
       const collectors = await this.getActiveCollectors();
       return collectors.filter((collector) => collector.hasPaymentMethods);
     } catch (error) {
-      console.error(
-        "Error obteniendo recolectores con métodos de pago:",
-        error
-      );
       throw new CollectorsServiceError("Error al obtener recolectores", error);
     }
   }

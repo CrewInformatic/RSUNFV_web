@@ -100,9 +100,9 @@ body {
 }
 
 .nav-link.active {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.25);
     color: var(--unfv-white);
-    border-right: 4px solid var(--light-orange);
+    border-right: 4px solid var(--unfv-white);
     font-weight: 600;
     transform: translateX(0);
 }
@@ -111,6 +111,11 @@ body {
     width: 20px;
     text-align: center;
     margin-right: 0;
+}
+
+.nav-link.active {
+    background: rgba(255, 255, 255, 0.2);
+    border-right: 4px solid var(--light-orange);
 }
 
 /* Sidebar Overlay */
@@ -129,12 +134,13 @@ body {
     display: block;
 }
 
-/* ============ MAIN CONTENT ============ */
+/* Main Content */
 .main-content {
     margin-left: var(--sidebar-width);
     min-height: 100vh;
     transition: var(--transition);
 }
+
 
 .top-navbar {
     background: var(--unfv-white);
@@ -693,4 +699,100 @@ body {
 
 .sidebar::-webkit-scrollbar-thumb:hover {
     background: rgba(255,255,255,0.5);
+}
+/* ============ BOTÓN HAMBURGUESA ============ */
+.hamburger-btn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--primary-orange);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.hamburger-btn:hover {
+    background: rgba(255, 107, 53, 0.1);
+    transform: scale(1.1);
+}
+
+/* ============ SIDEBAR RESPONSIVE ============ */
+@media (max-width: 991.98px) {
+    .hamburger-btn {
+        display: block;
+    }
+    
+    .sidebar {
+        transform: translateX(-100%);
+        z-index: 1050;
+    }
+    
+    .sidebar.active {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1040;
+        display: none;
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
+    }
+}
+
+/* ============ NAVBAR RESPONSIVE ============ */
+.top-navbar {
+    background: var(--unfv-white);
+    padding: 1rem 2rem;
+    border-bottom: 1px solid #E9ECEF;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.page-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.page-title i {
+    color: var(--primary-orange);
+}
+
+@media (max-width: 768px) {
+    .top-navbar {
+        padding: 1rem;
+    }
+    
+    .page-title {
+        font-size: 1.3rem;
+    }
 }

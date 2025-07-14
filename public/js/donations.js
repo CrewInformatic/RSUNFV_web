@@ -131,8 +131,6 @@ class DonationFlowController {
     });
   }
   resetFlow() {
-    console.log("Resetting donation flow...");
-
     // Resetear estado
     this.state = {
       selectedAmount: 0,
@@ -166,8 +164,6 @@ class DonationFlowController {
 
     // Resetear displays
     this.resetDisplays();
-
-    console.log("Flow reset complete");
   }
 
   hideModalProgrammatically(modalId) {
@@ -370,12 +366,10 @@ class DonationFlowController {
   // State Management
   setSelectedAmount(amount) {
     this.state.selectedAmount = amount;
-    console.log(`Amount selected: S/ ${amount}`);
   }
 
   setDonorType(type) {
     this.state.donorType = type;
-    console.log(`Donor type selected: ${type}`);
   }
 
   // UI Updates
@@ -553,8 +547,6 @@ class DonationFlowController {
       ...this.getTypeSpecificData(formData),
       ...this.getCommonData(formData),
     };
-
-    console.log("Donor data collected:", this.state.donorData);
   }
 
   getTypeSpecificData(formData) {
@@ -624,9 +616,7 @@ class DonationFlowController {
       }
 
       this.renderCollectors(collectorsGrid, this.state.collectorsData);
-      console.log(`${this.state.collectorsData.length} recolectores cargados`);
     } catch (error) {
-      console.error("Error loading collectors:", error);
       this.showErrorState(collectorsGrid);
       this.showToast("Error al cargar recolectores", "error");
     }
@@ -763,13 +753,6 @@ class DonationFlowController {
     this.markCollectorAsSelected(cardElement);
     this.state.selectedCollector = collector;
 
-    console.log("Recolector seleccionado:", {
-      id: collector.idUsuario || collector.id,
-      name: collector.nombreUsuario || collector.name,
-      email: collector.correo || collector.email,
-      phone: collector.celular || collector.cellPhone,
-    });
-
     this.showToast(
       `Recolector ${collector.nombreUsuario || collector.name} seleccionado`,
       "success"
@@ -813,10 +796,7 @@ class DonationFlowController {
         "./donation-upload-service.js"
       );
       this.uploadService = new DonationUploadService();
-      console.log("Upload service initialized");
-    } catch (error) {
-      console.error("Error initializing upload service:", error);
-    }
+    } catch (error) {}
   }
 
   async updateCollectorInfo() {
@@ -883,7 +863,6 @@ class DonationFlowController {
       this.state.paymentMethods = methods;
       this.renderPaymentMethods(methods);
     } catch (error) {
-      console.error("Error loading payment methods:", error);
       this.showPaymentMethodsError();
     }
   }
@@ -892,8 +871,6 @@ class DonationFlowController {
     const methods = [];
     const collector = this.state.selectedCollector;
     if (!collector) return methods;
-
-    console.log("🔍 Datos completos del recolector:", collector);
 
     // Obtener nombre completo del recolector
     const collectorName = this.getCollectorFullName(collector);
@@ -933,7 +910,6 @@ class DonationFlowController {
       });
     }
 
-    console.log("💳 Métodos de pago generados:", methods);
     return methods;
   }
   getCollectorFullName(collector) {
@@ -1334,11 +1310,7 @@ class DonationFlowController {
       setTimeout(() => {
         this.proceedToConfirmation();
       }, 1500);
-
-      console.log("Donation completed:", paymentData);
     } catch (error) {
-      console.error("Error processing donation:", error);
-
       // Mostrar error específico al usuario
       let errorMessage = "Error al procesar la donación. ";
 
@@ -1373,7 +1345,6 @@ class DonationFlowController {
         );
         this.showToast("Datos enviados correctamente", "success");
       } catch (error) {
-        console.error("Retry upload failed:", error);
         this.showToast("Error al reintentar. Contacta soporte.", "error");
       }
     }
@@ -1399,9 +1370,7 @@ class DonationFlowController {
           donationData,
           this.state.uploadedFile
         );
-        console.log("Donation uploaded to Firebase successfully");
       } else {
-        console.warn("Upload service not available");
         // Aquí podrías mostrar un mensaje al usuario o intentar reinicializar
       }
       return {
@@ -1415,7 +1384,6 @@ class DonationFlowController {
         status: "pending_verification",
       };
     } catch (error) {
-      console.error("Error in processPayment:", error);
       // Re-lanzar el error para que sea manejado por handlePaymentConfirmation
       throw new Error("Error al procesar el pago: " + error.message);
     }
@@ -1663,7 +1631,6 @@ class DonationFlowController {
     const template = this.elements.toastTemplate;
 
     if (!template || !toastContainer) {
-      console.warn("Toast template or container not found");
       return;
     }
 
@@ -1714,5 +1681,4 @@ class DonationFlowController {
 // Initialize donation flow when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
   window.donationFlow = new DonationFlowController();
-  console.log("Donation Flow Controller initialized");
 });

@@ -63,7 +63,6 @@ function showToast(title, message, type = "info") {
     if (!toastElement || !toastTitle || !toastBody) {
       // Solo mostrar en consola si no hay elementos toast (evita spam)
       if (type === "error") {
-        console.warn(`${title}: ${message}`);
       }
       return;
     }
@@ -75,9 +74,7 @@ function showToast(title, message, type = "info") {
     // eslint-disable-next-line no-undef
     const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
     toast.show();
-  } catch (error) {
-    console.error("❌ Error al mostrar toast:", error);
-  }
+  } catch (error) {}
 }
 
 /**
@@ -87,8 +84,6 @@ function showToast(title, message, type = "info") {
  * @param {boolean} showUser - Si mostrar el error al usuario
  */
 function handleError(error, context, showUser = false) {
-  console.error(`❌ Error en ${context}:`, error);
-
   if (showUser) {
     showToast(
       "Error",
@@ -143,9 +138,7 @@ const PersistentCache = {
         ttl,
       };
       localStorage.setItem(PERSISTENT_CACHE_KEY, JSON.stringify(cache));
-    } catch (error) {
-      console.warn("⚠️ Error al guardar en cache persistente:", error);
-    }
+    } catch (error) {}
   },
 
   /**
@@ -199,7 +192,6 @@ function getStoredSession() {
       return parsedSession;
     }
   } catch (error) {
-    console.error("❌ Error al obtener sesión:", error);
     sessionStorage.removeItem(USER_PROFILE_CONFIG.SESSION_KEY);
   }
 
@@ -217,9 +209,7 @@ function storeSession(sessionData) {
       USER_PROFILE_CONFIG.SESSION_KEY,
       JSON.stringify(sessionData)
     );
-  } catch (error) {
-    console.error("❌ Error al almacenar sesión:", error);
-  }
+  } catch (error) {}
 }
 
 /**
@@ -234,9 +224,7 @@ function clearSession() {
     statisticsCache = null;
     lastStatisticsUpdate = null;
     pendingProfileRequest = null;
-  } catch (error) {
-    console.error("❌ Error al limpiar sesión:", error);
-  }
+  } catch (error) {}
 }
 
 /**
@@ -306,9 +294,7 @@ function updateUIImmediate(session) {
 
     // Mostrar indicador de admin inmediatamente
     updateAdminIndicator(session?.esAdmin || false);
-  } catch (error) {
-    console.error("❌ Error al actualizar UI inmediata:", error);
-  }
+  } catch (error) {}
 }
 
 /**
@@ -337,9 +323,7 @@ function updateAdminIndicator(isAdmin) {
       const el = element;
       el.style.display = isAdmin ? "none" : "block";
     });
-  } catch (error) {
-    console.error("❌ Error al actualizar indicador admin:", error);
-  }
+  } catch (error) {}
 }
 
 /**
@@ -453,7 +437,6 @@ async function enrichUserProfileParallel(profileData) {
               enrichedData.nombreEscuela = "Escuela no encontrada";
             }
           } catch (error) {
-            console.warn("Error al obtener escuela:", error);
             enrichedData.nombreEscuela = "Escuela no disponible";
           }
         })()
@@ -480,7 +463,6 @@ async function enrichUserProfileParallel(profileData) {
               enrichedData.nombreFacultad = "Facultad no encontrada";
             }
           } catch (error) {
-            console.warn("Error al obtener facultad:", error);
             enrichedData.nombreFacultad = "Facultad no disponible";
           }
         })()
@@ -507,7 +489,6 @@ async function enrichUserProfileParallel(profileData) {
 
     return enrichedData;
   } catch (error) {
-    console.warn("⚠️ Error al enriquecer perfil:", error);
     return profileData;
   }
 }
@@ -542,9 +523,7 @@ function updateUserInterface(userProfile) {
     }
 
     updateAdminIndicator(userProfile?.esAdmin || false);
-  } catch (error) {
-    console.error("❌ Error al actualizar interfaz:", error);
-  }
+  } catch (error) {}
 }
 
 // =============================================
@@ -664,9 +643,7 @@ function updateStatisticsCards(statistics) {
         animateCounterFast(element, 0, value, 800);
       }
     });
-  } catch (error) {
-    console.error("❌ Error al actualizar tarjetas:", error);
-  }
+  } catch (error) {}
 }
 
 /**
@@ -703,7 +680,6 @@ function animateCounterFast(element, start, end, duration) {
 
     requestAnimationFrame(updateCounter);
   } catch (error) {
-    console.error("❌ Error en animación:", error);
     element.textContent = end.toLocaleString();
   }
 }
@@ -814,11 +790,7 @@ function handleLogout() {
     clearSession();
 
     if (auth?.currentUser) {
-      auth
-        .signOut()
-        .catch((error) =>
-          console.warn("⚠️ Error al cerrar sesión de Firebase:", error)
-        );
+      auth.signOut();
     }
 
     showToast("Sesión cerrada", "Has cerrado sesión exitosamente", "success");
@@ -852,30 +824,24 @@ async function initializeUserProfile() {
 
     // Obtener perfil completo (en background)
     promises.push(
-      fetchUserProfile(session.uid || session.idUsuario)
-        .then((userProfile) => {
-          if (userProfile) {
-            updateUserInterface(userProfile);
+      fetchUserProfile(session.uid || session.idUsuario).then((userProfile) => {
+        if (userProfile) {
+          updateUserInterface(userProfile);
 
-            // Actualizar sesión si hay cambios importantes
-            if (userProfile.esAdmin !== session.esAdmin) {
-              storeSession({ ...session, esAdmin: userProfile.esAdmin });
-            }
+          // Actualizar sesión si hay cambios importantes
+          if (userProfile.esAdmin !== session.esAdmin) {
+            storeSession({ ...session, esAdmin: userProfile.esAdmin });
           }
-        })
-        .catch((error) =>
-          console.warn("⚠️ Error al cargar perfil completo:", error)
-        )
+        }
+      })
     );
 
     // Obtener estadísticas solo si estamos en la página correcta
     if (window.location.pathname.includes("usuarios.html")) {
       promises.push(
-        fetchUserStatistics()
-          .then((statistics) => updateStatisticsCards(statistics))
-          .catch((error) =>
-            console.warn("⚠️ Error al cargar estadísticas:", error)
-          )
+        fetchUserStatistics().then((statistics) =>
+          updateStatisticsCards(statistics)
+        )
       );
     }
 
@@ -913,9 +879,7 @@ function setupEventListeners() {
         try {
           const statistics = await fetchUserStatistics();
           updateStatisticsCards(statistics);
-        } catch (error) {
-          console.warn("⚠️ Error al actualizar estadísticas:", error);
-        }
+        } catch (error) {}
       }, 1000);
     }
   });

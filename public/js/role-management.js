@@ -70,17 +70,13 @@ function showToast(title, message, type = "info") {
 
     const toast = new bootstrap.Toast(toastElement, { delay: 4000 });
     toast.show();
-  } catch (error) {
-    console.error("❌ Error al mostrar toast:", error);
-  }
+  } catch (error) {}
 }
 
 /**
  * Maneja errores de manera consistente
  */
 function handleError(error, context, showUser = true) {
-  console.error(`❌ Error en ${context}:`, error);
-
   if (showUser) {
     const message = error.message || `Error ${context}`;
     showToast("Error", message, "error");
@@ -139,7 +135,6 @@ function handleRoleChange() {
 
   if (isRecolector) {
     bankingDataSection.classList.remove("d-none");
-    console.log("🏦 Mostrando formulario bancario para rol_004");
 
     // 🎯 Autocompletar con datos existentes si los hay
     const userId = document.getElementById("assignRoleUserId").value;
@@ -150,7 +145,6 @@ function handleRoleChange() {
           callback: (allUsers) => {
             const user = allUsers.find((u) => u.id === userId);
             if (user && (user.Yape || user.cuentaBancaria)) {
-              console.log("🔄 Autocompletando campos al cambiar a rol_004");
               populateBankingFields(user);
             }
           },
@@ -161,7 +155,6 @@ function handleRoleChange() {
   } else {
     bankingDataSection.classList.add("d-none");
     resetBankingFields();
-    console.log("🚫 Ocultando formulario bancario - no es rol_004");
   }
 }
 
@@ -251,8 +244,6 @@ function resetBankingFields() {
  * 🎯 NUEVA FUNCIÓN: Autocompleta los campos bancarios con datos existentes
  */
 function populateBankingFields(user) {
-  console.log("🔄 Autocompletando campos bancarios:", user);
-
   // Llenar datos del titular (siempre disponibles)
   const accountHolderName = document.getElementById("accountHolderName");
   const accountHolderDNI = document.getElementById("accountHolderDNI");
@@ -270,7 +261,6 @@ function populateBankingFields(user) {
 
   if (user.Yape && user.Yape.trim()) {
     // 💳 Tiene Yape - autocompletar formulario Yape
-    console.log("💳 Autocompletando datos de Yape");
 
     if (accountType) {
       accountType.value = "yape";
@@ -289,7 +279,6 @@ function populateBankingFields(user) {
     }
   } else if (user.cuentaBancaria && user.cuentaBancaria.trim()) {
     // 🏦 Tiene cuenta bancaria - autocompletar formulario cuenta bancaria
-    console.log("🏦 Autocompletando datos de cuenta bancaria");
 
     if (accountType) {
       accountType.value = "cuenta_bancaria";
@@ -334,8 +323,6 @@ function populateBankingFields(user) {
       commonFields.classList.remove("d-none");
     }
   }
-
-  console.log("✅ Campos bancarios autocompletados");
 }
 
 /**
@@ -460,7 +447,6 @@ function collectBankingData() {
     }
   }
 
-  console.log("🏦 Datos bancarios recopilados:", bankingData);
   return bankingData;
 }
 
@@ -498,8 +484,6 @@ async function loadRoles() {
       });
     });
 
-    console.log("🔍 Roles cargados:", roles); // Para debugging
-
     // Guardar en cache
     rolesCache.set(cacheKey, {
       data: roles,
@@ -508,7 +492,6 @@ async function loadRoles() {
 
     return roles;
   } catch (error) {
-    console.error("❌ Error detallado al cargar roles:", error);
     handleError(error, "al cargar roles");
     return [];
   }
@@ -658,22 +641,8 @@ async function assignRole(userId, allUsers) {
     const user = allUsers.find((u) => u.id === userId);
     if (!user) throw new Error("Usuario no encontrado");
 
-    console.log("🔍 Asignando rol a usuario:", {
-      userId,
-      currentRole: user.idRol,
-      needsBankingData: userNeedsBankingData(user),
-      bankingData: {
-        Yape: user.Yape,
-        cuentaBancaria: user.cuentaBancaria,
-        banco: user.banco,
-        nombreTitular: user.nombreTitular,
-        dniTitular: user.dniTitular,
-      },
-    });
-
     // Cargar roles para el select
     const roles = await loadRoles();
-    console.log("📋 Roles disponibles para asignar:", roles);
 
     // Llenar el select de roles
     const roleSelect = document.getElementById("roleSelect");
@@ -711,9 +680,6 @@ async function assignRole(userId, allUsers) {
     if (bankingDataSection) {
       if (isRecolectorRole(user.idRol) || userNeedsBankingData(user)) {
         bankingDataSection.classList.remove("d-none");
-        console.log(
-          "🏦 Usuario ya tiene rol_004 o lo necesita - mostrando formulario bancario"
-        );
 
         // 🎯 AUTOCOMPLETAR campos bancarios existentes
         populateBankingFields(user);
@@ -728,7 +694,6 @@ async function assignRole(userId, allUsers) {
     );
     modal.show();
   } catch (error) {
-    console.error("❌ Error al cargar datos para asignar rol:", error);
     handleError(error, "al cargar datos para asignar rol");
   }
 }
@@ -816,8 +781,6 @@ async function updateUserRole() {
       updateData.dniTitular = null;
       updateData.fechaRegistroBanco = null;
     }
-
-    console.log("🔍 Datos a actualizar:", updateData);
 
     // Actualizar en Firestore
     const userDocRef = doc(db, COLLECTIONS.USUARIOS, userId);

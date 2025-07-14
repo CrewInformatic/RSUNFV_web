@@ -59,10 +59,8 @@ class DonationsManager {
       if (this.currentUser) {
         const userData = await this.getUserData(this.currentUser.uid);
         this.currentUserData = userData;
-        console.log("Usuario actual cargado:", userData);
       }
     } catch (error) {
-      console.error("Error al cargar datos del usuario actual:", error);
       this.currentUserData = null;
     }
   }
@@ -435,27 +433,18 @@ class DonationsManager {
 
   openSendEmailModal() {
     try {
-      console.log("Abriendo modal de correos...");
-
       // Inicializar EmailManager si no existe
       if (!this.emailManager) {
-        console.log("Creando nueva instancia de EmailManager...");
         this.emailManager = new EmailManager();
       }
 
       // Pasar las donaciones cargadas al EmailManager
       if (this.emailManager && this.donations.length > 0) {
-        console.log(
-          `Compartiendo ${this.donations.length} donaciones con EmailManager`
-        );
         this.emailManager.allDonations = [...this.donations];
       }
 
       // Actualizar selecciones
       if (this.emailManager && this.selectedDonations.size > 0) {
-        console.log(
-          `Compartiendo ${this.selectedDonations.size} selecciones con EmailManager`
-        );
         this.emailManager.selectedDonations = new Set(this.selectedDonations);
       }
 
@@ -463,7 +452,6 @@ class DonationsManager {
       this.emailManager.showModal("sendEmailModal");
     } catch (error) {
       this.showError("Error al abrir el modal de correos");
-      console.error("Error:", error);
     }
   }
 
@@ -528,9 +516,7 @@ class DonationsManager {
           modal.hide();
         }
       }
-    } catch (error) {
-      console.error("Error al cerrar modal:", error);
-    }
+    } catch (error) {}
   }
 
   setupEventListeners() {
@@ -614,12 +600,9 @@ class DonationsManager {
 
       // Sincronizar con EmailManager si existe
       this.syncWithEmailManager();
-
-      console.log(`Donaciones cargadas: ${this.donations.length}`);
     } catch (error) {
       this.showError("Error al cargar las donaciones");
       this.showLoading(false);
-      console.error("Error al cargar donaciones:", error);
     }
   }
 
@@ -1603,11 +1586,7 @@ window.forceCleanModals = function () {
     document.body.classList.remove("modal-open");
     document.body.style.removeProperty("overflow");
     document.body.style.removeProperty("padding-right");
-
-    console.log("Modales limpiados forzadamente");
-  } catch (error) {
-    console.error("Error en limpieza forzada:", error);
-  }
+  } catch (error) {}
 };
 
 window.updateDonationStatus = function () {
@@ -1637,29 +1616,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
 window.openSendEmailModal = async function () {
   try {
-    console.log("Abriendo modal de correos desde botón del header...");
-
     if (window.donationsManager) {
       await window.donationsManager.openSendEmailModal();
     } else {
-      console.error("DonationsManager no está inicializado");
       alert("Error: El sistema de donaciones no está inicializado");
     }
   } catch (error) {
-    console.error("Error al abrir modal de correos:", error);
     alert("Error al abrir el modal de correos: " + error.message);
   }
 };
 
 // Funciones globales para el sistema de correos
 window.sendEmailsToRecipients = function () {
-  console.log("Intentando enviar correos...");
-
   if (window.donationsManager && window.donationsManager.emailManager) {
-    console.log("EmailManager encontrado, enviando correos...");
     window.donationsManager.emailManager.sendEmailsToRecipients();
   } else {
-    console.error("EmailManager no está inicializado");
     alert(
       "Error: El sistema de correos no está inicializado. Por favor, abre primero el modal desde el botón 'Enviar Correos' del header."
     );
@@ -1670,7 +1641,6 @@ window.previewEmail = function () {
   if (window.donationsManager && window.donationsManager.emailManager) {
     window.donationsManager.emailManager.previewEmail();
   } else {
-    console.error("EmailManager no está inicializado");
     alert("Error: El sistema de correos no está inicializado");
   }
 };
@@ -1680,7 +1650,6 @@ window.loadEmailTemplate = function () {
   if (window.donationsManager && window.donationsManager.emailManager) {
     window.donationsManager.emailManager.loadEmailTemplate();
   } else {
-    console.error("EmailManager no está inicializado");
   }
 };
 
@@ -1689,7 +1658,6 @@ window.openEmailHistory = function () {
   if (window.donationsManager && window.donationsManager.emailManager) {
     window.donationsManager.emailManager.showModal("emailHistoryModal");
   } else {
-    console.error("EmailManager no está inicializado");
     alert("Error: El sistema de correos no está inicializado");
   }
 };
@@ -1717,6 +1685,5 @@ window.saveEmailConfig = function () {
   if (window.donationsManager && window.donationsManager.emailManager) {
     window.donationsManager.emailManager.saveEmailConfig();
   } else {
-    console.error("EmailManager no está inicializado");
   }
 };

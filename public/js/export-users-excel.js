@@ -40,24 +40,19 @@ const xlsxLoader = {
       return exportState.xlsxInstance;
     }
 
-    console.log("📦 Iniciando carga de XLSX...");
-
     // Método 1: Verificar si ya está disponible globalmente
     if (this.checkGlobalXLSX()) {
-      console.log("✅ XLSX ya disponible globalmente");
       return window.XLSX;
     }
 
     // Método 2: Intentar carga con múltiples CDNs
     for (let i = 0; i < exportConfig.xlsxSources.length; i++) {
       try {
-        console.log(`📦 Intentando cargar desde CDN ${i + 1}...`);
         const XLSX = await this.loadFromCDN(exportConfig.xlsxSources[i]);
         if (XLSX) {
           return XLSX;
         }
       } catch (error) {
-        console.warn(`⚠️ CDN ${i + 1} falló:`, error.message);
         continue;
       }
     }
@@ -80,9 +75,7 @@ const xlsxLoader = {
         exportState.xlsxLoaded = true;
         return true;
       }
-    } catch (error) {
-      console.warn("Error verificando XLSX global:", error);
-    }
+    } catch (error) {}
     return false;
   },
 
@@ -109,7 +102,6 @@ const xlsxLoader = {
 
         // Verificar que XLSX se cargó correctamente
         if (this.checkGlobalXLSX()) {
-          console.log(`✅ XLSX cargado desde: ${cdnUrl}`);
           resolve(window.XLSX);
         } else {
           this.cleanup(scriptId);
@@ -154,8 +146,6 @@ const xlsxLoader = {
    * Método de emergencia: crear Excel básico sin XLSX
    */
   createBasicExcel(users) {
-    console.log("📋 Creando Excel básico sin XLSX...");
-
     // Preparar datos CSV
     const headers = [
       "N°",
@@ -252,7 +242,6 @@ const exportUtils = {
     const toastBody = document.getElementById("toastBody");
 
     if (!toastElement || !toastTitle || !toastBody) {
-      console.log(`Toast: ${title} - ${message}`);
       // Fallback: usar alert si no hay toast
       if (type === "error" || type === "warning") {
         alert(`${title}: ${message}`);
@@ -413,15 +402,11 @@ async function exportUsersToExcel(users, customFileName = null) {
       "info"
     );
 
-    console.log("📊 Iniciando exportación de", users.length, "usuarios");
-
     // Intentar cargar XLSX
     let XLSX;
     try {
       XLSX = await xlsxLoader.loadXLSX();
     } catch (xlsxError) {
-      console.warn("⚠️ Error cargando XLSX:", xlsxError.message);
-
       // Preguntar al usuario si quiere continuar con CSV
       const userChoice = confirm(
         "❌ No se pudo cargar la librería de Excel.\n\n" +
@@ -453,7 +438,6 @@ async function exportUsersToExcel(users, customFileName = null) {
     }
 
     // Si llegamos aquí, XLSX se cargó correctamente
-    console.log("✅ XLSX cargado, creando archivo Excel...");
 
     // Crear libro de trabajo
     const workbook = XLSX.utils.book_new();
@@ -520,23 +504,6 @@ async function exportUsersToExcel(users, customFileName = null) {
       `Se exportaron ${users.length} usuarios en formato Excel`,
       "success"
     );
-
-    console.log("✅ Exportación Excel completada:", fileName);
-  } catch (error) {
-    console.error("❌ Error en exportación:", error);
-
-    let errorMessage = "Error desconocido durante la exportación";
-
-    if (error.message.includes("XLSX")) {
-      errorMessage =
-        "Error con la librería de Excel. Verifica tu conexión a internet.";
-    } else if (error.message.includes("book_new")) {
-      errorMessage = "La librería de Excel no funcionó correctamente.";
-    } else if (error.message.includes("CDN")) {
-      errorMessage = "No se pudo conectar a los servidores de descarga.";
-    }
-
-    exportUtils.showExportToast("Error de Exportación", errorMessage, "error");
   } finally {
     exportState.isExporting = false;
   }
@@ -573,9 +540,6 @@ const modalManager = {
   showExportModal() {
     const modal = document.getElementById("exportUsersModal");
     if (!modal) {
-      console.warn(
-        "⚠️ Modal de exportación no encontrado, usando método alternativo"
-      );
       this.showExportOptions();
       return;
     }
@@ -763,8 +727,6 @@ const modalManager = {
  * Función principal de exportación - punto de entrada desde el CRUD
  */
 async function exportUsers() {
-  console.log("📊 Iniciando proceso de exportación...");
-
   // Verificar que tenemos datos
   if (!exportState.allUsers.length) {
     exportUtils.showExportToast(
@@ -775,16 +737,6 @@ async function exportUsers() {
     return;
   }
 
-  // Pre-cargar XLSX de manera silenciosa (sin mostrar errores)
-  try {
-    await xlsxLoader.loadXLSX();
-    console.log("✅ XLSX pre-cargado exitosamente");
-  } catch (error) {
-    console.log(
-      "⚠️ XLSX no se pudo pre-cargar, se usará fallback durante exportación"
-    );
-  }
-
   // Mostrar modal o opciones
   modalManager.showExportModal();
 }
@@ -793,8 +745,6 @@ async function exportUsers() {
  * Ejecuta exportación específica desde el modal
  */
 async function executeExport(type) {
-  console.log(`🚀 Ejecutando exportación tipo: ${type}`);
-
   const exportTypes = {
     filtered: () => exportFilteredUsersToExcel(),
     all: () => exportAllUsersToExcel(),
@@ -832,26 +782,12 @@ async function executeExport(type) {
 function updateExportData(allUsers, filteredUsers) {
   exportState.allUsers = allUsers || [];
   exportState.filteredUsers = filteredUsers || [];
-  console.log(
-    `📊 Datos de exportación actualizados: ${
-      allUsers?.length || 0
-    } usuarios totales, ${filteredUsers?.length || 0} filtrados`
-  );
 }
 
 // =============================================
 // INICIALIZACIÓN Y EVENTOS
 // =============================================
 function initializeExportSystem() {
-  console.log("🚀 Inicializando sistema de exportación mejorado...");
-
-  // Pre-cargar XLSX de forma asíncrona y silenciosa
-  xlsxLoader.loadXLSX().catch(() => {
-    console.log(
-      "📋 XLSX no disponible inicialmente, se cargará cuando sea necesario"
-    );
-  });
-
   // Hacer funciones globales para uso desde HTML
   window.exportUsers = exportUsers;
   window.executeExport = executeExport;
@@ -865,8 +801,6 @@ function initializeExportSystem() {
       updateExportData(event.detail.allUsers, event.detail.filteredUsers);
     }
   });
-
-  console.log("✅ Sistema de exportación mejorado inicializado correctamente");
 }
 
 // Inicializar cuando el DOM esté listo
