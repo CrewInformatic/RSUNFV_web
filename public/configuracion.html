@@ -1,592 +1,331 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
-      <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicons/logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configuración - RSU FIEI</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <style>
-        :root {
-            --orange-primary: #FF6B35;
-            --orange-secondary: #FF8C42;
-            --orange-light: #FFF5F1;
-            --gray-dark: #2C3E50;
-            --gray-medium: #7F8C8D;
-            --gray-light: #F8F9FA;
-        }
-
-        body {
-            background-color: var(--gray-light);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .config-header {
-            background: linear-gradient(135deg, var(--orange-primary), var(--orange-secondary));
-            color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-        }
-
-        .config-card {
-            background: white;
-            border-radius: 15px;
-            padding: 2rem;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-        }
-
-        .form-control, .form-select {
-            border-radius: 10px;
-            border: 2px solid #E9ECEF;
-            padding: 12px 15px;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: var(--orange-primary);
-            box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.25);
-        }
-
-        .btn-orange {
-            background: var(--orange-primary);
-            border: none;
-            color: white;
-            padding: 12px 30px;
-            border-radius: 10px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn-orange:hover {
-            background: var(--orange-secondary);
-            transform: translateY(-2px);
-        }
-
-        .btn-success {
-            background: #28a745;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 10px;
-            font-weight: 600;
-        }
-
-        .preview-box {
-            border: 2px dashed #ccc;
-            border-radius: 10px;
-            padding: 20px;
-            background: #f8f9fa;
-            margin-top: 15px;
-        }
-
-        .section-divider {
-            border-top: 3px solid var(--orange-primary);
-            margin: 2rem 0;
-        }
-
-        .status-message {
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            display: none;
-        }
-
-        .status-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .status-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .dynamic-section {
-            border: 1px solid #dee2e6;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 15px 0;
-            background: #f8f9fa;
-        }
-
-        .remove-section {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 5px 15px;
-            border-radius: 5px;
-            font-size: 0.9rem;
-        }
-
-        .color-picker {
-            width: 60px;
-            height: 40px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-    </style>
+    <title>Configuración - EcoVoluntarios UNFV</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/configuracion.css">
+    <script type="module" src="js/configuracion.js"></script>
+    <script type="module" src="js/security.js"></script>
 </head>
+
 <body>
-    <header class="config-header">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h1><i class="fas fa-cog me-3"></i>Configuración del Sitio</h1>
-                    <p class="mb-0">Personaliza tu página principal de RSU FIEI</p>
-                </div>
-                <div class="col-md-6 text-end">
-                    <button class="btn btn-success" onclick="saveConfiguration()">
-                        <i class="fas fa-save me-2"></i>Guardar Cambios
-                    </button>
-                    <button class="btn btn-outline-light ms-2" onclick="loadConfiguration()">
-                        <i class="fas fa-refresh me-2"></i>Cargar Configuración
-                    </button>
-                </div>
-            </div>
-        </div>
-    </header>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <div class="container">
-        <div id="statusMessage" class="status-message"></div>
-
-        <!-- Configuración General -->
-        <div class="config-card">
-            <h3><i class="fas fa-home me-2"></i>Configuración General</h3>
-            <div class="row">
-                <div class="col-md-6">
-                    <label class="form-label">Título Principal</label>
-                    <input type="text" class="form-control" id="mainTitle" value="Responsabilidad Social">
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="#" class="sidebar-brand">
+                <i class="fas fa-leaf"></i>
+                <div class="brand-text">
+                    <div>EcoVoluntarios</div>
+                    <div class="brand-subtitle">UNFV</div>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Subtítulo</label>
-                    <input type="text" class="form-control" id="mainSubtitle" value="En RSU FIEI creamos impacto positivo en nuestra comunidad universitaria y sociedad">
-                </div>
-            </div>
-            <div class="row mt-3">
-                <div class="col-md-4">
-                    <label class="form-label">Color Primario</label>
-                    <input type="color" class="color-picker" id="primaryColor" value="#FF6B35">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Color Secundario</label>
-                    <input type="color" class="color-picker" id="secondaryColor" value="#FF8C42">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Color de Fondo</label>
-                    <input type="color" class="color-picker" id="backgroundColor" value="#F8F9FA">
-                </div>
-            </div>
+            </a>
         </div>
 
-        <!-- Configuración de Secciones -->
-        <div class="config-card">
-            <h3><i class="fas fa-puzzle-piece me-2"></i>Secciones del Sitio</h3>
-            <div id="sectionsContainer">
-                <!-- Las secciones se cargarán dinámicamente -->
-            </div>
-            <button class="btn btn-orange mt-3" onclick="addNewSection()">
-                <i class="fas fa-plus me-2"></i>Agregar Nueva Sección
+        <nav class="sidebar-nav">
+            <button class="nav-link" onclick="navigateToPage('admin-dashboard.html')">
+                <i class="fas fa-chart-line"></i>
+                Dashboard
             </button>
-        </div>
-
-        <!-- Configuración de Proyectos -->
-        <div class="config-card">
-            <h3><i class="fas fa-project-diagram me-2"></i>Proyectos</h3>
-            <div id="projectsContainer">
-                <!-- Los proyectos se cargarán dinámicamente -->
-            </div>
-            <button class="btn btn-orange mt-3" onclick="addNewProject()">
-                <i class="fas fa-plus me-2"></i>Agregar Nuevo Proyecto
+            <button class="nav-link" onclick="navigateToPage('eventos.html')">
+                <i class="fas fa-calendar-alt"></i>
+                Gestión de Eventos
             </button>
-        </div>
-
-        <!-- Configuración de Testimonios -->
-        <div class="config-card">
-            <h3><i class="fas fa-quote-left me-2"></i>Testimonios</h3>
-            <div id="testimonialsContainer">
-                <!-- Los testimonios se cargarán dinámicamente -->
-            </div>
-            <button class="btn btn-orange mt-3" onclick="addNewTestimonial()">
-                <i class="fas fa-plus me-2"></i>Agregar Nuevo Testimonio
+            <button class="nav-link" onclick="navigateToPage('Donaciones.html')">
+                <i class="fas fa-heart"></i>
+                Donaciones
             </button>
-        </div>
-
-        <!-- Vista Previa -->
-        <div class="config-card">
-            <h3><i class="fas fa-eye me-2"></i>Vista Previa</h3>
-            <div class="preview-box" id="previewBox">
-                <p class="text-muted">Haz clic en "Generar Vista Previa" para ver los cambios</p>
-            </div>
-            <button class="btn btn-orange mt-3" onclick="generatePreview()">
-                <i class="fas fa-eye me-2"></i>Generar Vista Previa
+            <button class="nav-link" onclick="navigateToPage('donation-inventory.html')">
+                <i class="fas fa-warehouse"></i>
+                Inventario
             </button>
+            <button class="nav-link" onclick="navigateToPage('usuarios.html')">
+                <i class="fas fa-user-friends"></i>
+                Usuarios y Roles
+            </button>
+            <button class="nav-link active" data-section="donaciones">
+                <i class="fas fa-cogs"></i>
+                Configuración
+            </button>
+            <button class="nav-link" onclick="navigateToPage('reportes.html')">
+                <i class="fas fa-chart-bar"></i>
+                Reportes
+            </button>
+        </nav>
+    </nav>
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Top Navbar -->
+                <div class="top-navbar">
+                    <h2 class="page-title">
+                        <i class="fas fa-user-cog me-2"></i>
+                        Configuración de Perfil
+                    </h2>
+                </div>
+
+                <!-- Content Wrapper -->
+                <div class="content-wrapper">
+                    <!-- Success/Error Messages -->
+                    <div id="messageContainer"></div>
+
+                    <!-- Profile Image Section -->
+                    <div class="config-card">
+                        <div class="config-header">
+                            <div class="config-icon">
+                                <i class="fas fa-camera"></i>
+                            </div>
+                            <h4 class="config-title">Foto de Perfil</h4>
+                        </div>
+
+                        <div class="text-center">
+                            <div class="profile-image-container">
+                                <img src="https://via.placeholder.com/150x150/FF6B35/FFFFFF?text=Foto"
+                                    alt="Foto de perfil" class="profile-image" id="profileImage">
+                                <div class="image-upload-overlay"
+                                    onclick="document.getElementById('fileInput').click()">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                                <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                            </div>
+                            <p class="text-muted">Haz clic en la imagen para cambiar tu foto de perfil</p>
+                        </div>
+                    </div>
+
+                    <!-- Personal Information -->
+                    <div class="config-card">
+                        <div class="config-header">
+                            <div class="config-icon">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <h4 class="config-title">Información Personal</h4>
+                        </div>
+
+                        <form id="personalInfoForm">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="nombreUsuario" class="form-label">Nombre</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        <input type="text" class="form-control" id="nombreUsuario"
+                                            placeholder="Ingresa tu nombre" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="apellidoUsuario" class="form-label">Apellido</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        <input type="text" class="form-control" id="apellidoUsuario"
+                                            placeholder="Ingresa tu apellido" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    <label for="correo" class="form-label">Correo Electrónico</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                        <input type="email" class="form-control" id="correo"
+                                            placeholder="correo@unfv.edu.pe" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="celular" class="form-label">Celular</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                        <input type="tel" class="form-control" id="celular" placeholder="999 999 999"
+                                            required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-4">
+                                    <label for="edad" class="form-label">Edad</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-birthday-cake"></i></span>
+                                        <input type="number" class="form-control" id="edad" placeholder="25" min="18"
+                                            max="100" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="facultadId" class="form-label">Facultad</label>
+                                    <select class="form-select" id="facultadId" required>
+                                        <option value="">Selecciona una facultad</option>
+                                        <option value="F001">Facultad de Ingeniería Electrónica e Informática</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="escuelaID" class="form-label">Escuela</label>
+                                    <select class="form-select" id="escuelaID" required>
+                                        <option value="">Selecciona una escuela</option>
+                                        <option value="E001">Ingeniería Informática</option>
+                                        <option value="E002">Ingeniería Electrónica</option>
+                                        <option value="E003">Ingeniería Mecatrónica</option>
+                                        <option value="E004">Ingeniería Telecomunicaciones</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    <label for="ciclo" class="form-label">Ciclo Académico</label>
+                                    <select class="form-select" id="ciclo" required>
+                                        <option value="">Selecciona tu ciclo</option>
+                                        <option value="I">I Ciclo</option>
+                                        <option value="II">II Ciclo</option>
+                                        <option value="III">III Ciclo</option>
+                                        <option value="IV">IV Ciclo</option>
+                                        <option value="V">V Ciclo</option>
+                                        <option value="VI">VI Ciclo</option>
+                                        <option value="VII">VII Ciclo</option>
+                                        <option value="VIII">VIII Ciclo</option>
+                                        <option value="IX">IX Ciclo</option>
+                                        <option value="X">X Ciclo</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="codigoUsuario" class="form-label">Código de Usuario</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                        <input type="text" class="form-control" id="codigoUsuario" readonly
+                                            style="background-color: #f8f9fa; cursor: not-allowed;">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="idRol" class="form-label">Rol</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user-tag"></i></span>
+                                        <input type="text" class="form-control" id="idRol" readonly
+                                            style="background-color: #f8f9fa; cursor: not-allowed;">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="poloTallaID" class="form-label">Talla de Polo</label>
+                                    <select class="form-select" id="poloTallaID">
+                                        <option value="">Selecciona tu talla</option>
+                                        <option value="XS">XS</option>
+                                        <option value="S">S</option>
+                                        <option value="M">M</option>
+                                        <option value="L">L</option>
+                                        <option value="XL">XL</option>
+                                        <option value="XXL">XXL</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Banking Information -->
+                    <div class="config-card">
+                        <div class="config-header">
+                            <div class="config-icon">
+                                <i class="fas fa-university"></i>
+                            </div>
+                            <h4 class="config-title">Información Bancaria</h4>
+                        </div>
+
+                        <div class="info-card">
+                            <p class="info-text">
+                                <i class="fas fa-info-circle info-icon"></i>
+                                Esta información es opcional y solo se usa para procesar reembolsos de gastos
+                                relacionados con actividades de voluntariado.
+                            </p>
+                        </div>
+
+                        <form id="bankingForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="banco" class="form-label">Banco</label>
+                                    <select class="form-select" id="banco">
+                                        <option value="">Selecciona un banco</option>
+                                        <option value="BCP">BCP</option>
+                                        <option value="BBVA">BBVA</option>
+                                        <option value="Scotiabank">Scotiabank</option>
+                                        <option value="Interbank">Interbank</option>
+                                        <option value="BanBif">BanBif</option>
+                                        <option value="Pichincha">Pichincha</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="cuentaBancaria" class="form-label">Número de Cuenta</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-credit-card"></i></span>
+                                        <input type="text" class="form-control" id="cuentaBancaria"
+                                            placeholder="0000-0000-0000-0000">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="yape" class="form-label">Número Yape</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-mobile-alt"></i></span>
+                                        <input type="tel" class="form-control" id="yape" placeholder="999 999 999">
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Security Settings -->
+
+                    <!-- REEMPLAZA la sección Security Settings en tu HTML con esto: -->
+                    <div class="config-card">
+                        <div class="config-header">
+                            <div class="config-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <h4 class="config-title">Configuración de Seguridad</h4>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="info-card">
+                                    <p class="info-text">
+                                        <i class="fas fa-info-circle info-icon"></i>
+                                        Para cambiar tu contraseña, utiliza el sistema de restablecimiento de contraseña
+                                        por seguridad.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-center">
+                                <button type="button" class="btn btn-outline-primary w-100" id="changePasswordBtn">
+                                    <i class="fas fa-key me-2"></i>
+                                    Cambiar Contraseña
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="config-card">
+                        <div class="row">
+                            <div class="col-md-12 text-center">
+                                <button type="button" class="btn btn-primary me-3" onclick="saveProfile()">
+                                    <i class="fas fa-save me-2"></i>
+                                    Guardar Cambios
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="cancelChanges()">
+                                    <i class="fas fa-times me-2"></i>
+                                    Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        // Configuración de Firebase
-        const firebaseConfig = {
-            // Aquí va tu configuración de Firebase
-            apiKey: "AIzaSyAUBAyRnT0XEoKLlv-9GAmxi6F12peZd7c",
-            authDomain: "rsunfv.firebaseapp.com",
-            databaseURL: "https://rsunfv-default-rtdb.firebaseio.com",
-            projectId: "rsunfv",
-            storageBucket: "rsunfv.appspot.com",
-            messagingSenderId: "125433829660",
-            appId: "1:125433829660:web:ef60f4871bf4ad74ae02d9"
-        };
-
-        // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        // Configuración por defecto
-        let siteConfig = {
-            general: {
-                mainTitle: "Responsabilidad Social",
-                mainSubtitle: "En RSU FIEI creamos impacto positivo en nuestra comunidad universitaria y sociedad",
-                primaryColor: "#FF6B35",
-                secondaryColor: "#FF8C42",
-                backgroundColor: "#F8F9FA"
-            },
-            sections: [
-                {
-                    id: "hero",
-                    title: "Inicio",
-                    type: "hero",
-                    content: "Sección principal con título y botones"
-                },
-                {
-                    id: "about",
-                    title: "Nosotros",
-                    type: "about",
-                    content: "Información sobre RSU FIEI"
-                }
-            ],
-            projects: [
-                {
-                    id: "1",
-                    title: "Proyecto de Reciclaje",
-                    description: "Reducir desechos en el campus",
-                    category: "Sostenibilidad",
-                    icon: "fa-seedling"
-                }
-            ],
-            testimonials: [
-                {
-                    id: "1",
-                    name: "María González",
-                    role: "Estudiante de Ingeniería",
-                    message: "Participar en RSU FIEI cambió mi perspectiva sobre el rol de los estudiantes en la sociedad."
-                }
-            ]
-        };
-
-        // Función para mostrar mensajes de estado
-        function showStatus(message, type = 'success') {
-            const statusDiv = document.getElementById('statusMessage');
-            statusDiv.className = `status-message status-${type}`;
-            statusDiv.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle me-2"></i>${message}`;
-            statusDiv.style.display = 'block';
-            
-            setTimeout(() => {
-                statusDiv.style.display = 'none';
-            }, 5000);
-        }
-
-        // Función para cargar configuración desde Firebase
-        function loadConfiguration() {
-            database.ref('siteConfig').once('value').then((snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    siteConfig = data;
-                    populateForm();
-                    showStatus('Configuración cargada exitosamente');
-                } else {
-                    showStatus('No se encontró configuración guardada, usando valores por defecto', 'error');
-                }
-            }).catch((error) => {
-                showStatus('Error al cargar configuración: ' + error.message, 'error');
-            });
-        }
-
-        // Función para guardar configuración en Firebase
-        function saveConfiguration() {
-            // Recopilar datos del formulario
-            collectFormData();
-            
-            // Guardar en Firebase
-            database.ref('siteConfig').set(siteConfig).then(() => {
-                showStatus('Configuración guardada exitosamente');
-                generateMainPageHTML();
-            }).catch((error) => {
-                showStatus('Error al guardar configuración: ' + error.message, 'error');
-            });
-        }
-
-        // Función para recopilar datos del formulario
-        function collectFormData() {
-            siteConfig.general.mainTitle = document.getElementById('mainTitle').value;
-            siteConfig.general.mainSubtitle = document.getElementById('mainSubtitle').value;
-            siteConfig.general.primaryColor = document.getElementById('primaryColor').value;
-            siteConfig.general.secondaryColor = document.getElementById('secondaryColor').value;
-            siteConfig.general.backgroundColor = document.getElementById('backgroundColor').value;
-        }
-
-        // Función para poblar el formulario
-        function populateForm() {
-            document.getElementById('mainTitle').value = siteConfig.general.mainTitle;
-            document.getElementById('mainSubtitle').value = siteConfig.general.mainSubtitle;
-            document.getElementById('primaryColor').value = siteConfig.general.primaryColor;
-            document.getElementById('secondaryColor').value = siteConfig.general.secondaryColor;
-            document.getElementById('backgroundColor').value = siteConfig.general.backgroundColor;
-            
-            loadSections();
-            loadProjects();
-            loadTestimonials();
-        }
-
-        // Función para cargar secciones
-        function loadSections() {
-            const container = document.getElementById('sectionsContainer');
-            container.innerHTML = '';
-            
-            siteConfig.sections.forEach((section, index) => {
-                const sectionDiv = document.createElement('div');
-                sectionDiv.className = 'dynamic-section';
-                sectionDiv.innerHTML = `
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5>Sección: ${section.title}</h5>
-                        <button class="remove-section" onclick="removeSection(${index})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label class="form-label">Título</label>
-                            <input type="text" class="form-control" value="${section.title}" onchange="updateSection(${index}, 'title', this.value)">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Tipo</label>
-                            <select class="form-select" onchange="updateSection(${index}, 'type', this.value)">
-                                <option value="hero" ${section.type === 'hero' ? 'selected' : ''}>Hero</option>
-                                <option value="about" ${section.type === 'about' ? 'selected' : ''}>Nosotros</option>
-                                <option value="projects" ${section.type === 'projects' ? 'selected' : ''}>Proyectos</option>
-                                <option value="blog" ${section.type === 'blog' ? 'selected' : ''}>Blog</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <label class="form-label">Contenido</label>
-                        <textarea class="form-control" rows="3" onchange="updateSection(${index}, 'content', this.value)">${section.content}</textarea>
-                    </div>
-                `;
-                container.appendChild(sectionDiv);
-            });
-        }
-
-        // Función para cargar proyectos
-        function loadProjects() {
-            const container = document.getElementById('projectsContainer');
-            container.innerHTML = '';
-            
-            siteConfig.projects.forEach((project, index) => {
-                const projectDiv = document.createElement('div');
-                projectDiv.className = 'dynamic-section';
-                projectDiv.innerHTML = `
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5>Proyecto: ${project.title}</h5>
-                        <button class="remove-section" onclick="removeProject(${index})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label class="form-label">Título</label>
-                            <input type="text" class="form-control" value="${project.title}" onchange="updateProject(${index}, 'title', this.value)">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Categoría</label>
-                            <input type="text" class="form-control" value="${project.category}" onchange="updateProject(${index}, 'category', this.value)">
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <label class="form-label">Descripción</label>
-                        <textarea class="form-control" rows="2" onchange="updateProject(${index}, 'description', this.value)">${project.description}</textarea>
-                    </div>
-                    <div class="mt-3">
-                        <label class="form-label">Icono (FontAwesome)</label>
-                        <input type="text" class="form-control" value="${project.icon}" onchange="updateProject(${index}, 'icon', this.value)" placeholder="fa-seedling">
-                    </div>
-                `;
-                container.appendChild(projectDiv);
-            });
-        }
-
-        // Función para cargar testimonios
-        function loadTestimonials() {
-            const container = document.getElementById('testimonialsContainer');
-            container.innerHTML = '';
-            
-            siteConfig.testimonials.forEach((testimonial, index) => {
-                const testimonialDiv = document.createElement('div');
-                testimonialDiv.className = 'dynamic-section';
-                testimonialDiv.innerHTML = `
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5>Testimonio: ${testimonial.name}</h5>
-                        <button class="remove-section" onclick="removeTestimonial(${index})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label class="form-label">Nombre</label>
-                            <input type="text" class="form-control" value="${testimonial.name}" onchange="updateTestimonial(${index}, 'name', this.value)">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Rol</label>
-                            <input type="text" class="form-control" value="${testimonial.role}" onchange="updateTestimonial(${index}, 'role', this.value)">
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <label class="form-label">Mensaje</label>
-                        <textarea class="form-control" rows="3" onchange="updateTestimonial(${index}, 'message', this.value)">${testimonial.message}</textarea>
-                    </div>
-                `;
-                container.appendChild(testimonialDiv);
-            });
-        }
-
-        // Funciones para agregar nuevos elementos
-        function addNewSection() {
-            const newSection = {
-                id: Date.now().toString(),
-                title: "Nueva Sección",
-                type: "about",
-                content: "Contenido de la nueva sección"
-            };
-            siteConfig.sections.push(newSection);
-            loadSections();
-        }
-
-        function addNewProject() {
-            const newProject = {
-                id: Date.now().toString(),
-                title: "Nuevo Proyecto",
-                description: "Descripción del nuevo proyecto",
-                category: "General",
-                icon: "fa-star"
-            };
-            siteConfig.projects.push(newProject);
-            loadProjects();
-        }
-
-        function addNewTestimonial() {
-            const newTestimonial = {
-                id: Date.now().toString(),
-                name: "Nuevo Testimonio",
-                role: "Estudiante",
-                message: "Mensaje del testimonio"
-            };
-            siteConfig.testimonials.push(newTestimonial);
-            loadTestimonials();
-        }
-
-        // Funciones para actualizar elementos
-        function updateSection(index, field, value) {
-            siteConfig.sections[index][field] = value;
-        }
-
-        function updateProject(index, field, value) {
-            siteConfig.projects[index][field] = value;
-        }
-
-        function updateTestimonial(index, field, value) {
-            siteConfig.testimonials[index][field] = value;
-        }
-
-        // Funciones para eliminar elementos
-        function removeSection(index) {
-            siteConfig.sections.splice(index, 1);
-            loadSections();
-        }
-
-        function removeProject(index) {
-            siteConfig.projects.splice(index, 1);
-            loadProjects();
-        }
-
-        function removeTestimonial(index) {
-            siteConfig.testimonials.splice(index, 1);
-            loadTestimonials();
-        }
-
-        // Función para generar vista previa
-        function generatePreview() {
-            collectFormData();
-            const previewBox = document.getElementById('previewBox');
-            previewBox.innerHTML = `
-                <div style="color: ${siteConfig.general.primaryColor}; background: ${siteConfig.general.backgroundColor}; padding: 20px; border-radius: 10px;">
-                    <h2>${siteConfig.general.mainTitle}</h2>
-                    <p>${siteConfig.general.mainSubtitle}</p>
-                    <div class="mt-3">
-                        <h5>Secciones: ${siteConfig.sections.length}</h5>
-                        <h5>Proyectos: ${siteConfig.projects.length}</h5>
-                        <h5>Testimonios: ${siteConfig.testimonials.length}</h5>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Función para generar HTML de la página principal
-        function generateMainPageHTML() {
-            // Aquí generas el HTML completo de tu página principal
-            // y lo guardas en Firebase también
-            const mainPageHTML = `
-                <!DOCTYPE html>
-                <html lang="es">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>${siteConfig.general.mainTitle}</title>
-                    <style>
-                        :root {
-                            --orange-primary: ${siteConfig.general.primaryColor};
-                            --orange-secondary: ${siteConfig.general.secondaryColor};
-                            --gray-light: ${siteConfig.general.backgroundColor};
-                        }
-                    </style>
-                </head>
-                <body>
-                    <section class="hero-section">
-                        <h1>${siteConfig.general.mainTitle}</h1>
-                        <p>${siteConfig.general.mainSubtitle}</p>
-                    </section>
-                    <!-- Aquí agregas el resto de las secciones dinámicamente -->
-                </body>
-                </html>
-            `;
-            
-            // Guardar HTML generado en Firebase
-            database.ref('generatedHTML').set(mainPageHTML).then(() => {
-                console.log('HTML generado y guardado');
-            });
-        }
-
-        // Inicializar la aplicación
-        document.addEventListener('DOMContentLoaded', function() {
-            loadConfiguration();
-        });
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

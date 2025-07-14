@@ -26,6 +26,7 @@ const ADMIN_SECURITY_CONFIG = {
     "donation-inventory.html",
     "configuracion.html",
     "reportes.html",
+    "configuracion.html",
     "Donaciones.html",
   ],
   REDIRECT_URLS: {

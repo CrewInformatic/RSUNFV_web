@@ -5,7 +5,7 @@ const API_CONFIG = {
     token: "ba742adab9788366016a4e5aef915cbe8d5747e509e3ce4e4250728ef32ecc41", // Reemplaza con tu token de APIPERU
   },
   ruc: {
-    url: "https://apiperu.dev/api/ruc_sunat",
+    url: "https://apiperu.dev/api/ruc",
     token: "ba742adab9788366016a4e5aef915cbe8d5747e509e3ce4e4250728ef32ecc41", // Reemplaza con tu token de APIPERU
   },
 };
