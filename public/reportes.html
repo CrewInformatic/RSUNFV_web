@@ -3,18 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoVoluntarios UNFV - Reportes</title>
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+      <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicons/logo.png">
+    <title>Reportes - EcoVoluntarios UNFV</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/reportes.css">
-    <script type="module" src="js/security.js" defer></script>
-    
 </head>
 <body>
-    <!-- Sidebar -->
+    <!-- ======================= SIDEBAR ======================= -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <a href="#" class="sidebar-brand">
@@ -25,490 +21,244 @@
                 </div>
             </a>
         </div>
-        
-        <div class="sidebar-nav">
-            <a href="admin-dashboard.html" class="nav-link">
+
+        <nav class="sidebar-nav">
+            <button class="nav-link" onclick="navigateToPage('admin-dashboard.html')">
                 <i class="fas fa-chart-line"></i>
                 Dashboard
-            </a>
-            <a href="eventos.html" class="nav-link">
+            </button>
+            <button class="nav-link" onclick="navigateToPage('eventos.html')">
                 <i class="fas fa-calendar-alt"></i>
                 Gestión de Eventos
-            </a>
-            <a href="Donaciones.html" class="nav-link">
+            </button>
+            <button class="nav-link" onclick="navigateToPage('Donaciones.html')">
                 <i class="fas fa-heart"></i>
                 Donaciones
-            </a>
-            <a href="usuarios.html" class="nav-link">
+            </button>
+            <button class="nav-link" onclick="navigateToPage('donation-inventory.html')">
+                <i class="fas fa-warehouse"></i>
+                Inventario
+            </button>
+            <button class="nav-link" onclick="navigateToPage('usuarios.html')">
                 <i class="fas fa-user-friends"></i>
                 Usuarios y Roles
-            </a>
-            <a href="configuracion.html" class="nav-link">
+            </button>
+            <button class="nav-link" onclick="navigateToPage('configuracion.html')">
                 <i class="fas fa-cogs"></i>
                 Configuración
-            </a>
-            <a href="reportes.html" class="nav-link active">
+            </button>
+            <button class="nav-link active" data-section="reportes">
                 <i class="fas fa-chart-bar"></i>
                 Reportes
-            </a>
-        </div>
+            </button>
+        </nav>
     </nav>
 
-    <!-- Main Content -->
+    <!-- ======================= MAIN CONTENT ======================= -->
     <main class="main-content">
-        <!-- Top Navbar -->
-        <nav class="top-navbar d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center">
-                <button class="btn btn-outline-secondary d-lg-none me-3" id="sidebarToggle">
-                    <i class="fas fa-bars"></i>
-                </button>
+        <!-- =================== TOP NAVBAR =================== -->
+        <header class="top-navbar">
+            <div class="d-flex justify-content-between align-items-center">
                 <h1 class="page-title">
-                    <i class="fas fa-chart-bar me-2 text-warning"></i>
-                    Reportes de Eventos
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Centro de Reportes
                 </h1>
-            </div>
-            <div class="d-flex align-items-center gap-3">
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle"></i>
-                        <span>HAROLD ARTURO</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#">
-                            <i class="fas fa-user me-2"></i>Mi Perfil</a></li>
-                        <li><a class="dropdown-item" href="#">
-                            <i class="fas fa-cog me-2"></i>Configuración</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#">
-                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-
-        <div class="content-wrapper">
-            <!-- Filtros de Reportes -->
-            <div class="filters-section">
-                <h5 class="filter-title">
-                    <i class="fas fa-filter"></i>
-                    Filtros de Reportes
-                </h5>
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label">Fecha Inicio</label>
-                        <input type="date" class="form-control" id="fechaInicio">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Fecha Fin</label>
-                        <input type="date" class="form-control" id="fechaFin">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Tipo de Evento</label>
-                        <select class="form-select" id="tipoEvento">
-                            <option value="">Todos los tipos</option>
-                            <option value="reforestacion">Reforestación</option>
-                            <option value="limpieza">Limpieza Ambiental</option>
-                            <option value="educacion">Educación Ambiental</option>
-                            <option value="conservacion">Conservación</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Estado del Evento</label>
-                        <select class="form-select" id="estadoEvento">
-                            <option value="">Todos los estados</option>
-                            <option value="activo">Activo</option>
-                            <option value="finalizado">Finalizado</option>
-                            <option value="cancelado">Cancelado</option>
-                            <option value="en_progreso">En progreso</option>
-                        </select>
-                    </div>
-                    <div class="col-md-12 d-flex justify-content-end">
-                        <button class="btn btn-filter">
-                            <i class="fas fa-search me-2"></i>
-                            Aplicar Filtros
+                <div class="d-flex align-items-center gap-3">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle"></i>
+                            <span id="userDisplayName">Harold Arturo</span>
                         </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="showProfile()">
+                                    <i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="showSettings()">
+                                    <i class="fas fa-cog me-2"></i>Configuración</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#" onclick="handleLogout()">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+                        </ul>
                     </div>
                 </div>
             </div>
+        </header>
 
-            <!-- Reportes de Eventos -->
-            <div class="row g-4">
-                <!-- Reporte General de Eventos -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="report-card">
-                        <div class="report-card-header">
-                            <div class="report-card-icon">
-                                <i class="fas fa-calendar-check"></i>
-                            </div>
-                            <h6 class="report-card-title">Reporte General de Eventos</h6>
-                            <p class="report-card-subtitle">Estadísticas completas de todos los eventos creados</p>
+    <main>
+        <div class="content-wrapper">
+            <!-- Welcome Section -->
+            <div class="welcome-section">
+                <div class="welcome-content">
+                    <h2><i class="fas fa-chart-pie me-2"></i>Centro de Reportes y Analytics</h2>
+                    <p class="mb-0">Genera reportes detallados y obtén insights valiosos sobre las actividades de EcoVoluntarios</p>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <div class="quick-action-card" onclick="generateQuickReport('general')">
+                    <div class="quick-action-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h6>Reporte General</h6>
+                    <small class="text-muted">Resumen completo del sistema</small>
+                </div>
+                <div class="quick-action-card" onclick="generateQuickReport('events')">
+                    <div class="quick-action-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <h6>Eventos</h6>
+                    <small class="text-muted">Estadísticas de eventos</small>
+                </div>
+                <div class="quick-action-card" onclick="generateQuickReport('donations')">
+                    <div class="quick-action-icon">
+                        <i class="fas fa-hand-holding-heart"></i>
+                    </div>
+                    <h6>Donaciones</h6>
+                    <small class="text-muted">Análisis financiero</small>
+                </div>
+                <div class="quick-action-card" onclick="generateQuickReport('volunteers')">
+                    <div class="quick-action-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h6>Voluntarios</h6>
+                    <small class="text-muted">Participación y actividad</small>
+                </div>
+            </div>
+
+            <!-- Statistics Overview -->
+            <div class="row mb-4">
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="stat-card primary">
+                        <div class="stat-icon text-primary">
+                            <i class="fas fa-file-pdf"></i>
                         </div>
-                        <div class="report-card-body">
-                            <div class="report-stats">
-                                <div class="stat-item">
-                                    <div class="stat-number">0</div>
-                                    <div class="stat-label">Total Eventos</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-number">0</div>
-                                    <div class="stat-label">Finalizados</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-number">0</div>
-                                    <div class="stat-label">Activos</div>
-                                </div>
-                            </div>
-                            <button class="btn-download w-100 text-center">
-                                <i class="fas fa-download"></i>
-                                Descargar PDF
-                            </button>
+                        <div class="stat-number" id="totalReports">-</div>
+                        <div class="stat-label">Reportes Generados</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i> <span id="reportsChange">-</span>
                         </div>
                     </div>
                 </div>
-
-                <!-- Reporte de Inscripciones -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="report-card">
-                        <div class="report-card-header">
-                            <div class="report-card-icon">
-                                <i class="fas fa-user-plus"></i>
-                            </div>
-                            <h6 class="report-card-title">Inscripciones por Evento</h6>
-                            <p class="report-card-subtitle">Análisis de voluntarios inscritos vs capacidad máxima</p>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="stat-card success">
+                        <div class="stat-icon text-success">
+                            <i class="fas fa-download"></i>
                         </div>
-                        <div class="report-card-body">
-                            <div class="report-stats">
-                                <div class="stat-item">
-                                    <div class="stat-number">0</div>
-                                    <div class="stat-label">Total Inscritos</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-number">0</div>
-                                    <div class="stat-label">Capacidad Total</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-number">0%</div>
-                                    <div class="stat-label">Ocupación</div>
-                                </div>
-                            </div>
-                            <button class="btn-download w-100 text-center">
-                                <i class="fas fa-download"></i>
-                                Descargar PDF
-                            </button>
+                        <div class="stat-number" id="totalDownloads">-</div>
+                        <div class="stat-label">Descargas Totales</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i> <span id="downloadsChange">-</span>
                         </div>
                     </div>
                 </div>
-
-                <!-- Reporte por Ubicación -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="report-card">
-                        <div class="report-card-header">
-                            <div class="report-card-icon">
-                                <i class="fas fa-map-marker-alt"></i>
-                            </div>
-                            <h6 class="report-card-title">Eventos por Ubicación</h6>
-                            <p class="report-card-subtitle">Distribución geográfica de eventos</p>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="stat-card info">
+                        <div class="stat-icon text-info">
+                            <i class="fas fa-chart-line"></i>
                         </div>
-                        <div class="report-card-body">
-                            <div class="report-stats">
-                                <div class="stat-item">
-                                    <div class="stat-number">0</div>
-                                    <div class="stat-label">Ubicaciones</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-number">0</div>
-                                    <div class="stat-label">Eventos</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-number">0</div>
-                                    <div class="stat-label">Promedio/Lugar</div>
-                                </div>
-                            </div>
-                            <button class="btn-download w-100 text-center">
-                                <i class="fas fa-download"></i>
-                                Descargar PDF
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Reporte por Tipo de Evento -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="report-card">
-                        <div class="report-card-header">
-                            <div class="report-card-icon">
-                                <i class="fas fa-tags"></i>
-                            </div>
-                            <h6 class="report-card-title">Eventos por Tipo</h6>
-                            <p class="report-card-subtitle">Clasificación por tipo de actividad</p>
-                        </div>
-                        <div class="report-card-body">
-                            <div class="report-stats">
-                                <div class="stat-item">
-                                    <div class="stat-number">0</div>
-                                    <div class="stat-label">Reforestación</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-number">0</div>
-                                    <div class="stat-label">Limpieza</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-number">0</div>
-                                    <div class="stat-label">Educación</div>
-                                </div>
-                            </div>
-                            <button class="btn-download w-100 text-center">
-                                <i class="fas fa-download"></i>
-                                Descargar PDF
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Reporte de Administradores -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="report-card">
-                        <div class="report-card-header">
-                            <div class="report-card-icon">
-                                <i class="fas fa-user-tie"></i>
-                            </div>
-                            <h6 class="report-card-title">Eventos por Administrador</h6>
-                            <p class="report-card-subtitle">Análisis de eventos creados por cada admin</p>
-                        </div>
-                        <div class="report-card-body">
-                            <div class="report-stats">
-                                <div class="stat-item">
-                                    <div class="stat-number">0</div>
-                                    <div class="stat-label">Admins Activos</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-number">0</div>
-                                    <div class="stat-label">Eventos/Admin</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-number">0%</div>
-                                    <div class="stat-label">Tasa Éxito</div>
-                                </div>
-                            </div>
-                            <button class="btn-download w-100 text-center">
-                                <i class="fas fa-download"></i>
-                                Descargar PDF
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Reporte Temporal -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="report-card">
-                        <div class="report-card-header">
-                            <div class="report-card-icon">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <h6 class="report-card-title">Análisis Temporal</h6>
-                            <p class="report-card-subtitle">Tendencias por fechas de creación e inicio</p>
-                        </div>
-                        <div class="report-card-body">
-                            <div class="report-stats">
-                                <div class="stat-item">
-                                    <div class="stat-number">+0%</div>
-                                    <div class="stat-label">Crecimiento</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-number">0</div>
-                                    <div class="stat-label">Días Promedio</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-number">0%</div>
-                                    <div class="stat-label">Puntualidad</div>
-                                </div>
-                            </div>
-                            <button class="btn-download w-100 text-center">
-                                <i class="fas fa-download"></i>
-                                Descargar PDF
-                            </button>
+                        <div class="stat-number" id="dataAccuracy">-</div>
+                        <div class="stat-label">Precisión de Datos</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-check"></i> <span id="accuracyStatus">-</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Sección de Gráficos -->
-            <div class="row mt-5">
-                <div class="col-lg-6">
-                    <div class="report-card">
-                        <div class="report-card-header">
-                            <h6 class="report-card-title">
-                                <i class="fas fa-chart-pie me-2"></i>
-                                Distribución por Tipo de Evento
-                            </h6>
-                        </div>
-                        <div class="report-card-body">
-                            <canvas id="tipoEventoChart" height="200"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="report-card">
-                        <div class="report-card-header">
-                            <h6 class="report-card-title">
-                                <i class="fas fa-chart-bar me-2"></i>
-                                Eventos por Estado
-                            </h6>
-                        </div>
-                        <div class="report-card-body">
-                            <canvas id="estadoEventoChart" height="200"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tabla de Eventos Detallada -->
-            <div class="row mt-5">
+            <!-- Report Generator -->
+            <div class="row mb-4">
                 <div class="col-12">
-                    <div class="report-card">
-                        <div class="report-card-header">
-                            <h6 class="report-card-title">
-                                <i class="fas fa-table me-2"></i>
-                                Detalle de Eventos
-                            </h6>
-                            <p class="report-card-subtitle">Información completa de todos los eventos</p>
+                    <div class="table-card">
+                        <div class="table-header">
+                            <h5><i class="fas fa-magic me-2"></i>Generador de Reportes Personalizado</h5>
                         </div>
-                        <div class="report-card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Título</th>
-                                            <th>Ubicación</th>
-                                            <th>Fecha Inicio</th>
-                                            <th>Capacidad Max</th>
-                                            <th>Inscritos</th>
-                                            <th>Estado</th>
-                                            <th>Tipo</th>
-                                            <th>Admin</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="eventosTable">
-                                        <!-- Los datos se cargarán dinámicamente -->
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="text-center mt-3">
-                                <button class="btn-download">
-                                    <i class="fas fa-file-excel me-2"></i>
-                                    Exportar a Excel
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sección de Reporte Personalizado -->
-            <div class="row mt-5">
-                <div class="col-12">
-                    <div class="report-card">
-                        <div class="report-card-header">
-                            <div class="report-card-icon">
-                                <i class="fas fa-cogs"></i>
-                            </div>
-                            <h6 class="report-card-title">Reporte Personalizado</h6>
-                            <p class="report-card-subtitle">Crea un reporte con criterios específicos basados en tu base de datos</p>
-                        </div>
-                        <div class="report-card-body">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Título del Reporte</label>
-                                    <input type="text" class="form-control" placeholder="Ingrese el título del reporte">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Rango de Fechas</label>
-                                    <select class="form-select">
-                                        <option value="">Seleccionar período</option>
-                                        <option value="ultimo_mes">Último mes</option>
-                                        <option value="ultimos_3_meses">Últimos 3 meses</option>
-                                        <option value="ultimo_semestre">Último semestre</option>
-                                        <option value="ultimo_ano">Último año</option>
-                                        <option value="personalizado">Rango personalizado</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-12">
-                                    <label class="form-label">Métricas a incluir</label>
-                                    <div class="row">
-                                        <div class="col-md-3">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="eventosPorTipo" checked>
-                                                <label class="form-check-label" for="eventosPorTipo">
-                                                    Eventos por tipo
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="inscripciones" checked>
-                                                <label class="form-check-label" for="inscripciones">
-                                                    Análisis de inscripciones
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="ubicaciones" checked>
-                                                <label class="form-check-label" for="ubicaciones">
-                                                    Distribución por ubicación
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="administradores" checked>
-                                                <label class="form-check-label" for="administradores">
-                                                    Eventos por administrador
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="estados">
-                                                <label class="form-check-label" for="estados">
-                                                    Estados de eventos
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="temporal">
-                                                <label class="form-check-label" for="temporal">
-                                                    Análisis temporal
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="capacidad">
-                                                <label class="form-check-label" for="capacidad">
-                                                    Análisis de capacidad
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="graficos">
-                                                <label class="form-check-label" for="graficos">
-                                                    Gráficos y visualizaciones
-                                                </label>
-                                            </div>
-                                        </div>
+                        <div class="p-4">
+                            <form id="reportForm">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label fw-bold">Tipo de Reporte</label>
+                                        <select class="form-select" id="reportType" required>
+                                            <option value="">Seleccionar tipo...</option>
+                                            <option value="general">Reporte General del Sistema</option>
+                                            <option value="eventos">Análisis de Eventos</option>
+                                            <option value="donaciones">Reporte de Donaciones</option>
+                                            <option value="voluntarios">Estadísticas de Voluntarios</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label fw-bold">Periodo</label>
+                                        <select class="form-select" id="reportPeriod" required>
+                                            <option value="">Seleccionar periodo...</option>
+                                            <option value="ultima_semana">Última Semana</option>
+                                            <option value="ultimo_mes">Último Mes</option>
+                                            <option value="ultimo_trimestre">Último Trimestre</option>
+                                            <option value="ultimo_semestre">Último Semestre</option>
+                                            <option value="ultimo_año">Último Año</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label fw-bold">Formato de Salida</label>
+                                        <select class="form-select" id="reportFormat" required>
+                                            <option value="">Seleccionar formato...</option>
+                                            <option value="pdf">PDF - Documento</option>
+                                        </select>
                                     </div>
                                 </div>
-                                <div class="col-md-12 text-center">
-                                    <button class="btn-download">
-                                        <i class="fas fa-magic me-2"></i>
-                                        Generar Reporte Personalizado
+                                
+                                <div class="row" id="customDateRange" style="display: none;">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Fecha Inicio</label>
+                                        <input type="date" class="form-control" id="startDate">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Fecha Fin</label>
+                                        <input type="date" class="form-control" id="endDate">
+                                    </div>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-magic me-2"></i>Generar Reporte
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="previewReport()">
+                                        <i class="fas fa-eye me-2"></i>Vista Previa
                                     </button>
                                 </div>
-                            </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Reports -->
+<!-- Recent Reports -->
+<div class="row">
+    <div class="col-12 mb-4 reports-table-container">
+        <div class="table-card">
+                        <div class="table-header d-flex justify-content-between align-items-center">
+                            <h5><i class="fas fa-history me-2"></i>Reportes Recientes</h5>
+                            <button class="btn btn-outline-light btn-sm" onclick="refreshRecentReports()">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                        <div class="table-responsive-simple">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Reporte</th>
+                                        <th>Fecha</th>
+                                        <th>Tamaño</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentReportsTable">
+                                    <!-- Los reportes se cargan dinámicamente aquí -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -516,11 +266,116 @@
         </div>
     </main>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
-    <!-- Chart.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <!-- Reportes JS -->
-    <script type="module" src="js/reportes.js"></script>
+    <!-- Progress Modal -->
+    <div class="modal fade" id="reportProgressModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">
+                        <i class="fas fa-magic me-2"></i>Generando Reporte
+                    </h5>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="mb-3">
+                        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                            <span class="visually-hidden">Generando...</span>
+                        </div>
+                    </div>
+                    <h6 id="progressText">Preparando datos...</h6>
+                    <div class="progress mt-3" style="height: 6px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             id="progressBar" style="width: 0%"></div>
+                    </div>
+                    <p class="text-muted mt-2 mb-0">
+                        <small>Esto puede tomar unos momentos dependiendo del tamaño del reporte</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-eye me-2"></i>Vista Previa del Reporte
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="previewContent">
+                    <!-- Contenido de la vista previa aquí -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmGenerateReport()">
+                        <i class="fas fa-magic me-2"></i>Generar Reporte
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule Modal -->
+    <div class="modal fade" id="scheduleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-clock me-2"></i>Programar Reporte
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="scheduleForm">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre del Reporte</label>
+                            <input type="text" class="form-control" id="scheduleName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Frecuencia</label>
+                            <select class="form-select" id="scheduleFrequency" required>
+                                <option value="">Seleccionar frecuencia...</option>
+                                <option value="diario">Diario</option>
+                                <option value="semanal">Semanal</option>
+                                <option value="mensual">Mensual</option>
+                                <option value="trimestral">Trimestral</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Hora de Envío</label>
+                            <input type="time" class="form-control" id="scheduleTime" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email de Notificación</label>
+                            <input type="email" class="form-control" id="scheduleEmail" placeholder="admin@ecovoluntarios.com">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="saveScheduledReport()">
+                        <i class="fas fa-save me-2"></i>Guardar Programación
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- LIBRERÍAS PDF - VERSIONES MODERNAS COMPATIBLES -->
+<!-- LIBRERÍAS PDF PRIMERO -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<!-- TU SCRIPT DESPUÉS -->
+<script src="js/advanced-pdf-report-manager.js"></script>
+
+<!-- Otros módulos -->  
+<script type="module" src="js/reportes.js"></script>
+<script type="module" src="js/security.js"></script>
+
+<!-- Bootstrap al final -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
